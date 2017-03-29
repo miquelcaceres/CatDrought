@@ -11,9 +11,9 @@ plotIDs = rownames(IFN3_SPT@coords)
 nplots = length(plotIDs)
 swbres = vector("list", nplots)
 
-pb = txtProgressBar(0, nplots, style = 3)
+# pb = txtProgressBar(0, nplots, style = 3)
 for(i in 1:nplots) {
-  setTxtProgressBar(pb, i)
+  cat(".")
   plotID = plotIDs[i]
   
   #Load inputs

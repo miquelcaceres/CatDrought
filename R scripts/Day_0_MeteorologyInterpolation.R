@@ -83,5 +83,5 @@ interpolator = MeteorologyInterpolationData(AEMET_utm31_sp,
 
 #Interpolate meteorology
 load("Rdata/IFN3_SPT_cat.rdata")
-spm = interpolationpoints(interpolator, IFN3_SPT, date)
+spm = interpolationpoints(interpolator, IFN3_SPT, date, verbose=FALSE)
 save(spm, file="Rdata/temp_spm.rdata")
