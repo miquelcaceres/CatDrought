@@ -1,8 +1,13 @@
+#########################################################################
+#  Runs weather station data downloading,
+#  weather interpolation and soil water balance for the current date
+#########################################################################
+
 #Working directory
 setwd("D:/Rservices/CatDrought/")
 
-#Sets sink
-sink("CatDrought.log")
+# #Sets sink
+# sink("CatDrought.log")
 
 #Download current day meteo
 source("D:/Recerca/Datasets/Climate/R scripts/AEMET_download.R")
@@ -12,9 +17,19 @@ setwd("D:/Rservices/CatDrought/")
 
 #Interpolate meteo
 source("R scripts/Day_0_MeteorologyInterpolation.R")
+interpolateCat() #current day
 
 #Soil water balance
 source("R scripts/Day_1_SWB.R")
+swbCat()
+
+#Calculates SWB maps
+source("R scripts/Day_2_DaySWBMaps.R")
+swbPointMapsCat() #Current day
+
+#Update plot 1-year trends
+source("R scripts/Day_3_UpdatePlotYearTrends.R")
+plotYearTrends()
 
 #Returns to normal console output
-sink()
+# sink()
