@@ -1,6 +1,7 @@
 #########################################################################
 #  Runs weather station data downloading,
-#  weather interpolation and soil water balance for the current date
+#  weather interpolation and soil water balance,
+#  and process outputs for the current date
 #########################################################################
 
 #Working directory
@@ -30,6 +31,10 @@ swbPointMapsCat() #Current day
 #Update plot 1-year trends
 source("R scripts/Day_3_UpdatePlotYearTrends.R")
 plotYearTrends()
+
+#Calculates Drought stress maps
+source("R scripts/Day_4_DayDroughtStressMaps.R")
+droughtStressMapsCat()
 
 #Returns to normal console output
 # sink()

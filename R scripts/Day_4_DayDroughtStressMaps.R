@@ -1,0 +1,144 @@
+library(medfate)
+library(spatstat)
+library(maptools)
+
+droughtStressMapsCat<-function(date = Sys.Date(), radius = 3000, pixelres = 1000) {
+  load("Rdata/IFN3_SPT_cat.rdata")
+  load(paste0("Rdata/DailySWB/", as.character(date), ".rda"))  
+  plotIDs = rownames(IFN3_SPT@coords)
+  npoints = length(plotIDs)
+  
+  df = data.frame(matrix(NA,nrow=npoints, ncol =11))
+  names(df)<-c("PinusHalepensis","PinusNigra","PinusSylvestris","PinusUncinata", "PinusPinea", "PinusPinaster",
+               "QuercusIlex","QuercusSuber",  "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
+  pb = txtProgressBar(0, npoints, style = 3)
+  for(i in 1:npoints) {
+    setTxtProgressBar(pb,i)
+    plotID = plotIDs[i]
+    resday = swbres[[i]]
+    load(file=paste0("Rdata/Plots/",plotID,".rda"))
+    SP = x$above$SP
+    LAI_expanded = x$above$LAI_expanded
+    resday$DDS = pmax(pmin(resday$DDS,1),0) #Avoid out of range values
+    if(sum(SP==54)>0) {
+      if(sum(LAI_expanded[SP==54])>0) {
+        df[i,"PinusHalepensis"] = sum(LAI_expanded[SP==54]*resday$DDS[SP==54])/sum(LAI_expanded[SP==54])
+      } else {
+        df[i,"PinusHalepensis"] = 0
+      }
+    }
+    if(sum(SP==55)>0) {
+      if(sum(LAI_expanded[SP==55])>0) {
+        df[i,"PinusNigra"] = sum(LAI_expanded[SP==55]*resday$DDS[SP==55])/sum(LAI_expanded[SP==55])
+      } else {
+        df[i,"PinusNigra"] = 0
+      }
+    }
+    if(sum(SP==59)>0) {
+      if(sum(LAI_expanded[SP==59])>0) {
+        df[i,"PinusSylvestris"] = sum(LAI_expanded[SP==59]*resday$DDS[SP==59])/sum(LAI_expanded[SP==59])
+      } else {
+        df[i,"PinusSylvestris"] = 0
+      }
+    }
+    if(sum(SP==60)>0) {
+      if(sum(LAI_expanded[SP==60])>0) {
+        df[i,"PinusUncinata"] = sum(LAI_expanded[SP==60]*resday$DDS[SP==60])/sum(LAI_expanded[SP==60])
+      } else {
+        df[i,"PinusUncinata"] = 0
+      }
+    }
+    if(sum(SP==57)>0) {
+      if(sum(LAI_expanded[SP==57])>0) {
+        df[i,"PinusPinea"] = sum(LAI_expanded[SP==57]*resday$DDS[SP==57])/sum(LAI_expanded[SP==57])
+      } else {
+        df[i,"PinusPinea"] = 0
+      }
+    }
+    if(sum(SP==56)>0) {
+      if(sum(LAI_expanded[SP==56])>0) {
+        df[i,"PinusPinaster"] = sum(LAI_expanded[SP==56]*resday$DDS[SP==56])/sum(LAI_expanded[SP==56])
+      } else {
+        df[i,"PinusPinaster"] = 0
+      }
+    }
+    if(sum(SP==68)>0) {
+      if(sum(LAI_expanded[SP==68])>0) {
+        df[i,"QuercusIlex"] = sum(LAI_expanded[SP==68]*resday$DDS[SP==68])/sum(LAI_expanded[SP==68])
+      } else {
+        df[i,"QuercusIlex"] = 0
+      }
+    }
+    if(sum(SP==72)>0) {
+      if(sum(LAI_expanded[SP==72])>0) {
+        df[i,"QuercusSuber"] = sum(LAI_expanded[SP==72]*resday$DDS[SP==72])/sum(LAI_expanded[SP==72])
+      } else {
+        df[i,"QuercusSuber"] = 0
+      }
+    }
+    if(sum(SP==67)>0) {
+      if(sum(LAI_expanded[SP==67])>0) {
+        df[i,"QuercusHumilis"] = sum(LAI_expanded[SP==67]*resday$DDS[SP==67])/sum(LAI_expanded[SP==67])
+      } else {
+        df[i,"QuercusHumilis"] = 0
+      }
+    }
+    if(sum(SP==66)>0) {
+      if(sum(LAI_expanded[SP==66])>0) {
+        df[i,"QuercusFaginea"] = sum(LAI_expanded[SP==66]*resday$DDS[SP==66])/sum(LAI_expanded[SP==66])
+      } else {
+        df[i,"QuercusFaginea"] = 0
+      }
+    }
+    if(sum(SP==37)>0) {
+      if(sum(LAI_expanded[SP==37])>0) {
+        df[i,"FagusSylvatica"] = sum(LAI_expanded[SP==37]*resday$DDS[SP==37])/sum(LAI_expanded[SP==37])
+      } else {
+        df[i,"FagusSylvatica"] = 0
+      }
+    }
+  }
+  spdf = SpatialPointsDataFrame(coordinates(IFN3_SPT),df,proj4string = IFN3_SPT@proj4string)
+  save(spdf,file=paste0("Rdata/SpatialPointDroughtStressMaps/", as.character(date), ".rda"))  
+  
+  #Smoothing
+  cc = IFN3_SPT@coords
+  ow = as.owin(as.vector(t(IFN3_SPT@bbox)))
+  ph.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusHalepensis), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  ph.sgdf = as.SpatialGridDataFrame.im(ph.smooth)
+  pn.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusNigra), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  pn.sgdf = as.SpatialGridDataFrame.im(pn.smooth)
+  ps.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusSylvestris), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  ps.sgdf = as.SpatialGridDataFrame.im(ps.smooth)
+  pu.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusUncinata), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  pu.sgdf = as.SpatialGridDataFrame.im(pu.smooth)
+  ppi.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusPinea), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  ppi.sgdf = as.SpatialGridDataFrame.im(ppi.smooth)
+  pps.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusPinaster), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  pps.sgdf = as.SpatialGridDataFrame.im(pps.smooth)
+  
+  qi.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusIlex), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  qi.sgdf = as.SpatialGridDataFrame.im(qi.smooth)
+  qs.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusSuber), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  qs.sgdf = as.SpatialGridDataFrame.im(qs.smooth)
+  qh.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusHumilis), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  qh.sgdf = as.SpatialGridDataFrame.im(qh.smooth)
+  qf.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusFaginea), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  qf.sgdf = as.SpatialGridDataFrame.im(qf.smooth)
+  fs.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$FagusSylvatica), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
+  fs.sgdf = as.SpatialGridDataFrame.im(fs.smooth)
+  
+  spdf = ph.sgdf
+  names(spdf@data) = "PinusHalepensis"
+  spdf@data$PinusNigra = pn.sgdf@data[,1]
+  spdf@data$PinusSylvestris = ps.sgdf@data[,1]
+  spdf@data$PinusUncinata = pu.sgdf@data[,1]
+  spdf@data$PinusPinea = ppi.sgdf@data[,1]
+  spdf@data$PinusPinaster = pps.sgdf@data[,1]
+  spdf@data$QuercusIlex = qi.sgdf@data[,1]
+  spdf@data$QuercusSuber = qs.sgdf@data[,1]
+  spdf@data$QuercusHumilis = qh.sgdf@data[,1]
+  spdf@data$QuercusFaginea = qf.sgdf@data[,1]
+  spdf@data$FagusSylvatica = fs.sgdf@data[,1]
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/", as.character(date), ".rda"))
+}

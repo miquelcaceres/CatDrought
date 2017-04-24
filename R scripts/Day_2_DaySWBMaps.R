@@ -2,7 +2,7 @@ library(medfate)
 library(spatstat)
 library(maptools)
 
-swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
+swbPointMapsCat<-function(date = Sys.Date(), radius = 3000, pixelres = 1000) {
   load("Rdata/IFN3_SPT_cat.rdata")
   load(paste0("Rdata/DailySWB/", as.character(date), ".rda"))  
   plotIDs = rownames(IFN3_SPT@coords)
@@ -41,33 +41,33 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   cc = IFN3_SPT@coords
   ow = as.owin(as.vector(t(IFN3_SPT@bbox)))
   pet.smooth = Smooth(ppp(x=cc[!is.na(df$PET),1], y=cc[!is.na(df$PET),2], window = ow, 
-                 marks = df$PET[!is.na(df$PET)]), sigma=radius, at="pixels")
+                 marks = df$PET[!is.na(df$PET)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   pet.sgdf = as.SpatialGridDataFrame.im(pet.smooth)
   if("Rain" %in% names(resday)) {
     rain.smooth = Smooth(ppp(x=cc[!is.na(df$Rain),1], y=cc[!is.na(df$Rain),2], window = ow, 
-                          marks = df$Rain[!is.na(df$Rain)]), sigma=radius, at="pixels")
+                          marks = df$Rain[!is.na(df$Rain)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
     rain.sgdf = as.SpatialGridDataFrame.im(rain.smooth)
   }
   netprec.smooth = Smooth(ppp(x=cc[!is.na(df$NetPrec),1], y=cc[!is.na(df$NetPrec),2], window = ow, 
-                          marks = df$NetPrec[!is.na(df$NetPrec)]), sigma=radius, at="pixels")
+                          marks = df$NetPrec[!is.na(df$NetPrec)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   netprec.sgdf = as.SpatialGridDataFrame.im(netprec.smooth)
   runoff.smooth = Smooth(ppp(x=cc[!is.na(df$Runoff),1], y=cc[!is.na(df$Runoff),2], window = ow, 
-                              marks = df$Runoff[!is.na(df$Runoff)]), sigma=radius, at="pixels")
+                              marks = df$Runoff[!is.na(df$Runoff)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   runoff.sgdf = as.SpatialGridDataFrame.im(runoff.smooth)
   deep.smooth = Smooth(ppp(x=cc[!is.na(df$DeepDrainage),1], y=cc[!is.na(df$DeepDrainage),2], window = ow, 
-                             marks = df$DeepDrainage[!is.na(df$DeepDrainage)]), sigma=radius, at="pixels")
+                             marks = df$DeepDrainage[!is.na(df$DeepDrainage)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   deep.sgdf = as.SpatialGridDataFrame.im(deep.smooth)
   lai.smooth = Smooth(ppp(x=cc[!is.na(df$LAI),1], y=cc[!is.na(df$LAI),2], window = ow, 
-                           marks = df$LAI[!is.na(df$LAI)]), sigma=radius, at="pixels")
+                           marks = df$LAI[!is.na(df$LAI)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   lai.sgdf = as.SpatialGridDataFrame.im(lai.smooth)
   eplant.smooth = Smooth(ppp(x=cc[!is.na(df$Eplant),1], y=cc[!is.na(df$Eplant),2], window = ow, 
-                          marks = df$Eplant[!is.na(df$Eplant)]), sigma=radius, at="pixels")
+                          marks = df$Eplant[!is.na(df$Eplant)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   eplant.sgdf = as.SpatialGridDataFrame.im(eplant.smooth)
   esoil.smooth = Smooth(ppp(x=cc[!is.na(df$Esoil),1], y=cc[!is.na(df$Esoil),2], window = ow, 
-                             marks = df$Esoil[!is.na(df$Esoil)]), sigma=radius, at="pixels")
+                             marks = df$Esoil[!is.na(df$Esoil)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   esoil.sgdf = as.SpatialGridDataFrame.im(esoil.smooth)
   theta.smooth = Smooth(ppp(x=cc[!is.na(df$Theta),1], y=cc[!is.na(df$Theta),2], window = ow, 
-                            marks = df$Theta[!is.na(df$Theta)]), sigma=radius, at="pixels")
+                            marks = df$Theta[!is.na(df$Theta)]), sigma=radius, at="pixels", eps=c(pixelres,pixelres))
   theta.sgdf = as.SpatialGridDataFrame.im(theta.smooth)
   
   spdf = pet.sgdf

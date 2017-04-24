@@ -26,7 +26,7 @@ updatePlotYearTrends<-function(date = Sys.Date()) {
     trends[365,"LAI"] = resday$LAIcell
     trends[365,"Esoil"] = sum(resday$EsoilVec, na.rm=TRUE)
     trends[365,"Eplant"] = sum(resday$EplantCoh, na.rm=TRUE)
-    ## Use soil texture to calculate REW from 
+    ## Use soil texture to calculate Theta from 
     load(file=paste0("Rdata/Plots/",plotID,".rda"))
     nlayers = length(soil$dVec)
     theta =numeric(nlayers)

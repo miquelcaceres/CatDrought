@@ -9,7 +9,8 @@ setwd("D:/Rservices/CatDrought/")
 # source("R scripts/Day_0_MeteorologyInterpolation.R")
 # source("R scripts/Day_1_SWB.R")
 source("R scripts/Day_2_DaySWBMaps.R")
-source("R scripts/Day_3_UpdatePlotYearTrends.R")
+# source("R scripts/Day_3_UpdatePlotYearTrends.R")
+source("R scripts/Day_4_DayDroughtStressMaps.R")
 
 dates = seq(as.Date("2017-03-28"), as.Date("2017-04-23"), by="day")
 
@@ -22,5 +23,7 @@ for(i in 1:length(dates)) {
   #Create maps
   swbPointMapsCat(dates[i])
   #Update plot trends
-  updatePlotYearTrends(dates[i])
+  # updatePlotYearTrends(dates[i])
+  #Create drought stress maps
+  droughtStressMapsCat(dates[i])
 }
