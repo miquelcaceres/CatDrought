@@ -10,6 +10,6 @@ for(i in 1:nplots) {
   plotID = plotIDs[i]
   setTxtProgressBar(pb,i)
   trends = data.frame(matrix(NA, nrow=365, ncol=9))
-  names(trends)<-c("PET","Rain","NetPrec","Runoff", "DeepDrainage", "LAI", "Eplant","Esoil",  "REW")
+  names(trends)<-c("PET","Rain","NetPrec","Runoff", "DeepDrainage", "LAI", "Eplant","Esoil",  "Theta")
   save(trends,file=paste0("Rdata/PlotYearTrends/", plotID, ".rda"))  
 }
