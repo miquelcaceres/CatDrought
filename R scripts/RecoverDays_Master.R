@@ -26,7 +26,7 @@ for(i in 1:length(dates)) {
   #Update plot SWB trends
   # updatePlotSWBYearTrends(dates[i])
   #Create drought stress maps
-  # droughtStressMapsCat(dates[i])
+  droughtStressMapsCat(dates[i])
   #Update plot drought stress trends
   # updatePlotDroughtStressYearTrends(dates[i])
 }
