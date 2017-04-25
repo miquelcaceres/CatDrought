@@ -1,6 +1,6 @@
 library(medfate)
 
-updatePlotYearTrends<-function(date = Sys.Date()) {
+updatePlotSWBYearTrends<-function(date = Sys.Date()) {
   load("Rdata/IFN3_SPT_cat.rdata")
   load(paste0("Rdata/DailySWB/", as.character(date), ".rda"))  
   plotIDs = rownames(IFN3_SPT@coords)
@@ -15,7 +15,7 @@ updatePlotYearTrends<-function(date = Sys.Date()) {
   for(i in 1:npoints) {
     setTxtProgressBar(pb,i)
     plotID = plotIDs[i]
-    load(file=paste0("Rdata/PlotYearTrends/", plotID, ".rda"))  
+    load(file=paste0("Rdata/PlotSWBYearTrends/", plotID, ".rda"))  
     resday = swbres[[i]]
     trends[1:364,] = trends[2:365,]
     trends[365,"PET"] = resday$PET
@@ -37,6 +37,6 @@ updatePlotYearTrends<-function(date = Sys.Date()) {
     if(sum(is.na(theta))>0 || sum(is.na(soil$Water_FC))>0 || sum(soil$Water_FC)==0) trends[365,"Theta"] =NA
     
     row.names(trends) = as.character(dates)
-    save(trends,file=paste0("Rdata/PlotYearTrends/", plotID, ".rda"))  
+    save(trends,file=paste0("Rdata/PlotSWBYearTrends/", plotID, ".rda"))  
   }
 }

@@ -29,12 +29,16 @@ source("R scripts/Day_2_DaySWBMaps.R")
 swbPointMapsCat() #Current day
 
 #Update plot 1-year trends
-source("R scripts/Day_3_UpdatePlotYearTrends.R")
-plotYearTrends()
+source("R scripts/Day_3_UpdatePlotSWBYearTrends.R")
+updatePlotSWBYearTrends()
 
 #Calculates Drought stress maps
 source("R scripts/Day_4_DayDroughtStressMaps.R")
 droughtStressMapsCat()
+
+#Update plot 1-year trends
+source("R scripts/Day_5_UpdatePlotDroughtStressYearTrends.R")
+updatePlotDroughtStressYearTrends()
 
 #Returns to normal console output
 # sink()
