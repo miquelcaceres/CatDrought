@@ -11,10 +11,10 @@ for(i in 1:nplots) {
   setTxtProgressBar(pb,i)
   trends = data.frame(matrix(NA, nrow=365, ncol=9))
   names(trends)<-c("PET","Rain","NetPrec","Runoff", "DeepDrainage", "LAI", "Eplant","Esoil",  "Theta")
-  save(trends,file=paste0("Rdata/PlotSWBYearTrends/", plotID, ".rda"))  
-  
-  trends = data.frame(matrix(NA,nrow=365, ncol =11))
+  save(trends,file=paste0("Rdata/PlotSWBYearTrends/", plotID, ".rda"))
+
+  trends = data.frame(matrix(NA,nrow=365, ncol =12))
   names(trends)<-c("PinusHalepensis","PinusNigra","PinusSylvestris","PinusUncinata", "PinusPinea", "PinusPinaster",
-               "QuercusIlex","QuercusSuber",  "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
+               "QuercusIlex","QuercusSuber",  "QuercusHumilis", "QuercusFaginea", "FagusSylvatica","Overall")
   save(trends,file=paste0("Rdata/PlotDroughtStressYearTrends/", plotID, ".rda"))  
 }

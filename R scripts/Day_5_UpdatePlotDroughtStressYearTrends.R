@@ -99,6 +99,7 @@ updatePlotDroughtStressYearTrends<-function(date = Sys.Date()) {
         trends[365,"FagusSylvatica"] = 0
       }
     }
+    trends[365,"Overall"] = sum(LAI_expanded*resday$DDS, na.rm=TRUE)/sum(LAI_expanded, na.rm=TRUE)
     
     row.names(trends) = as.character(dates)
     save(trends,file=paste0("Rdata/PlotDroughtStressYearTrends/", plotID, ".rda"))  
