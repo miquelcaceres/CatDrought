@@ -49,6 +49,8 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
     rain.smooth = Smooth(ppp(x=cc[!is.na(df$Rain),1], y=cc[!is.na(df$Rain),2], window = ow, 
                           marks = df$Rain[!is.na(df$Rain)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
     rain.sgdf = as.SpatialGridDataFrame.im(rain.smooth)
+  } else {
+    rain.sgdf =NULL
   }
   netprec.smooth = Smooth(ppp(x=cc[!is.na(df$NetPrec),1], y=cc[!is.na(df$NetPrec),2], window = ow, 
                           marks = df$NetPrec[!is.na(df$NetPrec)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
@@ -81,6 +83,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   spdf@data$Eplant = eplant.sgdf@data[,1]
   spdf@data$Esoil = esoil.sgdf@data[,1]
   spdf@data$Theta = theta.sgdf@data[,1]
+  if(!is.null(rain.sgdf)) spdf@data$Rain = rain.sgdf@data[,1]
   spdf@data[!masks$Forest,] = NA
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/", as.character(date), ".rda"))  
 }

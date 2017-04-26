@@ -107,30 +107,42 @@ droughtStressMapsCat<-function(date = Sys.Date(), radius = 3000) {
   cc = IFN3_SPT@coords
   ow = as.owin(as.vector(t(IFN3_SPT@bbox)))
   ccm = coordinates(masks)
-  ph.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusHalepensis), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  ph.smooth = Smooth(ppp(x=cc[!is.na(df$PinusHalepensis),1], y=cc[!is.na(df$PinusHalepensis),2], window = ow, 
+                          marks = df$PinusHalepensis[!is.na(df$PinusHalepensis)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   ph.sgdf = as.SpatialGridDataFrame.im(ph.smooth)
-  pn.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusNigra), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  pn.smooth = Smooth(ppp(x=cc[!is.na(df$PinusNigra),1], y=cc[!is.na(df$PinusNigra),2], window = ow, 
+                         marks = df$PinusNigra[!is.na(df$PinusNigra)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   pn.sgdf = as.SpatialGridDataFrame.im(pn.smooth)
-  ps.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusSylvestris), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  ps.smooth = Smooth(ppp(x=cc[!is.na(df$PinusSylvestris),1], y=cc[!is.na(df$PinusSylvestris),2], window = ow, 
+                         marks = df$PinusSylvestris[!is.na(df$PinusSylvestris)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   ps.sgdf = as.SpatialGridDataFrame.im(ps.smooth)
-  pu.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusUncinata), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  pu.smooth = Smooth(ppp(x=cc[!is.na(df$PinusUncinata),1], y=cc[!is.na(df$PinusUncinata),2], window = ow, 
+                         marks = df$PinusUncinata[!is.na(df$PinusUncinata)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   pu.sgdf = as.SpatialGridDataFrame.im(pu.smooth)
-  ppi.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusPinea), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  ppi.smooth = Smooth(ppp(x=cc[!is.na(df$PinusPinea),1], y=cc[!is.na(df$PinusPinea),2], window = ow, 
+                          marks = df$PinusPinea[!is.na(df$PinusPinea)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   ppi.sgdf = as.SpatialGridDataFrame.im(ppi.smooth)
-  pps.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$PinusPinaster), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  pps.smooth = Smooth(ppp(x=cc[!is.na(df$PinusPinaster),1], y=cc[!is.na(df$PinusPinaster),2], window = ow, 
+                          marks = df$PinusPinaster[!is.na(df$PinusPinaster)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   pps.sgdf = as.SpatialGridDataFrame.im(pps.smooth)
   
-  qi.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusIlex), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  qi.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusIlex),1], y=cc[!is.na(df$QuercusIlex),2], window = ow, 
+                         marks = df$QuercusIlex[!is.na(df$QuercusIlex)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qi.sgdf = as.SpatialGridDataFrame.im(qi.smooth)
-  qs.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusSuber), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  qs.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusSuber),1], y=cc[!is.na(df$QuercusSuber),2], window = ow, 
+                         marks = df$QuercusSuber[!is.na(df$QuercusSuber)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qs.sgdf = as.SpatialGridDataFrame.im(qs.smooth)
-  qh.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusHumilis), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  qh.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusHumilis),1], y=cc[!is.na(df$QuercusHumilis),2], window = ow, 
+                         marks = df$QuercusHumilis[!is.na(df$QuercusHumilis)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qh.sgdf = as.SpatialGridDataFrame.im(qh.smooth)
-  qf.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$QuercusFaginea), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  qf.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusFaginea),1], y=cc[!is.na(df$QuercusFaginea),2], window = ow, 
+                         marks = df$QuercusFaginea[!is.na(df$QuercusFaginea)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qf.sgdf = as.SpatialGridDataFrame.im(qf.smooth)
-  fs.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$FagusSylvatica), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  fs.smooth = Smooth(ppp(x=cc[!is.na(df$FagusSylvatica),1], y=cc[!is.na(df$FagusSylvatica),2], window = ow, 
+                         marks = df$FagusSylvatica[!is.na(df$FagusSylvatica)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   fs.sgdf = as.SpatialGridDataFrame.im(fs.smooth)
-  all.smooth = Smooth(ppp(x=cc[,1], y=cc[,2], window = ow, marks = df$Overall), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
+  all.smooth = Smooth(ppp(x=cc[!is.na(df$Overall),1], y=cc[!is.na(df$Overall),2], window = ow, 
+                          marks = df$Overall[!is.na(df$Overall)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   all.sgdf = as.SpatialGridDataFrame.im(all.smooth)
   
   spdf = ph.sgdf

@@ -14,7 +14,7 @@ swbCat<-function() {
   
   # pb = txtProgressBar(0, nplots, style = 3)
   for(i in 1:nplots) {
-    cat(".")
+    # cat(".")
     plotID = plotIDs[i]
     
     #Load inputs
