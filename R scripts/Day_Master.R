@@ -7,6 +7,8 @@
 #Working directory
 setwd("D:/Rservices/CatDrought/")
 
+date = Sys.Date()
+
 # #Sets sink
 # sink("CatDrought.log")
 
@@ -26,19 +28,19 @@ swbCat()
 
 #Calculates SWB maps
 source("R scripts/Day_2_DaySWBMaps.R")
-swbPointMapsCat() #Current day
+swbPointMapsCat(date) #Current day
 
 #Update plot 1-year trends
 source("R scripts/Day_3_UpdatePlotSWBYearTrends.R")
-updatePlotSWBYearTrends()
+updatePlotSWBYearTrends(date)
 
 #Calculates Drought stress maps
 source("R scripts/Day_4_DayDroughtStressMaps.R")
-droughtStressMapsCat()
+droughtStressMapsCat(date)
 
 #Update plot 1-year trends
 source("R scripts/Day_5_UpdatePlotDroughtStressYearTrends.R")
-updatePlotDroughtStressYearTrends()
+updatePlotDroughtStressYearTrends(date)
 
 #Returns to normal console output
 # sink()

@@ -11,7 +11,7 @@ updatePlotSWBYearTrends<-function(date = Sys.Date()) {
   date.first = as.Date(paste(y-1,m,d, sep="-"))
   dates = seq(date.first, date, by="day")
   dates = dates[(length(dates)-364):length(dates)]
-  pb = txtProgressBar(0, nplots, style = 3)
+  pb = txtProgressBar(0, npoints, style = 3)
   for(i in 1:npoints) {
     setTxtProgressBar(pb,i)
     plotID = plotIDs[i]
