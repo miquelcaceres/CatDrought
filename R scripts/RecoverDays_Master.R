@@ -13,23 +13,23 @@ source("R scripts/Day_3_UpdatePlotSWBYearTrends.R")
 source("R scripts/Day_4_DayDroughtStressMaps.R")
 source("R scripts/Day_5_UpdatePlotDroughtStressYearTrends.R")
 
-dates = seq(as.Date("2017-03-13"), as.Date("2017-04-25"), by="day")
+dates = seq(as.Date("2017-01-01"), as.Date("2017-04-26"), by="day")
 
 for(i in 1:length(dates)) {
   cat(paste0("\n\n [ ",i,"/",length(dates)," ] Processing: ",dates[i],"\n"))
   #Interpolate meteo
-  cat(paste("  Interpolation -"))
-  interpolateCat(dates[i])
+  # cat(paste("  Interpolation -"))
+  # interpolateCat(dates[i])
   #Soil water balance
-  cat(paste(" Water balance -"))
-  swbCat()
-  cat(paste(" Processing outputs \n"))
+  # cat(paste(" Water balance -"))
+  # swbCat()
+  # cat(paste(" Processing outputs \n"))
   #Create maps
   swbPointMapsCat(dates[i])
   #Update plot SWB trends
-  updatePlotSWBYearTrends(dates[i])
+  # updatePlotSWBYearTrends(dates[i])
   #Create drought stress maps
-  droughtStressMapsCat(dates[i])
+  # droughtStressMapsCat(dates[i])
   #Update plot drought stress trends
-  updatePlotDroughtStressYearTrends(dates[i])
+  # updatePlotDroughtStressYearTrends(dates[i])
 }

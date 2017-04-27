@@ -107,68 +107,105 @@ droughtStressMapsCat<-function(date = Sys.Date(), radius = 3000) {
   cc = IFN3_SPT@coords
   ow = as.owin(as.vector(t(IFN3_SPT@bbox)))
   ccm = coordinates(masks)
+  
+  #Pinus halepensis
   ph.smooth = Smooth(ppp(x=cc[!is.na(df$PinusHalepensis),1], y=cc[!is.na(df$PinusHalepensis),2], window = ow, 
                           marks = df$PinusHalepensis[!is.na(df$PinusHalepensis)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   ph.sgdf = as.SpatialGridDataFrame.im(ph.smooth)
+  ph.sgdf@data[!masks$PinusHalepensis,]=NA
+  spdf = ph.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/PinusHalepensis/", as.character(date), ".rda"))
+  #Pinus nigra
   pn.smooth = Smooth(ppp(x=cc[!is.na(df$PinusNigra),1], y=cc[!is.na(df$PinusNigra),2], window = ow, 
                          marks = df$PinusNigra[!is.na(df$PinusNigra)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   pn.sgdf = as.SpatialGridDataFrame.im(pn.smooth)
+  pn.sgdf@data[!masks$PinusNigra,]=NA
+  spdf = pn.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/PinusNigra/", as.character(date), ".rda"))
+  #Pinus sylvestris
   ps.smooth = Smooth(ppp(x=cc[!is.na(df$PinusSylvestris),1], y=cc[!is.na(df$PinusSylvestris),2], window = ow, 
                          marks = df$PinusSylvestris[!is.na(df$PinusSylvestris)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   ps.sgdf = as.SpatialGridDataFrame.im(ps.smooth)
+  ps.sgdf@data[!masks$PinusSylvestris,]=NA
+  spdf = ps.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/PinusSylvestris/", as.character(date), ".rda"))
+  #Pinus uncinata
   pu.smooth = Smooth(ppp(x=cc[!is.na(df$PinusUncinata),1], y=cc[!is.na(df$PinusUncinata),2], window = ow, 
                          marks = df$PinusUncinata[!is.na(df$PinusUncinata)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   pu.sgdf = as.SpatialGridDataFrame.im(pu.smooth)
+  pu.sgdf@data[!masks$PinusUncinata,]=NA
+  spdf = pu.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/PinusUncinata/", as.character(date), ".rda"))
+  #Pinus pinea
   ppi.smooth = Smooth(ppp(x=cc[!is.na(df$PinusPinea),1], y=cc[!is.na(df$PinusPinea),2], window = ow, 
                           marks = df$PinusPinea[!is.na(df$PinusPinea)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   ppi.sgdf = as.SpatialGridDataFrame.im(ppi.smooth)
+  ppi.sgdf@data[!masks$PinusPinea,]=NA
+  spdf = ppi.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/PinusPinea/", as.character(date), ".rda"))
+  #Pinus pinaster
   pps.smooth = Smooth(ppp(x=cc[!is.na(df$PinusPinaster),1], y=cc[!is.na(df$PinusPinaster),2], window = ow, 
                           marks = df$PinusPinaster[!is.na(df$PinusPinaster)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   pps.sgdf = as.SpatialGridDataFrame.im(pps.smooth)
-  
+  pps.sgdf@data[!masks$PinusPinaster,]=NA
+  spdf = pps.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/PinusPinaster/", as.character(date), ".rda"))
+  #Quercus ilex
   qi.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusIlex),1], y=cc[!is.na(df$QuercusIlex),2], window = ow, 
                          marks = df$QuercusIlex[!is.na(df$QuercusIlex)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qi.sgdf = as.SpatialGridDataFrame.im(qi.smooth)
+  qi.sgdf@data[!masks$QuercusIlex,]=NA
+  spdf = qi.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/QuercusIlex/", as.character(date), ".rda"))
+  #Quercus suber
   qs.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusSuber),1], y=cc[!is.na(df$QuercusSuber),2], window = ow, 
                          marks = df$QuercusSuber[!is.na(df$QuercusSuber)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qs.sgdf = as.SpatialGridDataFrame.im(qs.smooth)
+  qs.sgdf@data[!masks$QuercusSuber,]=NA
+  spdf = qs.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/QuercusSuber/", as.character(date), ".rda"))
+  #Quercus humilis
   qh.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusHumilis),1], y=cc[!is.na(df$QuercusHumilis),2], window = ow, 
                          marks = df$QuercusHumilis[!is.na(df$QuercusHumilis)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qh.sgdf = as.SpatialGridDataFrame.im(qh.smooth)
+  qh.sgdf@data[!masks$QuercusHumilis,]=NA
+  spdf = qh.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/QuercusHumilis/", as.character(date), ".rda"))
+  #Quercus faginea
   qf.smooth = Smooth(ppp(x=cc[!is.na(df$QuercusFaginea),1], y=cc[!is.na(df$QuercusFaginea),2], window = ow, 
                          marks = df$QuercusFaginea[!is.na(df$QuercusFaginea)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   qf.sgdf = as.SpatialGridDataFrame.im(qf.smooth)
+  qf.sgdf@data[!masks$QuercusFaginea,]=NA
+  spdf = qf.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/QuercusFaginea/", as.character(date), ".rda"))
+  #Fagus sylvatica
   fs.smooth = Smooth(ppp(x=cc[!is.na(df$FagusSylvatica),1], y=cc[!is.na(df$FagusSylvatica),2], window = ow, 
                          marks = df$FagusSylvatica[!is.na(df$FagusSylvatica)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   fs.sgdf = as.SpatialGridDataFrame.im(fs.smooth)
+  fs.sgdf@data[!masks$FagusSylvatica,]=NA
+  spdf = fs.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/FagusSylvatica/", as.character(date), ".rda"))
+  #Overall
   all.smooth = Smooth(ppp(x=cc[!is.na(df$Overall),1], y=cc[!is.na(df$Overall),2], window = ow, 
                           marks = df$Overall[!is.na(df$Overall)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   all.sgdf = as.SpatialGridDataFrame.im(all.smooth)
+  all.sgdf@data[!masks$Forest,]=NA
+  spdf = all.sgdf
+  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/Overall/", as.character(date), ".rda"))
   
-  spdf = ph.sgdf
-  names(spdf@data) = "PinusHalepensis"
-  spdf@data$PinusHalepensis[!masks$PinusHalepensis] = NA
-  spdf@data$PinusNigra = pn.sgdf@data[,1]
-  spdf@data$PinusNigra[!masks$PinusNigra] = NA
-  spdf@data$PinusSylvestris = ps.sgdf@data[,1]
-  spdf@data$PinusSylvestris[!masks$PinusSylvestris] = NA
-  spdf@data$PinusUncinata = pu.sgdf@data[,1]
-  spdf@data$PinusUncinata[!masks$PinusUncinata] = NA
-  spdf@data$PinusPinea = ppi.sgdf@data[,1]
-  spdf@data$PinusPinea[!masks$PinusPinea] = NA
-  spdf@data$PinusPinaster = pps.sgdf@data[,1]
-  spdf@data$PinusPinaster[!masks$PinusPinaster] = NA
-  spdf@data$QuercusIlex = qi.sgdf@data[,1]
-  spdf@data$QuercusIlex[!masks$QuercusIlex] = NA
-  spdf@data$QuercusSuber = qs.sgdf@data[,1]
-  spdf@data$QuercusSuber[!masks$QuercusSuber] = NA
-  spdf@data$QuercusHumilis = qh.sgdf@data[,1]
-  spdf@data$QuercusHumilis[!masks$QuercusHumilis] = NA
-  spdf@data$QuercusFaginea = qf.sgdf@data[,1]
-  spdf@data$QuercusFaginea[!masks$QuercusFaginea] = NA
-  spdf@data$FagusSylvatica = fs.sgdf@data[,1]
-  spdf@data$FagusSylvatica[!masks$FagusSylvatica] = NA
-  spdf@data$Overall = all.sgdf@data[,1]
-  spdf@data$Overall[!masks$Forest] = NA
-  save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/", as.character(date), ".rda"))
+  # SGDF with all layers (deprecated)
+  # spdf = ph.sgdf
+  # names(spdf@data) = "PinusHalepensis"
+  # spdf@data$PinusNigra = pn.sgdf@data[,1]
+  # spdf@data$PinusSylvestris = ps.sgdf@data[,1]
+  # spdf@data$PinusUncinata = pu.sgdf@data[,1]
+  # spdf@data$PinusPinea = ppi.sgdf@data[,1]
+  # spdf@data$PinusPinaster = pps.sgdf@data[,1]
+  # spdf@data$QuercusIlex = qi.sgdf@data[,1]
+  # spdf@data$QuercusSuber = qs.sgdf@data[,1]
+  # spdf@data$QuercusHumilis = qh.sgdf@data[,1]
+  # spdf@data$QuercusFaginea = qf.sgdf@data[,1]
+  # spdf@data$FagusSylvatica = fs.sgdf@data[,1]
+  # spdf@data$Overall = all.sgdf@data[,1]
+  # save(spdf,file=paste0("Rdata/SmoothedDroughtStressMaps/", as.character(date), ".rda"))
 }
