@@ -26,19 +26,19 @@ interpolateCat() #current day
 source("R scripts/Day_1_SWB.R")
 swbCat()
 
-#Calculates SWB maps
+# #Calculates SWB maps
 source("R scripts/Day_2_DaySWBMaps.R")
 swbPointMapsCat(date) #Current day
-
-#Update plot 1-year trends
+# 
+# #Update plot 1-year trends
 source("R scripts/Day_3_UpdatePlotSWBYearTrends.R")
 updatePlotSWBYearTrends(date)
-
-#Calculates Drought stress maps
+# 
+# #Calculates Drought stress maps
 source("R scripts/Day_4_DayDroughtStressMaps.R")
 droughtStressMapsCat(date)
-
-#Update plot 1-year trends
+# 
+# #Update plot 1-year trends
 source("R scripts/Day_5_UpdatePlotDroughtStressYearTrends.R")
 updatePlotDroughtStressYearTrends(date)
 

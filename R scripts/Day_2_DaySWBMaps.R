@@ -12,7 +12,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   names(df)<-c("PET","Rain","NetPrec","Runoff", "DeepDrainage", "LAI", "Eplant","Esoil",  "Theta")
   pb = txtProgressBar(0, npoints, style = 3)
   for(i in 1:npoints) {
-    setTxtProgressBar(pb,i)
+    setTxtProgressBar(pb,i, title = "SWB maps")
     plotID = plotIDs[i]
     resday = swbres[[i]]
     df[i,"PET"] = resday$PET
@@ -46,6 +46,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   pet.smooth = Smooth(ppp(x=cc[!is.na(df$PET),1], y=cc[!is.na(df$PET),2], window = ow, 
                  marks = df$PET[!is.na(df$PET)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   pet.sgdf = as.SpatialGridDataFrame.im(pet.smooth)
+  pet.sgdf@data[,1] = pmax(pet.sgdf@data[,1],0)
   pet.sgdf@data[!masks$Forest,]=NA
   spdf = pet.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/PET/", as.character(date), ".rda"))
@@ -54,6 +55,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
     rain.smooth = Smooth(ppp(x=cc[!is.na(df$Rain),1], y=cc[!is.na(df$Rain),2], window = ow, 
                           marks = df$Rain[!is.na(df$Rain)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
     rain.sgdf = as.SpatialGridDataFrame.im(rain.smooth)
+    rain.sgdf@data[,1] = pmax(rain.sgdf@data[,1],0)
   } else {
     rain.sgdf =NULL
   }
@@ -64,6 +66,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   netprec.smooth = Smooth(ppp(x=cc[!is.na(df$NetPrec),1], y=cc[!is.na(df$NetPrec),2], window = ow, 
                           marks = df$NetPrec[!is.na(df$NetPrec)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   netprec.sgdf = as.SpatialGridDataFrame.im(netprec.smooth)
+  netprec.sgdf@data[,1] = pmax(netprec.sgdf@data[,1],0)
   netprec.sgdf@data[!masks$Forest,]=NA
   spdf = netprec.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/NetPrec/", as.character(date), ".rda"))
@@ -71,6 +74,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   runoff.smooth = Smooth(ppp(x=cc[!is.na(df$Runoff),1], y=cc[!is.na(df$Runoff),2], window = ow, 
                               marks = df$Runoff[!is.na(df$Runoff)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   runoff.sgdf = as.SpatialGridDataFrame.im(runoff.smooth)
+  runoff.sgdf@data[,1] = pmax(runoff.sgdf@data[,1],0)
   runoff.sgdf@data[!masks$Forest,]=NA
   spdf = runoff.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/Runoff/", as.character(date), ".rda"))
@@ -78,6 +82,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   deep.smooth = Smooth(ppp(x=cc[!is.na(df$DeepDrainage),1], y=cc[!is.na(df$DeepDrainage),2], window = ow, 
                              marks = df$DeepDrainage[!is.na(df$DeepDrainage)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   deep.sgdf = as.SpatialGridDataFrame.im(deep.smooth)
+  deep.sgdf@data[,1] = pmax(deep.sgdf@data[,1],0)
   deep.sgdf@data[!masks$Forest,]=NA
   spdf = deep.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/DeepDrainage/", as.character(date), ".rda"))
@@ -85,6 +90,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   lai.smooth = Smooth(ppp(x=cc[!is.na(df$LAI),1], y=cc[!is.na(df$LAI),2], window = ow, 
                            marks = df$LAI[!is.na(df$LAI)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   lai.sgdf = as.SpatialGridDataFrame.im(lai.smooth)
+  lai.sgdf@data[,1] = pmax(lai.sgdf@data[,1],0)
   lai.sgdf@data[!masks$Forest,]=NA
   spdf = lai.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/LAI/", as.character(date), ".rda"))
@@ -92,6 +98,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   eplant.smooth = Smooth(ppp(x=cc[!is.na(df$Eplant),1], y=cc[!is.na(df$Eplant),2], window = ow, 
                           marks = df$Eplant[!is.na(df$Eplant)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   eplant.sgdf = as.SpatialGridDataFrame.im(eplant.smooth)
+  eplant.sgdf@data[,1] = pmax(eplant.sgdf@data[,1],0)
   eplant.sgdf@data[!masks$Forest,]=NA
   spdf = eplant.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/Eplant/", as.character(date), ".rda"))
@@ -99,6 +106,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   esoil.smooth = Smooth(ppp(x=cc[!is.na(df$Esoil),1], y=cc[!is.na(df$Esoil),2], window = ow, 
                              marks = df$Esoil[!is.na(df$Esoil)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   esoil.sgdf = as.SpatialGridDataFrame.im(esoil.smooth)
+  esoil.sgdf@data[,1] = pmax(esoil.sgdf@data[,1],0)
   esoil.sgdf@data[!masks$Forest,]=NA
   spdf = esoil.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/Esoil/", as.character(date), ".rda"))
@@ -106,6 +114,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 3000) {
   theta.smooth = Smooth(ppp(x=cc[!is.na(df$Theta),1], y=cc[!is.na(df$Theta),2], window = ow, 
                             marks = df$Theta[!is.na(df$Theta)]), sigma=radius, at="pixels", xy=list(x=ccm[,1], y=ccm[,2]))
   theta.sgdf = as.SpatialGridDataFrame.im(theta.smooth)
+  theta.sgdf@data[,1] = pmin(pmax(theta.sgdf@data[,1],0),1)
   theta.sgdf@data[!masks$Forest,]=NA
   spdf = theta.sgdf
   save(spdf,file=paste0("Rdata/SmoothedSWBMaps/Theta/", as.character(date), ".rda"))

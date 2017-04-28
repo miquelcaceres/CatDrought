@@ -34,6 +34,7 @@ for(p in 1:nplots) {
       forest$treeData$Z50 = Z50.LDR(0.7,300,500)
     }
     if(nshrub>0) forest$shrubData$Z = 500
+    Zoptmax = 500
   } else {
     Zoptmax = round(max(max(m$Zopt, na.rm=TRUE),300)) #Find maximum rooting depth (at least 300 mm)
     soil$SoilDepth = Zoptmax
@@ -70,9 +71,9 @@ for(p in 1:nplots) {
       }
     }
   }
-  forest$treeData$Z95 = round(forest$treeData$Z95)
-  forest$treeData$Z50 = round(forest$treeData$Z50)
-  forest$shrubData$Z = round(forest$shrubData$Z)
+  forest$treeData$Z95 = round(pmin(Zoptmax,pmax(forest$treeData$Z50+25,forest$treeData$Z95)))
+  forest$treeData$Z50 = round(pmin(Zoptmax,forest$treeData$Z50))
+  forest$shrubData$Z = round(pmin(Zoptmax,forest$shrubData$Z))
   soil$Water_FC = soil$dVec*soil$Theta_FC*(1-(soil$rfc/100))
   if(sum(is.na(forest$treeData))>0) stop("kk")
   if(sum(is.na(forest$shrubData))>0) stop("kk")

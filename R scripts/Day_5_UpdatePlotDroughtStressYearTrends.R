@@ -13,7 +13,7 @@ updatePlotDroughtStressYearTrends<-function(date = Sys.Date()) {
   dates = dates[(length(dates)-364):length(dates)]
   pb = txtProgressBar(0, npoints, style = 3)
   for(i in 1:npoints) {
-    setTxtProgressBar(pb,i)
+    setTxtProgressBar(pb,i,title = "Drought stress trends")
     plotID = plotIDs[i]
     resday = swbres[[i]]
     load(file=paste0("Rdata/Plots/",plotID,".rda"))

@@ -13,7 +13,7 @@ droughtStressMapsCat<-function(date = Sys.Date(), radius = 3000) {
                "QuercusIlex","QuercusSuber",  "QuercusHumilis", "QuercusFaginea", "FagusSylvatica", "Overall")
   pb = txtProgressBar(0, npoints, style = 3)
   for(i in 1:npoints) {
-    setTxtProgressBar(pb,i)
+    setTxtProgressBar(pb,i,title = "Drought stress maps")
     plotID = plotIDs[i]
     resday = swbres[[i]]
     load(file=paste0("Rdata/Plots/",plotID,".rda"))

@@ -13,7 +13,7 @@ updatePlotSWBYearTrends<-function(date = Sys.Date()) {
   dates = dates[(length(dates)-364):length(dates)]
   pb = txtProgressBar(0, npoints, style = 3)
   for(i in 1:npoints) {
-    setTxtProgressBar(pb,i)
+    setTxtProgressBar(pb,i,title = "SWB trends")
     plotID = plotIDs[i]
     load(file=paste0("Rdata/PlotSWBYearTrends/", plotID, ".rda"))  
     resday = swbres[[i]]
