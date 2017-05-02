@@ -1,6 +1,6 @@
 library(meteoland)
 
-interpolateCat<-function(date = Sys.Date()) {
+interpolateCat<-function(date = Sys.Date(), excludeRainFromStations=character(0)) {
   AEMET_path = "D:/Recerca/Datasets/Climate/AEMET/"
   
   # date=as.Date("2017-04-02")
@@ -34,8 +34,12 @@ interpolateCat<-function(date = Sys.Date()) {
   
   #Load daily weather station data (including preceeding days)
   day_data = vector("list",ndays)
-  for(i in 1:ndays) day_data[[i]] = readmeteorologypoint(paste0(AEMET_path,"Download/DailyCAT/",as.character(datevec[[i]]),".txt"))
-  
+  for(i in 1:ndays) {
+    day_data[[i]] = readmeteorologypoint(paste0(AEMET_path,"Download/DailyCAT/",as.character(datevec[[i]]),".txt"))
+    codes = row.names(day_data[[i]])
+    excodes = codes[codes %in% excludeRainFromStations]
+    day_data[[i]][excodes,"Precipitation"] = NA ##Apply quality check results
+  }
   AEMET_stcodes = rownames(day_data[[1]])
   AEMET_latlon = cbind(day_data[[1]]$coords.x1,day_data[[1]]$coords.x2)
   AEMET_elevation = day_data[[1]]$elevation

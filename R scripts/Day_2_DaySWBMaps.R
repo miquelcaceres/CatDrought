@@ -31,7 +31,7 @@ swbPointMapsCat<-function(date = Sys.Date(), radius = 2000) {
     for(l in 1:nlayers) {
       theta[l] = soil.psi2theta(soil$clay[l], soil$sand[l], resday$psiVec[l])
     }
-    df[i,"Theta"] = sum((theta/soil$Theta_FC)*soil$Water_FC)/sum(soil$Water_FC)
+    df[i,"Theta"] = max(0,min(1,sum((theta/soil$Theta_FC)*soil$Water_FC)/sum(soil$Water_FC)))
     if(sum(is.na(theta))>0 || sum(is.na(soil$Water_FC))>0 || sum(soil$Water_FC)==0) df[i,"Theta"] =NA
   }
   spdf = SpatialPointsDataFrame(coordinates(IFN3_SPT),df,proj4string = IFN3_SPT@proj4string)

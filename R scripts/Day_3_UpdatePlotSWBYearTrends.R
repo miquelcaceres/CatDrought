@@ -33,7 +33,7 @@ updatePlotSWBYearTrends<-function(date = Sys.Date()) {
     for(l in 1:nlayers) {
       theta[l] = soil.psi2theta(soil$clay[l], soil$sand[l], resday$psiVec[l])
     }
-    trends[365,"Theta"] = sum((theta/soil$Theta_FC)*soil$Water_FC)/sum(soil$Water_FC)
+    trends[365,"Theta"] = max(0,min(1,sum((theta/soil$Theta_FC)*soil$Water_FC)/sum(soil$Water_FC)))
     if(sum(is.na(theta))>0 || sum(is.na(soil$Water_FC))>0 || sum(soil$Water_FC)==0) trends[365,"Theta"] =NA
     
     row.names(trends) = as.character(dates)

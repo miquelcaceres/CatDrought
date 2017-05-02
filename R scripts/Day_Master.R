@@ -20,7 +20,7 @@ setwd("D:/Rservices/CatDrought/")
 
 #Interpolate meteo
 source("R scripts/Day_0_MeteorologyInterpolation.R")
-interpolateCat() #current day
+interpolateCat(date,excludeRainFromStations=c("0433D", "9590D", "9988B", "9677")) #current day
 
 #Soil water balance
 source("R scripts/Day_1_SWB.R")
@@ -29,18 +29,18 @@ swbCat()
 # #Calculates SWB maps
 source("R scripts/Day_2_DaySWBMaps.R")
 swbPointMapsCat(date) #Current day
-# 
+
 # #Update plot 1-year trends
 source("R scripts/Day_3_UpdatePlotSWBYearTrends.R")
-updatePlotSWBYearTrends(date)
-# 
-# #Calculates Drought stress maps
+# updatePlotSWBYearTrends(date)
+
+#Calculates Drought stress maps
 source("R scripts/Day_4_DayDroughtStressMaps.R")
 droughtStressMapsCat(date)
-# 
-# #Update plot 1-year trends
+
+#Update plot 1-year trends
 source("R scripts/Day_5_UpdatePlotDroughtStressYearTrends.R")
-updatePlotDroughtStressYearTrends(date)
+# updatePlotDroughtStressYearTrends(date)
 
 #Returns to normal console output
 # sink()

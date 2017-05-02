@@ -11,18 +11,18 @@ source("R scripts/Day_3_UpdatePlotSWBYearTrends.R")
 source("R scripts/Day_4_DayDroughtStressMaps.R")
 source("R scripts/Day_5_UpdatePlotDroughtStressYearTrends.R")
 
-dates = seq(as.Date("2017-01-01"), as.Date("2017-04-27"), by="day")
+dates = seq(as.Date("2017-01-31"), as.Date("2017-05-01"), by="day")
 
 for(i in 1:length(dates)) {
   cat(paste0("\n\n [ ",i,"/",length(dates)," ] Processing: ",dates[i],"\n"))
 
   #Create maps
-  swbPointMapsCat(dates[i])
-  #Update plot SWB trends
-  # updatePlotSWBYearTrends(dates[i])
+  # swbPointMapsCat(dates[i])
   #Create drought stress maps
-  droughtStressMapsCat(dates[i])
+  # droughtStressMapsCat(dates[i])
+  #Update plot SWB trends
+  updatePlotSWBYearTrends(dates[i])
   #Update plot drought stress trends
-  # updatePlotDroughtStressYearTrends(dates[i])
+  updatePlotDroughtStressYearTrends(dates[i])
   cat(paste(" done \n"))
 }

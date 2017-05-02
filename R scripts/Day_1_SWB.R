@@ -1,6 +1,10 @@
-library(medfate)
+library(parallel)
+library(foreach)
+library(doParallel)
 
 swbCat<-function() {
+
+  
   load("Rdata/IFN3_SPT_cat.rdata")
   load("Rdata/temp_spm.rdata")
   
@@ -10,12 +14,12 @@ swbCat<-function() {
   
   plotIDs = rownames(IFN3_SPT@coords)
   nplots = length(plotIDs)
-  swbres = vector("list", nplots)
-  
+
   # pb = txtProgressBar(0, nplots, style = 3)
-  for(i in 1:nplots) {
-    # cat(".")
+  # for(i in 1:nplots) {
+  processPlotIndex<-function(i){
     plotID = plotIDs[i]
+    # setTxtProgressBar(pb,i)
     
     #Load inputs
     load(file=paste0("Rdata/Plots/",plotID,".rda"))
@@ -36,11 +40,22 @@ swbCat<-function() {
     er = ifelse((doy<=120) || (doy>=335),0.2,0.05)
     
     #Call SWB
-    swbres[[i]]<-swb.day(x, soil, date, tmin, tmax, rhmin, rhmax, rad, wind, latitude , elevation, slope, aspect, rain, er, runon = 0)
+    swbPlot<-swb.day(x, soil, date, doy, tmin, tmax, rhmin, rhmax, rad, wind, latitude , elevation, slope, aspect, rain, er, runon = 0)
 
     #Replace current plot state
     save(x,soil, file=paste0("Rdata/Plots/",plotID,".rda"))
+    swbPlot
   }
+  
+  # Calculate the number of cores
+  no_cores <- detectCores() - 1
+  # Register cores
+  cl<-makeCluster(no_cores)
+  registerDoParallel(cl)
+  #Call SWB routines
+  swbres = foreach(i=1:nplots, .packages = "medfate") %dopar% processPlotIndex(i)
+  #Stop cluster
+  stopCluster(cl)
   
   save(swbres, file=paste0("Rdata/DailySWB/", as.character(date), ".rda"))
 }
