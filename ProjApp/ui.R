@@ -6,7 +6,7 @@ shinyUI(
   fluidPage(
     
     # Application title
-    titlePanel("Medfate"),
+    titlePanel("SWB Projections"),
     splitLayout(cellWidths = c("15%", "25%", "60%"),
                 wellPanel(
                   radioButtons("mode", "Variable type", choices = c("Water balance", "Drought stress")),

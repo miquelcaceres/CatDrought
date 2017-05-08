@@ -58,6 +58,8 @@ medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "
                 "QuercusIlex", "QuercusSuber", "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
 species <- data.frame(input = input_sp, medfate = medfate_sp)
 
+# temporal<-data.frame(row.names = c("Day","Week", "Month"), medfate=c(""," weekly", " monthly"))
+
 ## Define color scales for rasters 
 pal_WB <- as.data.frame(matrix(NA, nrow = length(input_var), ncol = 5, dimnames = list(input_var, c("min", "max", "color", "trans", "rev"))))
 pal_WB$min <- 0
@@ -75,7 +77,7 @@ pal_WB[c("Potential evapo-transpiration", "Plants transpiration", "Soil evaporat
 pal_WB[c("Run-off", "Deep drainage"), "color"] <- "Reds"
 pal_WB["Relative soil water content", "color"] <- "RdYlBu"
 pal_WB["Relative soil water content", "trans"] <- "identity"
-pal_WB["LAI", "max"] <- 8
+pal_WB["LAI", "max"] <- 9.5
 pal_WB["LAI", "trans"] <- "identity"
 pal_WB["LAI", "color"] <- "Greens"
 
@@ -121,7 +123,41 @@ shinyServer(function(input, output) {
       if(!is.null(input$var)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
         col <- as.character(variables[variables$input == input$var, "medfate"])
-        load(paste(folder, "/", input$resolution, "/SWB/",col, "/", input$date, ".rda", sep = ""))
+        d = input$date
+        if(input$agg=="none") {
+          load(paste(folder, "/", input$resolution, "/SWB/",col, "/", d, ".rda", sep = ""))
+        } else if(input$agg=="1 week") {
+          dfin = input$date
+          dini  = dfin-7
+          dw = seq(dini, dfin, by="day")
+          nd = length(dw)
+          load(paste(folder, "/", input$resolution, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
+          spdftmp = spdf
+          if(nd>1) {
+            for(d in 2:nd) {
+              load(paste(folder, "/", input$resolution, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
+              spdftmp@data = spdftmp@data + spdf@data
+            }
+          }
+          spdftmp@data =spdftmp@data /nd
+          spdf = spdftmp
+        } else if(input$agg=="2 weeks") {
+          dfin = input$date
+          dini  = dfin-14
+          dw = seq(dini, dfin, by="day")
+          nd = length(dw)
+          load(paste(folder, "/", input$resolution, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
+          spdftmp = spdf
+          if(nd>1) {
+            for(d in 2:nd) {
+              load(paste(folder, "/", input$resolution, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
+              spdftmp@data = spdftmp@data + spdf@data
+            }
+          }
+          spdftmp@data =spdftmp@data /nd
+          spdf = spdftmp
+        }
+        
         r <- raster(spdf)
         proj4string(r) <- dataCRS
         r <- projectRaster(r, crs = mapCRS)
@@ -136,7 +172,7 @@ shinyServer(function(input, output) {
           clearImages() %>%
           clearControls() %>%
           addRasterImage(r, opacity = input$alpha, colors = pal) %>% 
-          addLegend(pal = pal, values = values(r), position = "bottomright")
+          addLegend(pal = pal, values = values(r),opacity = input$alpha, position = "bottomright")
       } else {} 
     } else {
       if(!is.null(input$sp)){
@@ -157,7 +193,7 @@ shinyServer(function(input, output) {
           clearImages() %>%
           clearControls() %>%
           addRasterImage(r, opacity = input$alpha, colors = pal) %>% 
-          addLegend(pal = pal, values = values(r), position = "bottomright")
+          addLegend(pal = pal, values = values(r),opacity = input$alpha, position = "bottomright")
       } else {}
     }
   })
