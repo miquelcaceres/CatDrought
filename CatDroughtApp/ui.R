@@ -2,6 +2,7 @@ library(shiny)
 # Libraries for ui
 library(leaflet)
 
+
 shinyUI(
   navbarPage("Catalan Forest Drought Assessment Tool",
     tabPanel("Daily SWB",
@@ -57,7 +58,13 @@ shinyUI(
                                 )
                          )
              )
-      ), id="navbar",
+      ), 
+    tabPanel("Technical specifications",
+             column(width = 12,
+                    includeMarkdown("../Docs/TechnicalSpecifications.Rmd")
+             )
+    ),
+    id="navbar",
     fluid=TRUE
   )
 )

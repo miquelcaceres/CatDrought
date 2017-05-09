@@ -1,0 +1,96 @@
+---
+title: "Catalan Forest Drought Assessment Tool"
+author: "Miquel De Caceres"
+output: html_document
+---
+
+# Catalan Forest Drought Assessment Tool
+
+**Version 1.0**
+
+*Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta*
+
+### Overview
+
+This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Caceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service tries to complement monitoring programs of observed drought-related forest decay in the same area (DEBOSCAT) (Chaparro et al. 2016).
+
+### Soil water balance (SWB) model
+
+The water balance model described in De Caceres et al. (2015) (implemented in an R package called *medfate*) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Caceres et al. (2015).
+
+*Weather inputs*
+
+The SWB model requires knowing the following daily weather variables: precipitation, potential evapotranspiration (PET). Average daily temperature is also required to calculate growth degree days and update phenological status, but this variable is not stored.
+
+
+*Soil water balance output*
+
+The SWB model updates the leaf area index (LAI) of forests according to phenology and produces the following variables describing the water balance in forest stands:
+
+*Tree drought stress output*
+
+For each simulated forest stand, the daily drought stress for every species present is calculated by averaging daily drought stress of plant cohorts of the species, using LAI values as weights. The following species are tracked in terms of their daily drought stress.
+
+### MODE 1: Simulation of every-day water balance
+
+In this mode, the water balance model is run once every day for each simulation location after gathering weather station data and interpolating weather over the target simulation location. Soil moisture and other state variables are stored from one day to the other, so that the accumulation of drought stress (or the relieving effect of precipitations) can be simulated.
+
+*Simulation locations*
+
+SWB simulations are conducted on two sets of locations:
+
+1. 200 x 200 m pixels (384,000). 
+2. IFN3 plots (11,454)
+
+Simulation on pixels are only used for mapping purposes, whereas simulations on IFN3 plots are used to examine temporal trends.
+
+*Initialization for IFN3 plots*
+
++ Two soil layers considered (topsoil and subsoil). Soil texture obtained from the Harmonized Soil World Data Base. Rock fragment content from forest plot surface rock abundance.
++ Height and leaf area index (LAI) of trees and shrubs from forest plot data. LAI estimated from allometric relationships including DBH and stand competition (Ameztegui, Cabon et al. 2017). 
++ Species parameterization includes, apart from allometric relationships, soil water potential that results in a reduction of transpiration, leaf water interception, light extinction and growth degree days necessary for leaf development of deciduous species.
++ Soil depth and root distribution estimated as described in Cabon et al. (in prep.).
+
+*Initialization of pixels*
+
+Forest categories are first defined for 200x200m pixels and IFN3 plots according to the MFE50, using the first two dominant species and their occupation level. Each 200x200 m pixel is then assigned an IFN3 plot according to the following rules:
+
++ If only one IFN3 plot has the same forest category as the target pixel, this plot is chosen.
++ If there are several IFN3 plots with the same forest category but none is closer than 50 km, the closest one is chosen.
++	If there are one or several IFN3 plots with the same forest category and closer than 50 km, the IFN3 plot having the smallest difference in elevation with respect to the target pixel is chosen.
+
+The imputation process of IFN3 plots to 200x200 m pixels may entail gross errors at this resolution, but it is intended to provide sound estimates when averaging the results of 200x200 m pixels at 1km resolution. The imputation of a IFN3 plot provides the species composition for the pixel, a preliminary estimate of forest structure, and soil/root distribution parameters. Tree heights and leaf area index of each tree cohort at each target pixel are then modified according to 20x20 m resolution layers of average tree height and foliar biomass that had been estimated from LiDAR data (0.5 pulses/m2) by CREAF [ref]. Specifically, these two layers are first upscaled to 200x200 m resolution and for each target pixel, the ratio between average height at the pixel corresponding to the location of the assigned IFN3 plot and average height at the target pixel is used to correct tree heights from plot data for the target pixel. Similarly, the ratio in foliar biomass is used to correct the leaf area index of trees for the target pixel.
+
+*Climate forcing*
+
+Weather station data of the current day is downloaded from APIs provided by the Spanish [Agencia Estatal de Meteorologia (AEMET)](https://opendata.aemet.es/centrodedescargas/inicio). This information, complemented with weather data from previous days, is used to interpolate weather variables over the simulation locations (pixels or IFN3 plots). Interpolation routines are implemented in package *meteoland*. 
+
+### MODE 2: SWB simulations under climate change scenarios
+
+In this mode, the soil water balance model is used to project forest drought stress under climate change predictions. Unlike current-day simulations, climate change simulations are conducted for IFN3 plots only. Moreover, only monthly and yearly summaries are stored. Initialization procedure is the same as for current-day simulations.
+
+*Climate forcing*
+
+Fifth assessment report (AR5) is used and RCP 4.5 and RCP 8.5 scenarios are used. Daily climate projections for the 2006-2100 period are used as forcing. They were produced by two regional climate models (CCLM4-7-13 and RCA4), both driven by the same global climate model (). Daily climate data is originally at 11 km resolution and statistical downscaling is applied, which includes a bias correction. Bias correction is conducted using package *meteoland*, and requires a local historic meteorological series to use as reference for bias estimation. This is obtained by interpolating daily weather station data over IFN3 plots for the 1990-2005 period (station data from AEMET and SMC).
+
+### Mapping
+
+*Spatial scope and resolution*
+
+The spatial scope of displayed results is within Catalonia boundaries and at a maximum 2km distance from IFN3 plots. Two raster resolution levels and three display options are offered:
+
++ Smoothed 1 km2
++	1 km2
++	200 x 200 m
+
+Simulations are done at 200 x 200 m resolution. Values at 1km2 are calculated averaging 200 x 200 m pixels. Smoothing is done on 1 km2 pixels using a spatial kernel of radius 2 km (R package *spatstat*).
+
+*Temporal aggregation*
+
+Maps are usually displayed at the daily scale, but the user can decide to map values aggregated temporally at the weekly, monthly or annual scales. Temporal aggregation for week, month and annual values follows the function (sum or average) indicated in variable tables above.
+
+### Temporal trends
+
+As mentioned above, daily temporal trends are stored for IFN3 plots only (i.e. not for pixels). Trends can be displayed at three spatial levels: (a) Counties; (b) Municipalities; and (c) IFN3 plots. The user can select the desired spatial structure depending on each level. In the case of IFN3 plots the trends of the selected IFN3 plot are displayed. For the other two levels, the application loads the trends of all the IFN3 plots within county/municipality boundaries and calculates average and 5-95 confidence interval.
+
+---
