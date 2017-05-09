@@ -164,35 +164,35 @@ shinyServer(function(input, output) {
         folder <- paste0("//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/ProjectedSWB/", input$rcm,"/",input$rcp)
         plots_id <- IFN3_sel$ID
         plots_id <- plots_id[as.character(plots_id) %in% available_plots]
-        load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-        
-        if(input$mode == "Water balance"){
-          if(input$agg== "Month") trends = swb_month
-          else trends = swb_year
-          
-          # open all the files of the individual plots
-          data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
-          for(i in 1:length(plots_id)){
-            load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-            data[,,i] <- as.matrix(trends)
+        if(length(plots_id)>0) {
+          load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
+          if(input$mode == "Water balance"){
+            if(input$agg== "Month") trends = swb_month
+            else trends = swb_year
+            
+            # open all the files of the individual plots
+            data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
+            for(i in 1:length(plots_id)){
+              load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
+              data[,,i] <- as.matrix(trends)
+            }
+            
+            # calculate mean and condidence interval
+            means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+            ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+            ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+            
+            col <- as.character(variables[variables$input == input$var, "medfate"])
+            dates <- as.Date(rownames(means))
+            
+            output$trends <- renderPlot({
+              plot(dates, ci_sup[,col], type = "l", xlab = "", ylab = paste(input$var), ylim = c(min(ci_inf[,col], na.rm = T), max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
+              lines(dates, ci_inf[,col], col = "red", lty = 3)
+              lines(dates, means[,col])
+            })
+            
           }
-          
-          # calculate mean and condidence interval
-          means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
-          ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
-          ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
-          
-          col <- as.character(variables[variables$input == input$var, "medfate"])
-          dates <- as.Date(rownames(means))
-          
-          output$trends <- renderPlot({
-            plot(dates, ci_sup[,col], type = "l", xlab = "Date", ylab = paste(input$var), ylim = c(min(ci_inf[,col], na.rm = T), max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
-            lines(dates, ci_inf[,col], col = "red", lty = 3)
-            lines(dates, means[,col])
-          })
-          
-        } else {
-          if(input$mode == "Drought stress"){ 
+          else if(input$mode == "Drought stress"){ 
             if(input$agg== "Month") trends = dds_month
             else trends = dds_year
             
@@ -217,10 +217,10 @@ shinyServer(function(input, output) {
               lines(dates, means[,col])
             })
             
-          } else {}
+          }
         }
-      } else {}
-    } else {}
+      } 
+    } 
   })
   
   # What are the different inputs?

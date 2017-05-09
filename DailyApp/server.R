@@ -47,8 +47,8 @@ available_plots <- unlist(strsplit(available_plots,split = ".rda"))
 
 
 ## Variable names correspondance between ui and medfate outputs
-input_var <- c("Precipitation", "Net precipitation", "Potential evapo-transpiration", "LAI","Plants transpiration", "Soil evaporation", "Run-off", "Deep drainage", 
-               "Relative soil water content")
+input_var <- c("Precipitation (mm)", "Net precipitation (mm)", "Potential evapo-transpiration (mm)", "LAI (m2/m2)","Plants transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)", "Deep drainage (mm)", 
+               "Relative soil water content (0-1)")
 medfate_var <- c("Rain", "NetPrec", "PET","LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta")
 variables <- data.frame(input = input_var, medfate = medfate_var)
 
@@ -66,20 +66,20 @@ pal_WB$min <- 0
 pal_WB$color <- "Spectral"
 pal_WB$trans <- "log"
 pal_WB$rev <- F
-pal_WB[c("Precipitation", "Net precipitation"), "max"] <- 100
-pal_WB[c("Potential evapo-transpiration", "Plants transpiration", "Soil evaporation"), "max"] <- 15
-pal_WB[c("Plants transpiration", "Soil evaporation"), "max"] <- 5
-pal_WB[c("Run-off", "Deep drainage"), "max"] <- 15
-pal_WB["Relative soil water content", "max"] <- 1
-pal_WB[c("Precipitation", "Net precipitation"), "rev"] <- F
-pal_WB[c("Precipitation", "Net precipitation"), "color"] <- "Blues"
-pal_WB[c("Potential evapo-transpiration", "Plants transpiration", "Soil evaporation"), "color"] <- "Greens"
-pal_WB[c("Run-off", "Deep drainage"), "color"] <- "Reds"
-pal_WB["Relative soil water content", "color"] <- "RdYlBu"
-pal_WB["Relative soil water content", "trans"] <- "identity"
-pal_WB["LAI", "max"] <- 9.5
-pal_WB["LAI", "trans"] <- "identity"
-pal_WB["LAI", "color"] <- "Greens"
+pal_WB[c("Precipitation (mm)", "Net precipitation (mm)"), "max"] <- 100
+pal_WB[c("Potential evapo-transpiration (mm)", "Plants transpiration (mm)", "Soil evaporation (mm)"), "max"] <- 15
+pal_WB[c("Plants transpiration (mm)", "Soil evaporation (mm)"), "max"] <- 5
+pal_WB[c("Run-off (mm)", "Deep drainage (mm)"), "max"] <- 15
+pal_WB["Relative soil water content (0-1)", "max"] <- 1
+pal_WB[c("Precipitation (mm)", "Net precipitation (mm)"), "rev"] <- F
+pal_WB[c("Precipitation (mm)", "Net precipitation (mm)"), "color"] <- "Blues"
+pal_WB[c("Potential evapo-transpiration (mm)", "Plants transpiration (mm)", "Soil evaporation (mm)"), "color"] <- "Greens"
+pal_WB[c("Run-off (mm)", "Deep drainage (mm)"), "color"] <- "Reds"
+pal_WB["Relative soil water content (0-1)", "color"] <- "RdYlBu"
+pal_WB["Relative soil water content (0-1)", "trans"] <- "identity"
+pal_WB["LAI (m2/m2)", "max"] <- 9.5
+pal_WB["LAI (m2/m2)", "trans"] <- "identity"
+pal_WB["LAI (m2/m2)", "color"] <- "Greens"
 
 log_trans <- function(dom, n = 10, digits = 1) {signif(exp(seq(log(dom[1]+1), log(dom[2]+1), length.out = n))-1, digits = digits)}
 identity_trans <- function(dom, n = 10, digits = 1) {signif(seq(dom[1], dom[2], length.out = n), digits = digits)}
@@ -163,6 +163,8 @@ shinyServer(function(input, output) {
         r <- projectRaster(r, crs = mapCRS)
         
         dom <- c(pal_WB[input$var,"min"],pal_WB[input$var,"max"])
+        # print(pal_WB[input$var, "trans"])
+        # print(dom)
         bins <- do.call(paste(pal_WB[input$var, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
         
         pal <- colorBin(pal_WB[input$var,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$var, "rev"])
