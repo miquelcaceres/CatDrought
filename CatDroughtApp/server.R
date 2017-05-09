@@ -231,7 +231,7 @@ shinyServer(function(input, output) {
   
   # Add shapes to daily SWB
   observe({
-    print(paste0("Daily ",input$display_daily))
+    # print(paste0("Daily ",input$display_daily))
     if(input$display_daily == "Counties"){
       leafletProxy("map_daily") %>%
         clearShapes() %>%
@@ -257,7 +257,7 @@ shinyServer(function(input, output) {
   
   # Add shapes to projected SWB
   observe({
-    print(paste0("Proj ",input$display_proj))
+    # print(paste0("Proj ",input$display_proj))
     if(input$display_proj == "Counties"){
       leafletProxy("map_proj") %>%
         clearShapes() %>%
@@ -299,7 +299,7 @@ shinyServer(function(input, output) {
   
   # React to clicks on the map (using observeEvent() instead of observe() allows to trigger code only when the value of input$map_shape_click changes)
   observeEvent(map_daily_click$x,{
-    print("hola")
+    # print("hola")
     if(!is.null(map_daily_click$x)){
       
       # Convert coordinates of the click zone into a spatial point
@@ -319,7 +319,7 @@ shinyServer(function(input, output) {
           IFN3_sel <- IFN3.points@data[as.character(IFN3.points$ID) == map_daily_click$x$id,]
           info <- data.frame(Name = IFN3_sel$ID, type = "IFN plot")
       }
-      print(head(IFN3_sel))
+      # print(head(IFN3_sel))
       
       output$pol_info_daily <- renderPrint({
         cat("Shape type: ", info$type, "; name: ", as.character(info$Name), sep = "")
@@ -480,14 +480,14 @@ shinyServer(function(input, output) {
     } 
   })
   
-  # What are the different inputs?
-  output$inputList_daily <- renderPrint({
-    str(reactiveValuesToList(input))
-    str(map_daily_click$x)
-  })
-  # What are the different inputs?
-  output$inputList_proj <- renderPrint({
-    str(reactiveValuesToList(input))
-    str(map_proj_click$x)
-  })
+  # # What are the different inputs?
+  # output$inputList_daily <- renderPrint({
+  #   str(reactiveValuesToList(input))
+  #   str(map_daily_click$x)
+  # })
+  # # What are the different inputs?
+  # output$inputList_proj <- renderPrint({
+  #   str(reactiveValuesToList(input))
+  #   str(map_proj_click$x)
+  # })
 })

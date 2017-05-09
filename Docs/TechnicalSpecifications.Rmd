@@ -1,14 +1,15 @@
 ---
 title: "Catalan Forest Drought Assessment Tool"
-author: "Miquel De Caceres"
+author: "Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta"
+version: 1.0
 output: html_document
 ---
 
 # Catalan Forest Drought Assessment Tool
 
-**Version 1.0**
 
 *Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta*
+
 
 ### Overview
 
@@ -22,14 +23,49 @@ The water balance model described in De Caceres et al. (2015) (implemented in an
 
 The SWB model requires knowing the following daily weather variables: precipitation, potential evapotranspiration (PET). Average daily temperature is also required to calculate growth degree days and update phenological status, but this variable is not stored.
 
+Variable name	| Definition | Units | Aggreg.
+------------- | ---------- | ----- | -------
+PET	| Penman’s potential evapotranspiration	| mm/day	| Sum
+Precipitation	| Precipitation	| mm/day	| Sum
+
+---
 
 *Soil water balance output*
 
 The SWB model updates the leaf area index (LAI) of forests according to phenology and produces the following variables describing the water balance in forest stands:
 
+Variable name	| Definition | Units | Aggreg.
+------------- | ---------- | ----- | -------
+NetPrec | NetPrecipitation | mm/day | Sum
+Runoff | Surface (overland) runoff | mm/day | Sum
+DeepDrainage | Deep drainage to groundwater | mm/day | Sum
+LAI | Leaf area index (including all woody species) | m2/m2 | Average
+Eplant | Plant transpiration | mm/day | Sum
+Esoil | Soil evaporation | mm/day | Sum
+Theta | Average soil moisture relative to field capacity. | [0-1] | Average
+
+---
+
 *Tree drought stress output*
 
 For each simulated forest stand, the daily drought stress for every species present is calculated by averaging daily drought stress of plant cohorts of the species, using LAI values as weights. The following species are tracked in terms of their daily drought stress.
+
+Variable        | Definition                          | Units | Aggreg.
+--------------- | ----------------------------------- | ----- | -------
+PinusHalepensis	| Drought stress for Pinus halepensis	| [0,1] | Average
+PinusNigra | Drought stress for Pinus nigra | [0,1] | Average
+PinusSylvestris | Drought stress for Pinus sylvestris | [0,1]| Average
+PinusUncinata | Drought stress for Pinus uncinata | [0,1] | Average
+PinusPinea | Drought stress for Pinus pinea | [0,1] | Average
+PinusPinaster | Drought stress for Pinus pinaster | [0,1] | Average
+QuercusIlex | Drought stress for Quercus ilex | [0,1] | Average
+QuercusSuber | Drought stress for Quercus suber | [0,1] | Average
+QuercusHumilis | Drought stress for Quercus humilis | [0,1] | Average
+QuercusFaginea | Drought stress for Quercus faginea | [0,1] | Average
+FagusSylvatica | Drought stress for Fagus sylvatica | [0,1] | Average
+Overall | Average drought stress across all woody plants | [0,1] | Average
+
+---
 
 ### MODE 1: Simulation of every-day water balance
 
@@ -40,7 +76,7 @@ In this mode, the water balance model is run once every day for each simulation 
 SWB simulations are conducted on two sets of locations:
 
 1. 200 x 200 m pixels (384,000). 
-2. IFN3 plots (11,454)
+2. IFN3 plots (11,454).
 
 Simulation on pixels are only used for mapping purposes, whereas simulations on IFN3 plots are used to examine temporal trends.
 
@@ -64,6 +100,8 @@ The imputation process of IFN3 plots to 200x200 m pixels may entail gross errors
 *Climate forcing*
 
 Weather station data of the current day is downloaded from APIs provided by the Spanish [Agencia Estatal de Meteorologia (AEMET)](https://opendata.aemet.es/centrodedescargas/inicio). This information, complemented with weather data from previous days, is used to interpolate weather variables over the simulation locations (pixels or IFN3 plots). Interpolation routines are implemented in package *meteoland*. 
+
+---
 
 ### MODE 2: SWB simulations under climate change scenarios
 
@@ -92,5 +130,17 @@ Maps are usually displayed at the daily scale, but the user can decide to map va
 ### Temporal trends
 
 As mentioned above, daily temporal trends are stored for IFN3 plots only (i.e. not for pixels). Trends can be displayed at three spatial levels: (a) Counties; (b) Municipalities; and (c) IFN3 plots. The user can select the desired spatial structure depending on each level. In the case of IFN3 plots the trends of the selected IFN3 plot are displayed. For the other two levels, the application loads the trends of all the IFN3 plots within county/municipality boundaries and calculates average and 5-95 confidence interval.
+
+
+
+### References
+
+
+1. Ameztegui, A., Cabon, A., De Caceres, M. & Coll, L. (2017). Managing stand density to enhance the adaptability of Scots pine stands to climate change: A modelling approach. Ecol. Modell., 356, 141–150.
+2. De Cáceres, M., Martinez-Vilalta, J., Coll, L., Llorens, P., Casals, P., Poyatos, R., et al. (2015). Coupling a water balance model with forest inventory data to predict drought stress: the role of forest structural changes vs. climate changes. Agric. For. Meteorol., 213, 77–90.
+3. Chaparro, D., Vayreda, J., Vall-llossera, M., Banque, M., Piles, M., Camps, A., et al. (2016). The Role of Climatic Anomalies and Soil Moisture in the Decline of Drought-Prone Forests. IEEE J. Sel. Top. Appl. Earth Obs. Remote Sens., 10, 503–514.
+4. Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
+5. Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
+
 
 ---
