@@ -1,1 +1,0 @@
-"C:\Program Files\R\R-3.4.0alpha\bin\R" -f "D:\Rservices\CatDrought\R scripts\Day_Master.R"
