@@ -155,24 +155,20 @@ shinyServer(function(input, output) {
         d = input$date_daily
         if(input$agg_daily=="none") {
           load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", d, ".rda", sep = ""))
-        } else if(input$agg_daily=="1 week") {
-          dfin = input$date_daily
-          dini  = dfin-7
-          dw = seq(dini, dfin, by="day")
-          nd = length(dw)
-          load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
-          spdftmp = spdf
-          if(nd>1) {
-            for(d in 2:nd) {
-              load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
-              spdftmp@data = spdftmp@data + spdf@data
-            }
+        } else {
+          if(input$agg_daily=="1 week") {
+             dfin = input$date_daily
+             dini  = dfin-7
+          } else if(input$agg_daily=="2 weeks") {
+            dfin = input$date_daily
+            dini  = dfin-14
+          } else if(input$agg_daily=="3 weeks") {
+            dfin = input$date_daily
+            dini  = dfin-21
+          } else if(input$agg_daily=="4 weeks") {
+            dfin = input$date_daily
+            dini  = dfin-28
           }
-          spdftmp@data =spdftmp@data /nd
-          spdf = spdftmp
-        } else if(input$agg_daily=="2 weeks") {
-          dfin = input$date_daily
-          dini  = dfin-14
           dw = seq(dini, dfin, by="day")
           nd = length(dw)
           load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))

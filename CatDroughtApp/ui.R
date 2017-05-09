@@ -4,47 +4,47 @@ library(leaflet)
 
 
 shinyUI(
-  navbarPage("Catalan Forest Drought Assessment Tool",
+  navbarPage("Catalan Forest Drought Prediction Tool",
      tabPanel("Current forest drought",
-          fluidRow(
-             splitLayout(cellWidths = c("20%", "80%"),
-                         wellPanel(
+          wellPanel(
+                sidebarLayout(sidebarPanel(
                            radioButtons("mode_daily", "Variable type", choices = c("Water balance", "Drought stress"), inline=TRUE),
                            uiOutput("var_choice_daily"),
                            hr(),
-                           dateInput("date_daily", "Raster date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
-                           radioButtons("agg_daily", "Raster temporal aggregation", choices = c("none", "1 week", "2 weeks"), inline = TRUE),
-                           radioButtons("resolution_daily", "Raster resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
-                           sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 10),
+                           dateInput("date_daily", "Choose date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
+                           selectInput("agg_daily", "Temporal aggregation", choices = c("none", "1 week", "2 weeks", "3 weeks", "4 weeks")),
+                           radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
+                           sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                            hr(),
                            hr(),
-                           radioButtons("display_daily", "Trend selection", choices = c("Counties", "Municipalities", "IFN plots"), selected = "Counties", inline = TRUE)
+                           radioButtons("display_daily", "Selection area", choices = c("Counties", "Municipalities", "IFN plots"), selected = "Counties", inline = TRUE)
                            # hr(),
                            # p(strong("List of available inputs")),
                            # verbatimTextOutput("inputList_daily")
                          ),
-                         wellPanel(
+                         mainPanel(
                            leafletOutput("map_daily", width = "100%", height = "600px")
                          )
-                
-             )
+                )
+             
           ),
-          fluidRow(
-            splitLayout(cellWidths = c("20%", "80%"),
-                  wellPanel(
+          wellPanel(
+            sidebarLayout(
+                  sidebarPanel(
                         h4("Selected area/plot:"),
                         verbatimTextOutput("pol_info_daily")
                   ),
-                  wellPanel(
+                  mainPanel(
                     h4("Trends:"),
-                    plotOutput("trends_daily")                  )
+                    plotOutput("trends_daily")                  
+                  )
             )
           )
     ),
     tabPanel("Forest drought under climate change",
-             fluidRow(
-               splitLayout(cellWidths = c("20%", "80%"),
-                    wellPanel(
+             wellPanel(
+               sidebarLayout(
+                    sidebarPanel(
                            radioButtons("mode_proj", "Variable type", choices = c("Water balance", "Drought stress"), inline=TRUE),
                            uiOutput("var_choice_proj"),
                            radioButtons("agg_proj", "Temporal scale", choices = c("Year", "Month"), inline=TRUE),
@@ -57,18 +57,18 @@ shinyUI(
                            # p(strong("List of available inputs")),
                            # verbatimTextOutput("inputList_proj")
                     ),
-                    wellPanel(
+                    mainPanel(
                            leafletOutput("map_proj", width = "100%", height = "500px")
                     )
                )
              ),
-             fluidRow(
-               splitLayout(cellWidths = c("20%", "80%"),
-                           wellPanel(
+             wellPanel(
+               sidebarLayout(
+                    sidebarPanel(
                              h4("Selected area/plot:"),
                              verbatimTextOutput("pol_info_proj")
                            ),
-                           wellPanel(
+                    mainPanel(
                              h4("Trends:"),
                              plotOutput("trends_proj")
                              )
@@ -76,9 +76,12 @@ shinyUI(
              )
     ), 
     tabPanel("Technical specifications",
-             column(width=12,
+             wellPanel(
                includeMarkdown("../Docs/TechnicalSpecifications.Rmd")
              )
+    ),
+    tabPanel("Credits",
+             wellPanel("Credits to be acknowledged")
     ),
     id="navbar",
     fluid=TRUE

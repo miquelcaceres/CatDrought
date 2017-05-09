@@ -1,14 +1,14 @@
 ---
-title: "Catalan Forest Drought Assessment Tool"
+title: "Catalan Forest Drought Prediction Tool"
 author: "Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta"
 version: 1.0
 output: html_document
 ---
 
-# Catalan Forest Drought Assessment Tool
+<!-- # Catalan Forest Drought Prediction Tool -->
 
 
-*Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta*
+<!-- *Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta* -->
 
 
 ### Overview
