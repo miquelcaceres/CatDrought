@@ -1,14 +1,36 @@
 ---
-title: "Credits"
+title: "Acknowledgements"
 output: html_document
 ---
 
-### Model development
+### Authorship
 
-### Scientific advisors
++ *Model development* : Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
++ *User interface*: Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
 
-### Web development (shiny apps.)
+### Data sources
 
-### Climate data
++ Information elaborated using daily weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
++ Climate scenarios downloaded from [Earth System Grid Federation (ESGF)](http://esgf.llnl.gov/).
 
-+ Información elaborada utilizando la obtenida de la [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es)
+### Scientific advisory board
+
++ Lluís Brotons (CTFC-CEMFOR/CREAF/CSIC)
++ Jordi Martínez Vilalta (UAB/CREAF)
++ Lluís Coll (CTFC-CEMFOR/CREAF)
++ Juli G. Pausas (CIDE-CSIC)
++ Pere Casals (CTFC-CEMFOR)
++ Pilar Llorens (IDAEA-CSIC)
++ Rafael Poyatos (CREAF)
++ Albert Álvarez (CREAF)
++ Jordi Vayreda (CREAF)
++ Mario Beltrán (AGS-CTFC)
+
+
+### Funding projects
+
+*Project grants*: CGL2014-59742-C2-2-R (Ministerio de Economía y Ciencia).
+
+*Fellowships*: RYC-2012-11109 to M. De Cáceres (Ministerio de Economía y Ciencia).
+
+---

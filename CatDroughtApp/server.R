@@ -14,11 +14,11 @@ mapCRS  <- CRS("+init=epsg:4326")
 catpolCRS <- CRS("+init=epsg:23031")
 dataCRS <- CRS("+init=epsg:25831")
 # Catalunya boundaries
-cat.pol <- readOGR(dsn = path.expand("../www/Comarques shapefile"), encoding = "UTF-8")
+cat.pol <- readOGR(dsn = path.expand("www/Comarques shapefile"), encoding = "UTF-8")
 proj4string(cat.pol) <- catpolCRS
 cat.pol <- spTransform(cat.pol, CRSobj = mapCRS)
 # Municipalities boundaries
-mun.pol <- readOGR(dsn = path.expand("../www/Municipis shapefile"), encoding = "UTF-8")
+mun.pol <- readOGR(dsn = path.expand("www/Municipis shapefile"), encoding = "UTF-8")
 proj4string(mun.pol) <- dataCRS
 mun.pol <- spTransform(mun.pol, CRSobj = mapCRS)
 
@@ -61,6 +61,9 @@ input_sp <- c("All", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris", "Pin
 medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "PinusUncinata", "PinusPinea", "PinusPinaster", 
                 "QuercusIlex", "QuercusSuber", "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
 species <- data.frame(input = input_sp, medfate = medfate_sp)
+
+climate_models<-c("CCLM4-8-17","RCA4")
+names(climate_models)<-c("CNRM/CCLM4-8-17", "CNRM/RCA4")
 
 # temporal<-data.frame(row.names = c("Day","Week", "Month"), medfate=c(""," weekly", " monthly"))
 
@@ -419,7 +422,7 @@ shinyServer(function(input, output) {
       
       # Open relevant files and extract informations regarding the selected variable 
       if(nrow(IFN3_sel)>0){
-        folder <- paste0("//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/ProjectedSWB/", input$rcm_proj,"/",input$rcp_proj)
+        folder <- paste0("//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/ProjectedSWB/", climate_models[input$rcm_proj],"/",input$rcp_proj)
         plots_id <- IFN3_sel$ID
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_projections]
         if(length(plots_id)>0) {

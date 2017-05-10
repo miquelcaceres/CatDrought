@@ -1,23 +1,22 @@
 ---
 title: "Catalan Forest Drought Prediction Tool"
-author: "Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta"
-version: 1.0
+author: "Miquel De Cáceres, Antoine Cabon, Jordi Martinez-Vilalta"
 output: html_document
 ---
 
 <!-- # Catalan Forest Drought Prediction Tool -->
 
 
-<!-- *Miquel De Caceres, Antoine Cabon, Jordi Martinez-Vilalta* -->
+<!-- *Miquel De Cáceres, Antoine Cabon, Jordi Martinez-Vilalta* -->
 
 
 ### Overview
 
-This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Caceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
+This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Cáceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
 
 ### Soil water balance (SWB) model
 
-The water balance model described in De Caceres et al. (2015) (implemented in the *medfate* R package) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Caceres et al. (2015).
+The water balance model described in De Cáceres et al. (2015) (implemented in the *medfate* R package) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Cáceres et al. (2015).
 
 *Weather inputs*
 
@@ -109,7 +108,18 @@ In this mode, the soil water balance model is used to project forest drought str
 
 *Climate forcing*
 
-Fifth assessment report (AR5) is used and RCP 4.5 and RCP 8.5 scenarios are used. Daily climate projections for the 2006-2100 period are used as forcing. They were produced by two regional climate models (CCLM4-7-13 and RCA4), both driven by the same global climate model (). Daily climate data is originally at 11 km resolution and statistical downscaling is applied, which includes a bias correction. Bias correction is conducted using package *meteoland*, and requires a local historic meteorological series to use as reference for bias estimation. This is obtained by interpolating daily weather station data over IFN3 plots for the 1990-2005 period (station data from AEMET and SMC).
+Climate scenarios were downloaded from [ESFG (Earth System Grid Federation](http://esgf.llnl.gov/), a web site that centralizes climate data from GCM and RCM uploaded in the frame of different international consortia, including the CORDEX regionalization project. Fifth assessment report (AR5) is used and RCP 4.5 and RCP 8.5 scenarios are used. Daily climate projections for the 2006-2100 period are used as forcing. They were produced by two regional climate models (CCLM4-7-13 and RCA4), both driven by the same global climate model (CNRM-CERFACS).
+
+CGM             | RCM                     | Domain | RCP | Resolution
+--------------- | ----------------------- | ------ | ------------ | ----------
+CNRM-CERFACS	 | CCLM4-8-17	| Europe | 4.5 | 11 km
+CNRM-CERFACS	 | RCA4	| Europe | 8.5 | 11 km
+CNRM-CERFACS	 | RCA4	| Europe | 4.5 | 11 km
+CNRM-CERFACS	 | RCA4	| Europe | 8.5 | 11 km
+
+---
+
+Statistical downscaling is applied to daily climate data, which includes a bias correction. Bias correction is conducted using package *meteoland*, and requires a local historic meteorological series to use as reference for bias estimation. This is obtained by interpolating daily weather station data over IFN3 plots for the 1990-2005 period (station data from AEMET and SMC).
 
 ### Mapping
 
@@ -136,11 +146,11 @@ As mentioned above, daily temporal trends are stored for IFN3 plots only (i.e. n
 ### References
 
 
-1. Ameztegui, A., Cabon, A., De Caceres, M. & Coll, L. (2017). Managing stand density to enhance the adaptability of Scots pine stands to climate change: A modelling approach. Ecol. Modell., 356, 141–150.
-2. De Cáceres, M., Martinez-Vilalta, J., Coll, L., Llorens, P., Casals, P., Poyatos, R., et al. (2015). Coupling a water balance model with forest inventory data to predict drought stress: the role of forest structural changes vs. climate changes. Agric. For. Meteorol., 213, 77–90.
-3. Chaparro, D., Vayreda, J., Vall-llossera, M., Banque, M., Piles, M., Camps, A., et al. (2016). The Role of Climatic Anomalies and Soil Moisture in the Decline of Drought-Prone Forests. IEEE J. Sel. Top. Appl. Earth Obs. Remote Sens., 10, 503–514.
-4. Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
-5. Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
++ Ameztegui, A., Cabon, A., De Cáceres, M. & Coll, L. (2017). Managing stand density to enhance the adaptability of Scots pine stands to climate change: A modelling approach. Ecol. Modell., 356, 141–150.
++ De Cáceres, M., Martinez-Vilalta, J., Coll, L., Llorens, P., Casals, P., Poyatos, R., et al. (2015). Coupling a water balance model with forest inventory data to predict drought stress: the role of forest structural changes vs. climate changes. Agric. For. Meteorol., 213, 77–90.
++ Chaparro, D., Vayreda, J., Vall-llossera, M., Banque, M., Piles, M., Camps, A., et al. (2016). The Role of Climatic Anomalies and Soil Moisture in the Decline of Drought-Prone Forests. IEEE J. Sel. Top. Appl. Earth Obs. Remote Sens., 10, 503–514.
++ Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
++ Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
 
 
 ---

@@ -42,8 +42,8 @@ shinyUI(
                            uiOutput("var_choice_proj"),
                            radioButtons("agg_proj", "Temporal scale", choices = c("Year", "Month"), inline=TRUE),
                            hr(),
-                           radioButtons("rcm_proj", "RCM", choices = c("CCLM4-8-17", "RCA4"), inline=TRUE),
-                           radioButtons("rcp_proj", "RCP scenario", choices = c("rcp4.5", "rcp8.5"), inline=TRUE),
+                           selectInput("rcm_proj", "Climate model (GCM/RCM)", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4")),
+                           selectInput("rcp_proj", "Climate scenario (RCP)", choices = c("rcp4.5", "rcp8.5")),
                            hr(),
                            radioButtons("display_proj", "Trend selection", choices = c("Counties", "Municipalities", "IFN plots"), selected = "Counties", inline=TRUE)
                            # hr(),
@@ -66,9 +66,14 @@ shinyUI(
                includeMarkdown("../Docs/TechnicalSpecifications.Rmd")
              )
     ),
-    tabPanel("Credits",
+    tabPanel("Acknowledgements",
              wellPanel(
-               includeMarkdown("../Docs/Credits.Rmd")
+               includeMarkdown("../Docs/Credits.Rmd"),
+               hr(),
+               fluidRow(
+                 a(href = "http://www.ctfc.cat/", img(src="logo_ctfc.png")), 
+                 a(href = "http://www.creaf.cat/", img(src="logo_creaf.png"))
+               )
              )
     ),
     id="navbar",
