@@ -11,4 +11,4 @@ output: html_document
 
 ### Climate data
 
-+ Información elaborada utilizando, entre otras, la obtenida de la [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es)
++ Información elaborada utilizando la obtenida de la [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es)

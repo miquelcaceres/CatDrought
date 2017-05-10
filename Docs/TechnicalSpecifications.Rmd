@@ -13,11 +13,11 @@ output: html_document
 
 ### Overview
 
-This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Caceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service tries to complement monitoring programs of observed drought-related forest decay in the same area (DEBOSCAT) (Chaparro et al. 2016).
+This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Caceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
 
 ### Soil water balance (SWB) model
 
-The water balance model described in De Caceres et al. (2015) (implemented in an R package called *medfate*) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Caceres et al. (2015).
+The water balance model described in De Caceres et al. (2015) (implemented in the *medfate* R package) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Caceres et al. (2015).
 
 *Weather inputs*
 
@@ -84,7 +84,7 @@ Simulation on pixels are only used for mapping purposes, whereas simulations on 
 
 + Two soil layers considered (topsoil and subsoil). Soil texture obtained from the Harmonized Soil World Data Base. Rock fragment content from forest plot surface rock abundance.
 + Height and leaf area index (LAI) of trees and shrubs from forest plot data. LAI estimated from allometric relationships including DBH and stand competition (Ameztegui, Cabon et al. 2017). 
-+ Species parameterization includes, apart from allometric relationships, soil water potential that results in a reduction of transpiration, leaf water interception, light extinction and growth degree days necessary for leaf development of deciduous species.
++ Species parameterization includes, apart from allometric relationships, critical soil water potential thresholds that determine the reduction of transpiration with soil drying, leaf water interception, light extinction and growth degree days necessary for leaf development of deciduous species.
 + Soil depth and root distribution estimated as described in Cabon et al. (in prep.).
 
 *Initialization of pixels*
@@ -125,7 +125,7 @@ Simulations are done at 200 x 200 m resolution. Values at 1km2 are calculated av
 
 *Temporal aggregation*
 
-Maps are usually displayed at the daily scale, but the user can decide to map values aggregated temporally at the weekly, monthly or annual scales. Temporal aggregation for week, month and annual values follows the function (sum or average) indicated in variable tables above.
+Maps are usually displayed at the daily scale, but the user can decide to map values aggregated temporally up to a number of weeks. Temporal aggregation follows the function (sum or average) indicated in variable tables above.
 
 ### Temporal trends
 
