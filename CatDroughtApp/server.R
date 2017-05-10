@@ -247,7 +247,7 @@ shinyServer(function(input, output) {
     } else if(input$display_daily == "IFN plots"){
           leafletProxy("map_daily") %>%
             clearShapes() %>%
-            addCircleMarkers(data = IFN3.points, radius = 5, color="black", stroke = F, fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),  
+            addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_trends,], radius = 5, color="black", stroke = F, fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),  
                              clusterOptions = markerClusterOptions(showCoverageOnHover = T, disableClusteringAtZoom = 12))
           
     }
@@ -273,7 +273,7 @@ shinyServer(function(input, output) {
     } else if(input$display_proj == "IFN plots"){
           leafletProxy("map_proj") %>%
             clearShapes() %>%
-            addCircleMarkers(data = IFN3.points, radius = 5, stroke = F, color="black", fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),  
+            addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_projections,], radius = 5, stroke = F, color="black", fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),  
                              clusterOptions = markerClusterOptions(showCoverageOnHover = T, disableClusteringAtZoom = 12))
           
     }
