@@ -348,9 +348,11 @@ shinyServer(function(input, output) {
           dates <- as.Date(rownames(means))
           
           output$trends_daily <- renderPlot({
-            plot(dates, ci_sup[,col], type = "l", xlab = "Date", ylab = paste(input$var_daily), ylim = c(0, max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
-            lines(dates, ci_inf[,col], col = "red", lty = 3)
-            lines(dates, means[,col])
+            first = which(!is.na(means[,col]))[1]
+            last  = length(means[,col])
+            plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste(input$var_daily), ylim = c(0, max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
+            lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+            lines(dates[first:last], means[first:last,col])
           })
           
         } else {
@@ -372,19 +374,21 @@ shinyServer(function(input, output) {
             ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
             ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
             
-            col <- as.character(species[species$input == input$sp, "medfate"])
+            col <- as.character(species[species$input == input$sp_daily, "medfate"])
             dates <- as.Date(rownames(means))
             filled <- !is.na(means[,col]) 
-            output$trends <- renderPlot({
-              plot(dates, ci_sup[,col], type = "l", xlab = "Date", ylab = paste("Drought stress index of", input$species), ylim = c(0,1), col = "red", lty = 3)
-              lines(dates, ci_inf[,col], col = "red", lty = 3)
-              lines(dates, means[,col])
+            output$trends_daily <- renderPlot({
+              first = which(!is.na(means[,col]))[1]
+              last  = length(means[,col])
+              plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste("Drought stress index - ", input$sp_daily), ylim = c(0,1), col = "red", lty = 3)
+              lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+              lines(dates[first:last], means[first:last,col])
             })
             
-          } else {}
+          }
         }
-      } else {}
-    } else {}
+      } 
+    } 
   })
   
   # React to clicks on the map (using observeEvent() instead of observe() allows to trigger code only when the value of input$map_shape_click changes)
@@ -420,9 +424,9 @@ shinyServer(function(input, output) {
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_projections]
         if(length(plots_id)>0) {
           load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-          if(input$agg_proj== "Month") trends = swb_month
-          else trends = swb_year
           if(input$mode_proj == "Water balance"){
+            if(input$agg_proj== "Month") trends = swb_month
+            else trends = swb_year
             # open all the files of the individual plots
             data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
             for(i in 1:length(plots_id)){
@@ -441,14 +445,18 @@ shinyServer(function(input, output) {
             dates <- as.Date(rownames(means))
             
             output$trends_proj <- renderPlot({
-              plot(dates, ci_sup[,col], type = "l", xlab = "", ylab = paste(input$var_proj), ylim = c(min(ci_inf[,col], na.rm = T), max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
-              lines(dates, ci_inf[,col], col = "red", lty = 3)
-              lines(dates, means[,col])
+              first = which(!is.na(means[,col]))[1]
+              last  = length(means[,col])
+              plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "", ylab = paste(input$var_proj), ylim = c(min(ci_inf[,col], na.rm = T), max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
+              lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+              lines(dates[first:last], means[first:last,col])
             })
             
           }
           else if(input$mode_proj == "Drought stress"){ 
             
+            if(input$agg_proj== "Month") trends = dds_month
+            else trends = dds_year
             # open all the files of the individual plots
             data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
             for(i in 1:length(plots_id)){
@@ -467,9 +475,11 @@ shinyServer(function(input, output) {
             dates <- as.Date(rownames(means))
             filled <- !is.na(means[,col]) 
             output$trends_proj <- renderPlot({
-              plot(dates, ci_sup[,col], type = "l", xlab = "Date", ylab = paste("Drought stress index of", input$species), ylim = c(0,1), col = "red", lty = 3)
-              lines(dates, ci_inf[,col], col = "red", lty = 3)
-              lines(dates, means[,col])
+              first = which(!is.na(means[,col]))[1]
+              last  = length(means[,col])
+              plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste("Drought stress index - ", input$sp_proj), ylim = c(0,1), col = "red", lty = 3)
+              lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+              lines(dates[first:last], means[first:last,col])
             })
             
           }
