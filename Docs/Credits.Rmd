@@ -1,0 +1,14 @@
+---
+title: "Credits"
+output: html_document
+---
+
+### Model development
+
+### Scientific advisors
+
+### Web development (shiny apps.)
+
+### Climate data
+
++ Información elaborada utilizando, entre otras, la obtenida de la [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es)

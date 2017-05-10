@@ -29,16 +29,9 @@ shinyUI(
              
           ),
           wellPanel(
-            sidebarLayout(
-                  sidebarPanel(
-                        h4("Selected area/plot:"),
-                        verbatimTextOutput("pol_info_daily")
-                  ),
-                  mainPanel(
-                    h4("Trends:"),
-                    plotOutput("trends_daily")                  
-                  )
-            )
+            h4("Selected area/plot:"),
+            verbatimTextOutput("pol_info_daily"),
+            plotOutput("trends_daily")                  
           )
     ),
     tabPanel("Forest drought under climate change",
@@ -63,16 +56,9 @@ shinyUI(
                )
              ),
              wellPanel(
-               sidebarLayout(
-                    sidebarPanel(
-                             h4("Selected area/plot:"),
-                             verbatimTextOutput("pol_info_proj")
-                           ),
-                    mainPanel(
-                             h4("Trends:"),
-                             plotOutput("trends_proj")
-                             )
-               )
+               h4("Selected area/plot:"),
+               verbatimTextOutput("pol_info_proj"),
+               plotOutput("trends_proj")
              )
     ), 
     tabPanel("Technical specifications",
@@ -81,7 +67,9 @@ shinyUI(
              )
     ),
     tabPanel("Credits",
-             wellPanel("Credits to be acknowledged")
+             wellPanel(
+               includeMarkdown("../Docs/Credits.Rmd")
+             )
     ),
     id="navbar",
     fluid=TRUE
