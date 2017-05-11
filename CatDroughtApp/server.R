@@ -58,7 +58,7 @@ input_var <- c("Precipitation (mm)", "Net precipitation (mm)", "Potential evapo-
 medfate_var <- c("Rain", "NetPrec", "PET","LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta")
 variables <- data.frame(input = input_var, medfate = medfate_var)
 
-input_sp <- c("All", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris", "Pinus uncinata", "Pinus pinea", 
+input_sp <- c("All woordy species", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris", "Pinus uncinata", "Pinus pinea", 
               "Pinus pinaster", "Quercus ilex", "Quercus suber", "Quercus humilis", "Quercus faginea", "Fagus sylvatica")
 medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "PinusUncinata", "PinusPinea", "PinusPinaster", 
                 "QuercusIlex", "QuercusSuber", "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
@@ -110,7 +110,7 @@ shinyServer(function(input, output) {
       input_name <- "sp_daily"
       input_title <- "Choose species"
       var_choice_daily <- input_sp
-      selected <- "All"
+      selected <- "All woody species"
     }
     
     output$var_choice_daily <- renderUI({
@@ -129,7 +129,7 @@ shinyServer(function(input, output) {
       input_name <- "sp_proj"
       input_title <- "Choose species"
       var_choice_proj <- input_sp
-      selected <- "All"
+      selected <- "All woody species"
     }
     
     output$var_choice_proj <- renderUI({
@@ -300,6 +300,9 @@ shinyServer(function(input, output) {
     map_proj_click$x <- input$map_proj_marker_click
   })
   
+  # Create a reactive value data
+  map_daily_data <- reactiveValues(x = list())
+  
   # React to clicks on the map (using observeEvent() instead of observe() allows to trigger code only when the value of input$map_shape_click changes)
   observe({
     # print("hola")
@@ -349,23 +352,8 @@ shinyServer(function(input, output) {
           ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
           ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
           
-          col <- as.character(variables[variables$input == input$var_daily, "medfate"])
           dates <- as.Date(rownames(means))
-          
-          # output$trends_daily <- renderPlot({
-          #   first = which(!is.na(means[,col]))[1]
-          #   last  = length(means[,col])
-          #   plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste(input$var_daily), ylim = c(0, max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
-          #   lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
-          #   lines(dates[first:last], means[first:last,col])
-          # })
-          output$trends_daily<-renderDygraph({
-            x<-xts(means[,col],dates)
-            colnames(x)<-paste(input$var_daily)
-            title <- paste(input$var_daily," at ",as.character(info$Name))
-            if(nrow(IFN3_sel)>1) title<-title<-paste0(title, " (",nrow(IFN3_sel)," plots)")
-            dygraph(x, main= title) %>% dyRangeSelector()
-          })
+          map_daily_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
           
         } else {
           if(input$mode_daily == "Drought stress"){ 
@@ -386,27 +374,38 @@ shinyServer(function(input, output) {
             ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
             ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
             
-            col <- as.character(species[species$input == input$sp_daily, "medfate"])
             dates <- as.Date(rownames(means))
-            filled <- !is.na(means[,col]) 
-            # output$trends_daily <- renderPlot({
-            #   first = which(!is.na(means[,col]))[1]
-            #   last  = length(means[,col])
-            #   plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste("Drought stress index - ", input$sp_daily), ylim = c(0,1), col = "red", lty = 3)
-            #   lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
-            #   lines(dates[first:last], means[first:last,col])
-            # })
-            output$trends_daily<-renderDygraph({
-              x<-xts(means[,col],dates)
-              colnames(x)<-paste("Drought stress")
-              title <- paste("Drought stress index - ", input$sp_daily," at ",as.character(info$Name))
-              if(nrow(IFN3_sel)>1) title<-paste0(title, " (",nrow(IFN3_sel)," plots)")
-              dygraph(x, main= title) %>% dyRangeSelector()
-            })
+            map_daily_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+            
           }
         }
       } 
     } 
+  })
+  
+  #Reacts to changes in variable selected and map_daily_data changes
+  observe({
+    if(!is.null(map_daily_data$x)) {
+      if(input$mode_daily == "Water balance") {
+        col <- as.character(variables[variables$input == input$var_daily, "medfate"])
+        title <- paste(input$var_daily," at ",as.character(map_daily_data$x$info$Name))
+        label=input$var_daily
+      } else {
+        col <- as.character(species[species$input == input$sp_daily, "medfate"])
+        title <- paste("Drought stress index for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
+        label="Drought stress"
+      }
+      
+      if(!is.null(map_daily_data$x$means)) {
+        output$trends_daily<-renderDygraph({
+          m<-cbind( map_daily_data$x$ci_sup[,col], map_daily_data$x$means[,col],map_daily_data$x$ci_inf[,col])
+          colnames(m)<-c("lower", "mean","upper")
+          x<-xts(m,map_daily_data$x$dates)
+          if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
+          dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+        })
+      }
+    }
   })
   
   # React to clicks on the map (using observeEvent() instead of observe() allows to trigger code only when the value of input$map_shape_click changes)
@@ -502,11 +501,12 @@ shinyServer(function(input, output) {
 
             output$trends_proj<-renderDygraph({
               x<-xts(means[,col],dates)
+              # x<-xts(data.frame(mean=means[,col], upper = ci_sup[,col], lower = ci_inf[,col]),dates)
               colnames(x)<-paste("Drought stress")
               title <- paste("Drought stress index - ", input$sp_daily," at ",as.character(info$Name))
               if(nrow(IFN3_sel)>1) title<-paste0(title, " (",nrow(IFN3_sel)," plots)")
               title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
-              dygraph(x, main= title) %>% dyRangeSelector()
+              dygraph(x, main= title)  %>% dyRangeSelector()
             })
             # output$trends_proj <- renderPlot({
             #   first = which(!is.na(means[,col]))[1]
