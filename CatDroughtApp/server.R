@@ -7,6 +7,8 @@ library(raster)
 library(scales)
 library(chron)
 library(leaflet)
+library(dygraphs)
+library(xts)
 
 
 # App data requisites
@@ -299,7 +301,7 @@ shinyServer(function(input, output) {
   })
   
   # React to clicks on the map (using observeEvent() instead of observe() allows to trigger code only when the value of input$map_shape_click changes)
-  observeEvent(map_daily_click$x,{
+  observe({
     # print("hola")
     if(!is.null(map_daily_click$x)){
       
@@ -318,14 +320,14 @@ shinyServer(function(input, output) {
         IFN3_sel <- IFN3.points@data[IFN3.points$MUNICIPI == info$Id,]
       } else if(input$display_daily == "IFN plots"){
           IFN3_sel <- IFN3.points@data[as.character(IFN3.points$ID) == map_daily_click$x$id,]
-          info <- data.frame(Name = IFN3_sel$ID, type = "IFN plot")
+          info <- data.frame(Name = paste("plot '",IFN3_sel$ID,"'"), type = "IFN plot")
       }
       # print(head(IFN3_sel))
       
-      output$pol_info_daily <- renderPrint({
-        cat("Shape type: ", info$type, "; name: ", as.character(info$Name), sep = "")
-        cat("\nContains", nrow(IFN3_sel), "plots from the 3rd Spanish Forest Inventory")
-      })
+      # output$pol_info_daily <- renderPrint({
+      #   cat("Shape type: ", info$type, "; name: ", as.character(info$Name), sep = "")
+      #   cat("\nContains", nrow(IFN3_sel), "plots from the 3rd Spanish Forest Inventory")
+      # })
       
       # Open relevant files and extract informations regarding the selected variable 
       if(nrow(IFN3_sel)>0){
@@ -350,12 +352,19 @@ shinyServer(function(input, output) {
           col <- as.character(variables[variables$input == input$var_daily, "medfate"])
           dates <- as.Date(rownames(means))
           
-          output$trends_daily <- renderPlot({
-            first = which(!is.na(means[,col]))[1]
-            last  = length(means[,col])
-            plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste(input$var_daily), ylim = c(0, max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
-            lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
-            lines(dates[first:last], means[first:last,col])
+          # output$trends_daily <- renderPlot({
+          #   first = which(!is.na(means[,col]))[1]
+          #   last  = length(means[,col])
+          #   plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste(input$var_daily), ylim = c(0, max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
+          #   lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+          #   lines(dates[first:last], means[first:last,col])
+          # })
+          output$trends_daily<-renderDygraph({
+            x<-xts(means[,col],dates)
+            colnames(x)<-paste(input$var_daily)
+            title <- paste(input$var_daily," at ",as.character(info$Name))
+            if(nrow(IFN3_sel)>1) title<-title<-paste0(title, " (",nrow(IFN3_sel)," plots)")
+            dygraph(x, main= title) %>% dyRangeSelector()
           })
           
         } else {
@@ -380,14 +389,20 @@ shinyServer(function(input, output) {
             col <- as.character(species[species$input == input$sp_daily, "medfate"])
             dates <- as.Date(rownames(means))
             filled <- !is.na(means[,col]) 
-            output$trends_daily <- renderPlot({
-              first = which(!is.na(means[,col]))[1]
-              last  = length(means[,col])
-              plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste("Drought stress index - ", input$sp_daily), ylim = c(0,1), col = "red", lty = 3)
-              lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
-              lines(dates[first:last], means[first:last,col])
+            # output$trends_daily <- renderPlot({
+            #   first = which(!is.na(means[,col]))[1]
+            #   last  = length(means[,col])
+            #   plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste("Drought stress index - ", input$sp_daily), ylim = c(0,1), col = "red", lty = 3)
+            #   lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+            #   lines(dates[first:last], means[first:last,col])
+            # })
+            output$trends_daily<-renderDygraph({
+              x<-xts(means[,col],dates)
+              colnames(x)<-paste("Drought stress")
+              title <- paste("Drought stress index - ", input$sp_daily," at ",as.character(info$Name))
+              if(nrow(IFN3_sel)>1) title<-paste0(title, " (",nrow(IFN3_sel)," plots)")
+              dygraph(x, main= title) %>% dyRangeSelector()
             })
-            
           }
         }
       } 
@@ -395,7 +410,7 @@ shinyServer(function(input, output) {
   })
   
   # React to clicks on the map (using observeEvent() instead of observe() allows to trigger code only when the value of input$map_shape_click changes)
-  observeEvent(map_proj_click$x,{
+  observe({
     if(!is.null(map_proj_click$x)){
       
       # Convert coordinates of the click zone into a spatial point
@@ -413,7 +428,7 @@ shinyServer(function(input, output) {
         IFN3_sel <- IFN3.points@data[IFN3.points$MUNICIPI == info$Id,]
       } else if(input$display_proj == "IFN plots"){
         IFN3_sel <- IFN3.points@data[as.character(IFN3.points$ID) == map_proj_click$x$id,]
-        info <- data.frame(Name = IFN3_sel$ID, type = "IFN plot")
+        info <- data.frame(Name = paste("plot '",IFN3_sel$ID,"'"), type = "IFN plot")
       }
       output$pol_info_proj <- renderPrint({
         cat("Shape type: ", info$type, "; name: ", as.character(info$Name), sep = "")
@@ -447,14 +462,21 @@ shinyServer(function(input, output) {
             col <- as.character(variables[variables$input == input$var_proj, "medfate"])
             dates <- as.Date(rownames(means))
             
-            output$trends_proj <- renderPlot({
-              first = which(!is.na(means[,col]))[1]
-              last  = length(means[,col])
-              plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "", ylab = paste(input$var_proj), ylim = c(min(ci_inf[,col], na.rm = T), max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
-              lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
-              lines(dates[first:last], means[first:last,col])
+            # output$trends_proj <- renderPlot({
+            #   first = which(!is.na(means[,col]))[1]
+            #   last  = length(means[,col])
+            #   plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "", ylab = paste(input$var_proj), ylim = c(min(ci_inf[,col], na.rm = T), max(ci_sup[,col], na.rm = T)), col = "red", lty = 3)
+            #   lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+            #   lines(dates[first:last], means[first:last,col])
+            # })
+            output$trends_proj<-renderDygraph({
+              x<-xts(means[,col],dates)
+              colnames(x)<-paste(input$var_daily)
+              title <- paste(input$var_daily," at ",as.character(info$Name))
+              if(nrow(IFN3_sel)>1) title<-title<-paste0(title, " (",nrow(IFN3_sel)," plots)")
+              title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
+              dygraph(x, main= title) %>% dyRangeSelector()
             })
-            
           }
           else if(input$mode_proj == "Drought stress"){ 
             
@@ -477,13 +499,22 @@ shinyServer(function(input, output) {
             col <- as.character(species[species$input == input$sp_proj, "medfate"])
             dates <- as.Date(rownames(means))
             filled <- !is.na(means[,col]) 
-            output$trends_proj <- renderPlot({
-              first = which(!is.na(means[,col]))[1]
-              last  = length(means[,col])
-              plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste("Drought stress index - ", input$sp_proj), ylim = c(0,1), col = "red", lty = 3)
-              lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
-              lines(dates[first:last], means[first:last,col])
+
+            output$trends_proj<-renderDygraph({
+              x<-xts(means[,col],dates)
+              colnames(x)<-paste("Drought stress")
+              title <- paste("Drought stress index - ", input$sp_daily," at ",as.character(info$Name))
+              if(nrow(IFN3_sel)>1) title<-paste0(title, " (",nrow(IFN3_sel)," plots)")
+              title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
+              dygraph(x, main= title) %>% dyRangeSelector()
             })
+            # output$trends_proj <- renderPlot({
+            #   first = which(!is.na(means[,col]))[1]
+            #   last  = length(means[,col])
+            #   plot(dates[first:last], ci_sup[first:last,col], type = "l", xlab = "Date", ylab = paste("Drought stress index - ", input$sp_proj), ylim = c(0,1), col = "red", lty = 3)
+            #   lines(dates[first:last], ci_inf[first:last,col], col = "red", lty = 3)
+            #   lines(dates[first:last], means[first:last,col])
+            # })
             
           }
         }

@@ -1,7 +1,7 @@
 library(shiny)
 # Libraries for ui
 library(leaflet)
-
+library(dygraphs)
 
 shinyUI(
   navbarPage("Catalan Forest Drought Prediction Tool",
@@ -29,9 +29,9 @@ shinyUI(
              
           ),
           wellPanel(
-            h4("Selected area/plot:"),
-            verbatimTextOutput("pol_info_daily"),
-            plotOutput("trends_daily")                  
+            h4("Selected area/plot series:"),
+            # verbatimTextOutput("pol_info_daily"),
+            dygraphOutput("trends_daily")                  
           )
     ),
     tabPanel("Forest drought under climate change",
@@ -45,7 +45,7 @@ shinyUI(
                            selectInput("rcm_proj", "Climate model (GCM/RCM)", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4")),
                            selectInput("rcp_proj", "Climate scenario (RCP)", choices = c("rcp4.5", "rcp8.5")),
                            hr(),
-                           radioButtons("display_proj", "Trend selection", choices = c("Counties", "Municipalities", "IFN plots"), selected = "Counties", inline=TRUE)
+                           radioButtons("display_proj", "Selection area", choices = c("Counties", "Municipalities", "IFN plots"), selected = "Counties", inline=TRUE)
                            # hr(),
                            # p(strong("List of available inputs")),
                            # verbatimTextOutput("inputList_proj")
@@ -56,9 +56,9 @@ shinyUI(
                )
              ),
              wellPanel(
-               h4("Selected area/plot:"),
-               verbatimTextOutput("pol_info_proj"),
-               plotOutput("trends_proj")
+               h4("Selected area/plot series:"),
+               # verbatimTextOutput("pol_info_proj"),
+               dygraphOutput("trends_proj")
              )
     ), 
     tabPanel("Technical specifications",
