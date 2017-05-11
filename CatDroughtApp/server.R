@@ -57,8 +57,8 @@ available_plots_historic <- unlist(strsplit(available_plots_historic,split = ".r
 
 
 ## Variable names correspondance between ui and medfate outputs
-input_clim_var <- c("Precipitation (mm)", "Potential evapo-transpiration (mm)")
-medfate_clim_var <- c("Rain", "PET")
+input_clim_var <- c("Precipitation (mm)", "Potential evapo-transpiration (mm)", "SPEI (k=3)", "SPEI (k=6)", "SPEI (k=12)")
+medfate_clim_var <- c("Rain", "PET", "spei3","spei6","spei12")
 clim_variables <- data.frame(input = input_clim_var, medfate = medfate_clim_var)
 
 input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plants transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)", "Deep drainage (mm)", 
@@ -122,7 +122,7 @@ shinyServer(function(input, output) {
     if(input$mode_daily == "Climate") {
       input_name <- "clim_daily"
       input_title <- "Choose variable"
-      var_choice_daily <- input_clim_var
+      var_choice_daily <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
     } else if(input$mode_daily == "Water balance") {
       input_name <- "WB_daily"
@@ -146,12 +146,13 @@ shinyServer(function(input, output) {
     if(input$mode_hist == "Climate") {
       input_name <- "clim_hist"
       input_title <- "Choose variable"
-      var_choice_hist <- input_clim_var
+      if(input$agg_hist=="Month") var_choice_hist <- input_clim_var
+      else var_choice_hist <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
     } else if(input$mode_hist == "Water balance") {
       input_name <- "WB_hist"
       input_title <- "Choose variable"
-      var_choice_hist <- input_WB_var
+      var_choice_hist <- input_WB_var[-2]
       selected <- "Relative soil water content [0-1]"
     } else {
       input_name <- "sp_hist"
@@ -170,12 +171,13 @@ shinyServer(function(input, output) {
     if(input$mode_proj == "Climate") {
       input_name <- "clim_proj"
       input_title <- "Choose variable"
-      var_choice_proj <- input_clim_var
+      if(input$agg_proj=="Month") var_choice_proj <- input_clim_var
+      else var_choice_proj <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
     } else if(input$mode_proj == "Water balance") {
       input_name <- "WB_proj"
       input_title <- "Choose variable"
-      var_choice_proj <- input_WB_var
+      var_choice_proj <- input_WB_var[-2]
       selected <- "Relative soil water content [0-1]"
     } else {
       input_name <- "sp_proj"
@@ -192,22 +194,21 @@ shinyServer(function(input, output) {
   # Create an interactive map centered on catalonia
   output$map_daily <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
-      # addProviderTiles("Esri.WorldGrayCanvas") %>%
+      addProviderTiles(input$basemap_daily) %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
+    
   })
   # Create an interactive map centered on catalonia
   output$map_hist <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
+      addProviderTiles(input$basemap_hist) %>%
       # addProviderTiles("Esri.WorldGrayCanvas") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
   })
   # Create an interactive map centered on catalonia
   output$map_proj <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
-      # addProviderTiles("Esri.WorldGrayCanvas") %>%
+      addProviderTiles(input$basemap_proj) %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
   })
   
@@ -489,8 +490,7 @@ shinyServer(function(input, output) {
             load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
             data[,,i] <- as.matrix(trends)
           }
-        } else {
-          if(input$mode_daily == "Drought stress"){ 
+        } else if(input$mode_daily == "Drought stress"){ 
             folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/DroughtStressTrends"
             plots_id <- IFN3_sel$ID
             plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
@@ -502,7 +502,7 @@ shinyServer(function(input, output) {
               load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
               data[,,i] <- as.matrix(trends)
             }
-          }
+          
         } 
         # calculate mean and condidence interval
         means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()

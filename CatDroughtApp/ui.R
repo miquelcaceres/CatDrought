@@ -16,6 +16,7 @@ shinyUI(
                            radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
                            sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                            hr(),
+                           selectInput("basemap_daily","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas")),
                            hr(),
                            selectInput("display_daily", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
                          ),
@@ -41,6 +42,8 @@ shinyUI(
                    radioButtons("mode_hist", "Variable type", choices = c("Climate","Water balance", "Drought stress"), inline=TRUE),
                    uiOutput("var_choice_hist"),
                    radioButtons("agg_hist", "Temporal scale", choices = c("Year", "Month"), selected="Month", inline=TRUE),
+                   hr(),
+                   selectInput("basemap_hist","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas")),
                    hr(),
                    selectInput("display_hist", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
                  ),
@@ -68,6 +71,8 @@ shinyUI(
                            hr(),
                            selectInput("rcm_proj", "Climate model (GCM/RCM)", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4")),
                            selectInput("rcp_proj", "Climate scenario (RCP)", choices = c("rcp4.5", "rcp8.5")),
+                           hr(),
+                           selectInput("basemap_proj","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas")),
                            hr(),
                            selectInput("display_proj", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
                     ),
