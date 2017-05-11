@@ -218,36 +218,20 @@ shinyServer(function(input, output) {
       if(!is.null(input$clim_daily)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
         col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
-        d = input$date_daily
-        if(input$agg_daily=="none") {
-          load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", d, ".rda", sep = ""))
-        } else {
-          if(input$agg_daily=="1 week") {
-            dfin = input$date_daily
-            dini  = dfin-7
-          } else if(input$agg_daily=="2 weeks") {
-            dfin = input$date_daily
-            dini  = dfin-14
-          } else if(input$agg_daily=="3 weeks") {
-            dfin = input$date_daily
-            dini  = dfin-21
-          } else if(input$agg_daily=="4 weeks") {
-            dfin = input$date_daily
-            dini  = dfin-28
+        dfin = input$date_daily
+        dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
+        dw = seq(dini, dfin, by="day")
+        nd = length(dw)
+        load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
+        spdftmp = spdf
+        if(nd>1) {
+          for(d in 2:nd) {
+            load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
+            spdftmp@data = spdftmp@data + spdf@data
           }
-          dw = seq(dini, dfin, by="day")
-          nd = length(dw)
-          load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
-          spdftmp = spdf
-          if(nd>1) {
-            for(d in 2:nd) {
-              load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
-              spdftmp@data = spdftmp@data + spdf@data
-            }
-          }
-          spdftmp@data =spdftmp@data /nd
-          spdf = spdftmp
         }
+        spdftmp@data =spdftmp@data /nd
+        spdf = spdftmp
         
         r <- raster(spdf)
         proj4string(r) <- dataCRS
@@ -268,36 +252,20 @@ shinyServer(function(input, output) {
       if(!is.null(input$WB_daily)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
-        d = input$date_daily
-        if(input$agg_daily=="none") {
-          load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", d, ".rda", sep = ""))
-        } else {
-          if(input$agg_daily=="1 week") {
-             dfin = input$date_daily
-             dini  = dfin-7
-          } else if(input$agg_daily=="2 weeks") {
-            dfin = input$date_daily
-            dini  = dfin-14
-          } else if(input$agg_daily=="3 weeks") {
-            dfin = input$date_daily
-            dini  = dfin-21
-          } else if(input$agg_daily=="4 weeks") {
-            dfin = input$date_daily
-            dini  = dfin-28
+        dfin = input$date_daily
+        dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
+        dw = seq(dini, dfin, by="day")
+        nd = length(dw)
+        load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
+        spdftmp = spdf
+        if(nd>1) {
+          for(d in 2:nd) {
+            load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
+            spdftmp@data = spdftmp@data + spdf@data
           }
-          dw = seq(dini, dfin, by="day")
-          nd = length(dw)
-          load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
-          spdftmp = spdf
-          if(nd>1) {
-            for(d in 2:nd) {
-              load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
-              spdftmp@data = spdftmp@data + spdf@data
-            }
-          }
-          spdftmp@data =spdftmp@data /nd
-          spdf = spdftmp
         }
+        spdftmp@data =spdftmp@data /nd
+        spdf = spdftmp
         
         r <- raster(spdf)
         proj4string(r) <- dataCRS
@@ -318,7 +286,23 @@ shinyServer(function(input, output) {
       if(!is.null(input$sp_daily)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
         col <- as.character(species[species$input == input$sp_daily, "medfate"])
-        load(paste(folder, "/", input$resolution_daily,"/DroughtStress/",col, "/", input$date_daily, ".rda", sep = ""))
+
+        dfin = input$date_daily
+        dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
+        dw = seq(dini, dfin, by="day")
+        nd = length(dw)
+        load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",col, "/", dw[1], ".rda", sep = ""))
+        spdftmp = spdf
+        if(nd>1) {
+          for(d in 2:nd) {
+            load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",col, "/", dw[d], ".rda", sep = ""))
+            spdftmp@data = spdftmp@data + spdf@data
+          }
+        }
+        spdftmp@data =spdftmp@data /nd
+        spdf = spdftmp
+        
+        
         r <- raster(spdf)
         proj4string(r) <- dataCRS
         r <- projectRaster(r, crs = mapCRS)
@@ -536,7 +520,7 @@ shinyServer(function(input, output) {
   })
   
   #Reacts to changes in variable selected and map_daily_data changes
-  observe({
+  output$trends_daily<-renderDygraph({
     if(!is.null(map_daily_data$x)) {
       if(input$mode_daily == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
@@ -551,18 +535,14 @@ shinyServer(function(input, output) {
         title <- paste("Drought stress index for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
         label="Drought stress"
       }
-      output$trends_daily<-renderDygraph({
-        if(!is.null(map_daily_data$x)) {
-          m<-cbind( map_daily_data$x$ci_sup[,col], map_daily_data$x$means[,col],map_daily_data$x$ci_inf[,col])
-          colnames(m)<-c("lower", "mean","upper")
-          x<-xts(m,map_daily_data$x$dates)
-          if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
-          dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
-        }
-      })
+      m<-cbind( map_daily_data$x$ci_sup[,col], map_daily_data$x$means[,col],map_daily_data$x$ci_inf[,col])
+      colnames(m)<-c("lower", "mean","upper")
+      x<-xts(m,map_daily_data$x$dates)
+      if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
+      dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
     }
   })
-  
+
   # React to clicks on the historic map 
   observe({
 
@@ -638,7 +618,7 @@ shinyServer(function(input, output) {
   })
   
   #Reacts to changes in variable selected and map_hist_data changes
-  observe({
+  output$trends_hist<-renderDygraph({
     if(!is.null(map_hist_data$x)) {
       if(input$mode_hist == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
@@ -653,20 +633,15 @@ shinyServer(function(input, output) {
         title <- paste("Drought stress index for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
         label="Drought stress"
       } 
-      # print(head(map_hist_data$x$means))
-      # print(col)
-      output$trends_hist<-renderDygraph({
-        if(!is.null(map_hist_data$x)) {
-          m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
-          colnames(m)<-c("lower", "mean","upper")
-          x<-xts(m,map_hist_data$x$dates)
-          if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
-          dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
-        }
-      })
+      m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
+      colnames(m)<-c("lower", "mean","upper")
+      x<-xts(m,map_hist_data$x$dates)
+      if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
+      dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
     }
   })
   
+
   # React to clicks on the projection map 
   observe({
     if(!is.null(map_proj_click$x)){
@@ -742,7 +717,7 @@ shinyServer(function(input, output) {
   })
   
   #Reacts to changes in variable selected and map_proj_data changes
-  observe({
+  output$trends_proj<-renderDygraph({
     if(!is.null(map_proj_data$x)) {
       if(input$mode_proj == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
@@ -758,18 +733,14 @@ shinyServer(function(input, output) {
         label="Drought stress"
       }
       title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
-      output$trends_proj<-renderDygraph({
-        if(!is.null(map_proj_data$x)) {
-          m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
-          colnames(m)<-c("lower", "mean","upper")
-          x<-xts(m,map_proj_data$x$dates)
-          if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
-          dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
-        }
-      })
+      m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
+      colnames(m)<-c("lower", "mean","upper")
+      x<-xts(m,map_proj_data$x$dates)
+      if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
+      dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
     }
   })
-  
+
   # What are the different inputs?
   output$inputList_daily <- renderPrint({
     str(reactiveValuesToList(input))

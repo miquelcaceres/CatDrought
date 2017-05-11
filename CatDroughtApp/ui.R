@@ -12,7 +12,7 @@ shinyUI(
                            uiOutput("var_choice_daily"),
                            hr(),
                            dateInput("date_daily", "Choose date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
-                           selectInput("agg_daily", "Temporal aggregation", choices = c("none", "1 week", "2 weeks", "3 weeks", "4 weeks")),
+                           selectInput("agg_daily", "Temporal aggregation (days)", choices=1:30, selected=1),
                            radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
                            sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                            hr(),
