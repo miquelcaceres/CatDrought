@@ -10,16 +10,18 @@ output: html_document
 
 ### Data sources
 
-+ Information elaborated using daily weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
-+ Climate scenarios downloaded from [Earth System Grid Federation (ESGF)](http://esgf.llnl.gov/).
++ Information elaborated using daily weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es).
++ Historic (1990-2015) weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
++ Climate scenarios (2006-2100) downloaded from [Earth System Grid Federation (ESGF)](http://esgf.llnl.gov/).
 
 ### Scientific advisory board
 
-+ Lluís Brotons (CTFC-CEMFOR/CREAF/CSIC)
 + Jordi Martínez Vilalta (UAB/CREAF)
++ Maurizio Mencuccini (ICREA)
 + Lluís Coll (CTFC-CEMFOR/CREAF)
 + Juli G. Pausas (CIDE-CSIC)
 + Pere Casals (CTFC-CEMFOR)
++ Lluís Brotons (CTFC-CEMFOR/CREAF/CSIC)
 + Pilar Llorens (IDAEA-CSIC)
 + Rafael Poyatos (CREAF)
 + Albert Álvarez (CREAF)

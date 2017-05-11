@@ -66,7 +66,7 @@ Overall | Average drought stress across all woody plants | [0,1] | Average
 
 ---
 
-### MODE 1: Simulation of every-day water balance
+### MODE 1: Current forest drought
 
 In this mode, the water balance model is run once every day for each simulation location after gathering weather station data and interpolating weather over the target simulation location. Soil moisture and other state variables are stored from one day to the other, so that the accumulation of drought stress (or the relieving effect of precipitations) can be simulated.
 
@@ -102,7 +102,20 @@ Weather station data of the current day is downloaded from APIs provided by the 
 
 ---
 
-### MODE 2: SWB simulations under climate change scenarios
+### MODE 2: Historic (1990-2015) forest drought
+
+In this mode, the soil water balance model is used to simulate water balance for the historical period between 1990 and 2015 (IFN3 sampling was conducted in Catalonia between 2000 and 2001). Unlike current-day simulations, climate change simulations are conducted for IFN3 plots only. Moreover, only monthly and yearly summaries are stored. Initialization procedure is the same as for current-day simulations.
+
+
+*Climate forcing*
+
+Historic weather series for each forest plot is obtained by interpolating daily weather station data for the 1990-2010 period, using package *meteoland*. Surface weather station data was obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
+
+
+
+---
+
+### MODE 3: Forest drought under climate change scenarios
 
 In this mode, the soil water balance model is used to project forest drought stress under climate change predictions. Unlike current-day simulations, climate change simulations are conducted for IFN3 plots only. Moreover, only monthly and yearly summaries are stored. Initialization procedure is the same as for current-day simulations.
 
