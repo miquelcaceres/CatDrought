@@ -194,24 +194,38 @@ shinyServer(function(input, output) {
   # Create an interactive map centered on catalonia
   output$map_daily <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles(input$basemap_daily) %>%
+      addProviderTiles("Stamen.TerrainBackground") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
     
   })
+  observe({
+    leafletProxy("map_daily") %>%
+      clearTiles() %>%
+      addProviderTiles(input$basemap_daily)
+  }) 
   # Create an interactive map centered on catalonia
   output$map_hist <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles(input$basemap_hist) %>%
+      addProviderTiles("Stamen.TerrainBackground") %>%
       # addProviderTiles("Esri.WorldGrayCanvas") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
   })
+  observe({
+    leafletProxy("map_hist") %>%
+      clearTiles() %>%
+      addProviderTiles(input$basemap_hist)
+  }) 
   # Create an interactive map centered on catalonia
   output$map_proj <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles(input$basemap_proj) %>%
+      addProviderTiles("Stamen.TerrainBackground") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
   })
-  
+  observe({
+    leafletProxy("map_proj") %>%
+      clearTiles() %>%
+      addProviderTiles(input$basemap_proj)
+  })  
   # Add raster layers for daily drought
   observe({
     # print(input$var_daily)
@@ -352,7 +366,6 @@ shinyServer(function(input, output) {
           
     }
   })
- 
   # Add shapes to historic SWB
   observe({
     if(input$display_hist == "none"){
