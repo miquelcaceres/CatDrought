@@ -430,31 +430,41 @@ shinyServer(function(input, output) {
   # create a reactive value sensitive to clicks on shapes or markers
   map_daily_click <- reactiveValues(x = list())
   observe({
-    map_daily_click$x <- input$map_daily_shape_click
+    if(input$display_daily %in% c("Counties","Municipalities")) {
+      map_daily_click$x <- input$map_daily_shape_click
+    } else if(input$display_daily=="IFN plots") {
+      map_daily_click$x <- input$map_daily_marker_click
+    } else {
+      map_daily_click$x <-NULL
+    }
   })
-  observe({
-    map_daily_click$x <- input$map_daily_marker_click
-  })
+  
   map_hist_click <- reactiveValues(x = list())
   observe({
-    map_hist_click$x <- input$map_hist_shape_click
-  })
-  observe({
-    map_hist_click$x <- input$map_hist_marker_click
+    if(input$display_hist %in% c("Counties","Municipalities")) {
+      map_hist_click$x <- input$map_hist_shape_click
+    } else if(input$display_hist=="IFN plots") {
+      map_hist_click$x <- input$map_hist_marker_click
+    } else {
+      map_hist_click$x <-NULL
+    }
   })
   map_proj_click <- reactiveValues(x = list())
   observe({
-    map_proj_click$x <- input$map_proj_shape_click
-  })
-  observe({
-    map_proj_click$x <- input$map_proj_marker_click
+    if(input$display_proj %in% c("Counties","Municipalities")) {
+      map_proj_click$x <- input$map_proj_shape_click
+    } else if(input$display_proj=="IFN plots") {
+      map_proj_click$x <- input$map_proj_marker_click
+    } else {
+      map_proj_click$x <-NULL
+    }
   })
   
 
   # Create a reactive value data
-  map_daily_data <- reactiveValues(x = list("hasData"=FALSE))
-  map_hist_data <- reactiveValues(x = list("hasData"=FALSE))
-  map_proj_data <- reactiveValues(x = list("hasData"=FALSE))
+  map_daily_data <- reactiveValues(x = list())
+  map_hist_data <- reactiveValues(x = list())
+  map_proj_data <- reactiveValues(x = list())
   
   # React to clicks on the daily map 
   observe({
@@ -509,25 +519,25 @@ shinyServer(function(input, output) {
               data[,,i] <- as.matrix(trends)
             }
           }
-        }
+        } 
         # calculate mean and condidence interval
         means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
         ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
         ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
         
         dates <- as.Date(rownames(means))
-        map_daily_data$x<-list("hasData"=TRUE,"dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
-        
-        
+        map_daily_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
       } else {
-        map_daily_data$x<-list("hasData"=FALSE)
+        map_daily_data$x <- NULL
       }
-    } 
+    } else {
+      map_daily_data$x <- NULL
+    }
   })
   
   #Reacts to changes in variable selected and map_daily_data changes
   observe({
-    if(map_daily_data$x$hasData) {
+    if(!is.null(map_daily_data$x)) {
       if(input$mode_daily == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
         title <- paste(input$clim_daily," at ",as.character(map_daily_data$x$info$Name))
@@ -542,17 +552,20 @@ shinyServer(function(input, output) {
         label="Drought stress"
       }
       output$trends_daily<-renderDygraph({
-        m<-cbind( map_daily_data$x$ci_sup[,col], map_daily_data$x$means[,col],map_daily_data$x$ci_inf[,col])
-        colnames(m)<-c("lower", "mean","upper")
-        x<-xts(m,map_daily_data$x$dates)
-        if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
-        dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+        if(!is.null(map_daily_data$x)) {
+          m<-cbind( map_daily_data$x$ci_sup[,col], map_daily_data$x$means[,col],map_daily_data$x$ci_inf[,col])
+          colnames(m)<-c("lower", "mean","upper")
+          x<-xts(m,map_daily_data$x$dates)
+          if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
+          dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+        }
       })
     }
   })
   
   # React to clicks on the historic map 
   observe({
+
     if(!is.null(map_hist_click$x)){
       
       # Convert coordinates of the click zone into a spatial point
@@ -606,23 +619,27 @@ shinyServer(function(input, output) {
               data[,,i] <- as.matrix(trends)
             }
           }
+          # calculate mean and condidence interval
+          means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+          ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+          ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+          
+          dates <- as.Date(rownames(means))
+          map_hist_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+        } else {
+          map_hist_data$x <- NULL
         }
-        # calculate mean and condidence interval
-        means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
-        ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
-        ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
-        
-        dates <- as.Date(rownames(means))
-        map_hist_data$x<-list("hasData"=TRUE, "dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
       } else {
-        map_hist_data$x<-list("hasData"=FALSE)
+        map_hist_data$x <- NULL
       }
-    } 
+    } else {
+      map_hist_data$x <- NULL
+    }
   })
   
   #Reacts to changes in variable selected and map_hist_data changes
   observe({
-    if(map_hist_data$x$hasData) {
+    if(!is.null(map_hist_data$x)) {
       if(input$mode_hist == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
         title <- paste(input$clim_hist," at ",as.character(map_hist_data$x$info$Name))
@@ -639,11 +656,13 @@ shinyServer(function(input, output) {
       # print(head(map_hist_data$x$means))
       # print(col)
       output$trends_hist<-renderDygraph({
-        m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
-        colnames(m)<-c("lower", "mean","upper")
-        x<-xts(m,map_hist_data$x$dates)
-        if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
-        dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+        if(!is.null(map_hist_data$x)) {
+          m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
+          colnames(m)<-c("lower", "mean","upper")
+          x<-xts(m,map_hist_data$x$dates)
+          if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
+          dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+        }
       })
     }
   })
@@ -704,24 +723,27 @@ shinyServer(function(input, output) {
               data[,,i] <- as.matrix(trends)
             }
           }
+          # calculate mean and condidence interval
+          means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+          ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+          ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+          
+          dates <- as.Date(rownames(means))
+          map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+        } else {
+          map_proj_data$x <- NULL
         }
-        # calculate mean and condidence interval
-        means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
-        ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
-        ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
-
-        dates <- as.Date(rownames(means))
-        map_proj_data$x<-list("hasData"=TRUE, "dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
-
       } else {
-        map_proj_data$x<-list("hasData"=FALSE)
+        map_proj_data$x <- NULL
       }
-    } 
+    } else {
+      map_proj_data$x <- NULL
+    }
   })
   
   #Reacts to changes in variable selected and map_proj_data changes
   observe({
-    if(map_proj_data$x$hasData) {
+    if(!is.null(map_proj_data$x)) {
       if(input$mode_proj == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
         title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
@@ -737,23 +759,27 @@ shinyServer(function(input, output) {
       }
       title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
       output$trends_proj<-renderDygraph({
-        m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
-        colnames(m)<-c("lower", "mean","upper")
-        x<-xts(m,map_proj_data$x$dates)
-        if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
-        dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+        if(!is.null(map_proj_data$x)) {
+          m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
+          colnames(m)<-c("lower", "mean","upper")
+          x<-xts(m,map_proj_data$x$dates)
+          if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
+          dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+        }
       })
     }
   })
   
-  # # What are the different inputs?
-  # output$inputList_daily <- renderPrint({
-  #   str(reactiveValuesToList(input))
-  #   str(map_daily_click$x)
-  # })
-  # # What are the different inputs?
-  # output$inputList_proj <- renderPrint({
-  #   str(reactiveValuesToList(input))
-  #   str(map_proj_click$x)
-  # })
+  # What are the different inputs?
+  output$inputList_daily <- renderPrint({
+    str(reactiveValuesToList(input))
+    str(map_daily_click$x)
+    str(map_daily_data$x)
+  })
+  output$inputList_hist <- renderPrint({
+    str(reactiveValuesToList(input))
+  })
+  output$inputList_proj <- renderPrint({
+    str(reactiveValuesToList(input))
+  })
 })

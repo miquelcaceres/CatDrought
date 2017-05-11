@@ -18,9 +18,6 @@ shinyUI(
                            hr(),
                            hr(),
                            selectInput("display_daily", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
-                           # hr(),
-                           # p(strong("List of available inputs")),
-                           # verbatimTextOutput("inputList_daily")
                          ),
                          mainPanel(
                            leafletOutput("map_daily", width = "100%", height = "600px")
@@ -31,7 +28,10 @@ shinyUI(
           wellPanel(
             h4("Selected area/plot series:"),
             # verbatimTextOutput("pol_info_daily"),
-            dygraphOutput("trends_daily")                  
+            dygraphOutput("trends_daily"),                  
+            hr(),
+            p(strong("List of available inputs")),
+            verbatimTextOutput("inputList_daily")
           )
     ),
     tabPanel("Historic (1990-2015)",
@@ -43,19 +43,19 @@ shinyUI(
                    radioButtons("agg_hist", "Temporal scale", choices = c("Year", "Month"), selected="Month", inline=TRUE),
                    hr(),
                    selectInput("display_hist", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
-                   # hr(),
-                   # p(strong("List of available inputs")),
-                   # verbatimTextOutput("inputList_hist")
                  ),
                  mainPanel(
-                   leafletOutput("map_hist", width = "100%", height = "500px")
+                   leafletOutput("map_hist", width = "100%", height = "600px")
                  )
                )
              ),
              wellPanel(
                h4("Selected area/plot series:"),
                # verbatimTextOutput("pol_info_hist"),
-               dygraphOutput("trends_hist")
+               dygraphOutput("trends_hist"),
+               hr(),
+               p(strong("List of available inputs")),
+               verbatimTextOutput("inputList_hist")
              )
     ), 
     tabPanel("Climate change scenarios",
@@ -70,19 +70,19 @@ shinyUI(
                            selectInput("rcp_proj", "Climate scenario (RCP)", choices = c("rcp4.5", "rcp8.5")),
                            hr(),
                            selectInput("display_proj", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
-                           # hr(),
-                           # p(strong("List of available inputs")),
-                           # verbatimTextOutput("inputList_proj")
                     ),
                     mainPanel(
-                           leafletOutput("map_proj", width = "100%", height = "500px")
+                           leafletOutput("map_proj", width = "100%", height = "600px")
                     )
                )
              ),
              wellPanel(
                h4("Selected area/plot series:"),
                # verbatimTextOutput("pol_info_proj"),
-               dygraphOutput("trends_proj")
+               dygraphOutput("trends_proj"),
+               hr(),
+               p(strong("List of available inputs")),
+               verbatimTextOutput("inputList_proj")
              )
     ), 
     tabPanel("Technical specifications",
