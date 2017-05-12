@@ -203,29 +203,6 @@ shinyServer(function(input, output) {
       clearTiles() %>%
       addProviderTiles(input$basemap_daily)
   }) 
-  # Create an interactive map centered on catalonia
-  output$map_hist <- renderLeaflet({
-    leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
-      # addProviderTiles("Esri.WorldGrayCanvas") %>%
-      setView(lng = 1.74,lat = 41.69, zoom = 8)
-  })
-  observe({
-    leafletProxy("map_hist") %>%
-      clearTiles() %>%
-      addProviderTiles(input$basemap_hist)
-  }) 
-  # Create an interactive map centered on catalonia
-  output$map_proj <- renderLeaflet({
-    leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
-      setView(lng = 1.74,lat = 41.69, zoom = 8)
-  })
-  observe({
-    leafletProxy("map_proj") %>%
-      clearTiles() %>%
-      addProviderTiles(input$basemap_proj)
-  })  
   # Add raster layers for daily drought
   observe({
     # print(input$var_daily)
@@ -256,7 +233,7 @@ shinyServer(function(input, output) {
         bins <- do.call(paste(pal_clim[input$clim_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
         
         pal <- colorBin(pal_clim[input$clim_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[input$clim_daily, "rev"])
-
+        
         leafletProxy("map_daily") %>%
           clearImages() %>%
           clearControls() %>%
@@ -290,7 +267,7 @@ shinyServer(function(input, output) {
         bins <- do.call(paste(pal_WB[input$WB_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
         
         pal <- colorBin(pal_WB[input$WB_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_daily, "rev"])
-
+        
         leafletProxy("map_daily") %>%
           clearImages() %>%
           clearControls() %>%
@@ -301,7 +278,7 @@ shinyServer(function(input, output) {
       if(!is.null(input$sp_daily)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
         col <- as.character(species[species$input == input$sp_daily, "medfate"])
-
+        
         dfin = input$date_daily
         dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
         dw = seq(dini, dfin, by="day")
@@ -337,6 +314,30 @@ shinyServer(function(input, output) {
     }
   })
   
+  # Create an interactive map centered on catalonia
+  output$map_hist <- renderLeaflet({
+    leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
+      addProviderTiles("Stamen.TerrainBackground") %>%
+      # addProviderTiles("Esri.WorldGrayCanvas") %>%
+      setView(lng = 1.74,lat = 41.69, zoom = 8)
+  })
+  observe({
+    leafletProxy("map_hist") %>%
+      clearTiles() %>%
+      addProviderTiles(input$basemap_hist)
+  }) 
+  # Create an interactive map centered on catalonia
+  output$map_proj <- renderLeaflet({
+    leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
+      addProviderTiles("Stamen.TerrainBackground") %>%
+      setView(lng = 1.74,lat = 41.69, zoom = 8)
+  })
+  observe({
+    leafletProxy("map_proj") %>%
+      clearTiles() %>%
+      addProviderTiles(input$basemap_proj)
+  })  
+
   # Add shapes to daily SWB
   observe({
     # print(paste0("Daily ",input$display_daily))
@@ -548,9 +549,11 @@ shinyServer(function(input, output) {
         title <- paste("Drought stress index for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
         label="Drought stress"
       }
-      m<-cbind( map_daily_data$x$ci_sup[,col], map_daily_data$x$means[,col],map_daily_data$x$ci_inf[,col])
+      first=which(!is.na(map_daily_data$x$means[,col]))[1]
+      end = length(map_daily_data$x$means[,col])
+      m<-cbind( map_daily_data$x$ci_sup[first:end,col], map_daily_data$x$means[first:end,col],map_daily_data$x$ci_inf[first:end,col])
       colnames(m)<-c("lower", "mean","upper")
-      x<-xts(m,map_daily_data$x$dates)
+      x<-xts(m,map_daily_data$x$dates[first:end])
       if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
       dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
     }

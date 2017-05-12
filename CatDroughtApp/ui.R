@@ -8,23 +8,31 @@ shinyUI(
      tabPanel("Current",
           wellPanel(
                 sidebarLayout(sidebarPanel(
-                           radioButtons("mode_daily", "Variable type", choices = c("Climate","Water balance", "Drought stress"), inline=TRUE),
+                           radioButtons("mode_daily", "Variable type", choices = c("Climate","Water balance", "Drought stress")),
                            uiOutput("var_choice_daily"),
                            hr(),
-                           dateInput("date_daily", "Choose date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
+                           dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
                            selectInput("agg_daily", "Temporal aggregation (days)", choices=1:30, selected=1),
-                           radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
-                           sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
-                           hr(),
-                           selectInput("basemap_daily","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas")),
-                           hr(),
-                           selectInput("display_daily", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
-                         ),
+                           width=3),
                          mainPanel(
-                           leafletOutput("map_daily", width = "100%", height = "600px")
-                         )
-                )
-             
+                             leafletOutput("map_daily", width = "100%", height = "600px"),
+                             fluidRow(
+                               column(width =3,
+                                selectInput("display_daily", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
+                               ),
+                               column(width=3,
+                                 selectInput("basemap_daily","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas"))
+                               ),
+                               column(width=3,
+                                 radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE)
+                                ),
+                               column(width=3,
+                                 sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+                               )
+                             ),
+                         width=9)
+                        
+                    )
           ),
           wellPanel(
             h4("Selected area/plot series:"),
@@ -39,17 +47,22 @@ shinyUI(
              wellPanel(
                sidebarLayout(
                  sidebarPanel(
-                   radioButtons("mode_hist", "Variable type", choices = c("Climate","Water balance", "Drought stress"), inline=TRUE),
+                   radioButtons("mode_hist", "Variable type", choices = c("Climate","Water balance", "Drought stress")),
                    uiOutput("var_choice_hist"),
-                   radioButtons("agg_hist", "Temporal scale", choices = c("Year", "Month"), selected="Month", inline=TRUE),
                    hr(),
-                   selectInput("basemap_hist","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas")),
-                   hr(),
-                   selectInput("display_hist", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
-                 ),
+                   radioButtons("agg_hist", "Temporal scale", choices = c("Year", "Month"), selected="Month", inline=TRUE)
+                 ,width=3),
                  mainPanel(
-                   leafletOutput("map_hist", width = "100%", height = "600px")
-                 )
+                   leafletOutput("map_hist", width = "100%", height = "600px"),
+                   fluidRow(
+                     column(3,
+                            selectInput("display_hist", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
+                     ),
+                     column(3,
+                            selectInput("basemap_hist","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas"))
+                     )
+                   ),
+                 width=9)
                )
              ),
              wellPanel(
@@ -65,21 +78,26 @@ shinyUI(
              wellPanel(
                sidebarLayout(
                     sidebarPanel(
-                           radioButtons("mode_proj", "Variable type", choices = c("Climate","Water balance", "Drought stress"), inline=TRUE),
+                           radioButtons("mode_proj", "Variable type", choices = c("Climate","Water balance", "Drought stress")),
                            uiOutput("var_choice_proj"),
-                           radioButtons("agg_proj", "Temporal scale", choices = c("Year", "Month"), inline=TRUE),
                            hr(),
                            selectInput("rcm_proj", "Climate model (GCM/RCM)", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4")),
                            selectInput("rcp_proj", "Climate scenario (RCP)", choices = c("rcp4.5", "rcp8.5")),
                            hr(),
-                           selectInput("basemap_proj","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas")),
-                           hr(),
-                           selectInput("display_proj", "Selection area", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
-                    ),
+                           radioButtons("agg_proj", "Temporal scale", choices = c("Year", "Month"), inline=TRUE),
+                           width=3),
                     mainPanel(
-                           leafletOutput("map_proj", width = "100%", height = "600px")
-                    )
-               )
+                           leafletOutput("map_proj", width = "100%", height = "600px"),
+                           fluidRow(
+                             column(3,
+                                    selectInput("display_proj", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
+                             ),
+                             column(3,
+                                    selectInput("basemap_proj","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas"))
+                             )
+                           ),
+                       width=9)
+                  )
              ),
              wellPanel(
                h4("Selected area/plot series:"),
@@ -89,6 +107,7 @@ shinyUI(
                p(strong("List of available inputs")),
                verbatimTextOutput("inputList_proj")
              )
+  
     ), 
     tabPanel("Technical specifications",
              wellPanel(
