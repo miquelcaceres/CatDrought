@@ -124,7 +124,7 @@ shinyServer(function(input, output) {
       input_title <- "Choose variable"
       var_choice_daily <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
-    } else if(input$mode_daily == "Water balance") {
+    } else if(input$mode_daily == "Soil water balance") {
       input_name <- "WB_daily"
       input_title <- "Choose variable"
       var_choice_daily <- input_WB_var
@@ -149,7 +149,7 @@ shinyServer(function(input, output) {
       if(input$agg_hist=="Month") var_choice_hist <- input_clim_var
       else var_choice_hist <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
-    } else if(input$mode_hist == "Water balance") {
+    } else if(input$mode_hist == "Soil water balance") {
       input_name <- "WB_hist"
       input_title <- "Choose variable"
       var_choice_hist <- input_WB_var[-2]
@@ -174,7 +174,7 @@ shinyServer(function(input, output) {
       if(input$agg_proj=="Month") var_choice_proj <- input_clim_var
       else var_choice_proj <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
-    } else if(input$mode_proj == "Water balance") {
+    } else if(input$mode_proj == "Soil water balance") {
       input_name <- "WB_proj"
       input_title <- "Choose variable"
       var_choice_proj <- input_WB_var[-2]
@@ -194,14 +194,15 @@ shinyServer(function(input, output) {
   # Create an interactive map centered on catalonia
   output$map_daily <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
+      addProviderTiles("Stamen.TerrainBackground", layerId="basemap") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
     
   })
   observe({
     leafletProxy("map_daily") %>%
-      clearTiles() %>%
-      addProviderTiles(input$basemap_daily)
+      removeImage(layerId="basemap") %>%
+      addProviderTiles(input$basemap_daily,layerId="basemap") %>% 
+      showGroup("rasterGroup")
   }) 
   # Add raster layers for daily drought
   observe({
@@ -237,10 +238,10 @@ shinyServer(function(input, output) {
         leafletProxy("map_daily") %>%
           clearImages() %>%
           clearControls() %>%
-          addRasterImage(r, opacity = input$alpha_daily, colors = pal) %>% 
-          addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright")
+          addRasterImage(r, opacity = input$alpha_daily, colors = pal, layerId="raster", group="rasterGroup") %>% 
+          addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
       } 
-    } else if(input$mode_daily == "Water balance"){
+    } else if(input$mode_daily == "Soil water balance"){
       if(!is.null(input$WB_daily)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
@@ -271,8 +272,8 @@ shinyServer(function(input, output) {
         leafletProxy("map_daily") %>%
           clearImages() %>%
           clearControls() %>%
-          addRasterImage(r, opacity = input$alpha_daily, colors = pal) %>% 
-          addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright")
+          addRasterImage(r, opacity = input$alpha_daily, colors = pal, layerId="raster", group="rasterGroup") %>% 
+          addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
       } 
     } else {
       if(!is.null(input$sp_daily)){
@@ -308,8 +309,8 @@ shinyServer(function(input, output) {
         leafletProxy("map_daily") %>%
           clearImages() %>%
           clearControls() %>%
-          addRasterImage(r, opacity = input$alpha_daily, colors = pal) %>% 
-          addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright")
+          addRasterImage(r, opacity = input$alpha_daily, colors = pal, layerId="raster", group="rasterGroup") %>% 
+          addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
       }
     }
   })
@@ -492,7 +493,7 @@ shinyServer(function(input, output) {
       
       # Open relevant files and extract informations regarding the selected variable 
       if(nrow(IFN3_sel)>0){
-        if(input$mode_daily %in% c("Climate", "Water balance")){
+        if(input$mode_daily %in% c("Climate", "Soil water balance")){
           folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/SWBTrends"
           plots_id <- IFN3_sel$ID
           plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
@@ -540,7 +541,7 @@ shinyServer(function(input, output) {
         col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
         title <- paste(input$clim_daily," at ",as.character(map_daily_data$x$info$Name))
         label=input$clim_daily
-      } else if(input$mode_daily == "Water balance") {
+      } else if(input$mode_daily == "Soil water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
         title <- paste(input$WB_daily," at ",as.character(map_daily_data$x$info$Name))
         label=input$WB_daily
@@ -591,7 +592,7 @@ shinyServer(function(input, output) {
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_historic]
         if(length(plots_id)>0) {
           load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-          if(input$mode_hist %in% c("Climate","Water balance")){
+          if(input$mode_hist %in% c("Climate","Soil water balance")){
             if(input$agg_hist== "Month") trends = swb_month
             else trends = swb_year
             # open all the files of the individual plots
@@ -640,7 +641,7 @@ shinyServer(function(input, output) {
         col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
         title <- paste(input$clim_hist," at ",as.character(map_hist_data$x$info$Name))
         label=input$clim_hist
-      } else if(input$mode_hist == "Water balance") {
+      } else if(input$mode_hist == "Soil water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
         title <- paste(input$WB_hist," at ",as.character(map_hist_data$x$info$Name))
         label=input$WB_hist
@@ -689,7 +690,7 @@ shinyServer(function(input, output) {
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_projections]
         if(length(plots_id)>0) {
           load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-          if(input$mode_proj %in% c("Climate","Water balance")){
+          if(input$mode_proj %in% c("Climate","Soil water balance")){
             if(input$agg_proj== "Month") trends = swb_month
             else trends = swb_year
             # open all the files of the individual plots
@@ -739,7 +740,7 @@ shinyServer(function(input, output) {
         col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
         title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
         label=input$clim_proj
-      } else if(input$mode_proj == "Water balance") {
+      } else if(input$mode_proj == "Soil water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
         title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
         label=input$WB_proj

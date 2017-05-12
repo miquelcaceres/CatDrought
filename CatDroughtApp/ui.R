@@ -8,7 +8,7 @@ shinyUI(
      tabPanel("Current",
           wellPanel(
                 sidebarLayout(sidebarPanel(
-                           radioButtons("mode_daily", "Variable type", choices = c("Climate","Water balance", "Drought stress")),
+                           radioButtons("mode_daily", "Variable type", choices = c("Climate","Soil water balance", "Drought stress")),
                            uiOutput("var_choice_daily"),
                            hr(),
                            dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
@@ -47,7 +47,7 @@ shinyUI(
              wellPanel(
                sidebarLayout(
                  sidebarPanel(
-                   radioButtons("mode_hist", "Variable type", choices = c("Climate","Water balance", "Drought stress")),
+                   radioButtons("mode_hist", "Variable type", choices = c("Climate","Soil water balance", "Drought stress")),
                    uiOutput("var_choice_hist"),
                    hr(),
                    radioButtons("agg_hist", "Temporal scale", choices = c("Year", "Month"), selected="Month", inline=TRUE)
@@ -78,7 +78,7 @@ shinyUI(
              wellPanel(
                sidebarLayout(
                     sidebarPanel(
-                           radioButtons("mode_proj", "Variable type", choices = c("Climate","Water balance", "Drought stress")),
+                           radioButtons("mode_proj", "Variable type", choices = c("Climate","Soil water balance", "Drought stress")),
                            uiOutput("var_choice_proj"),
                            hr(),
                            selectInput("rcm_proj", "Climate model (GCM/RCM)", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4")),
