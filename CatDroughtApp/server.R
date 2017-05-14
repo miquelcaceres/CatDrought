@@ -569,7 +569,17 @@ shinyServer(function(input, output) {
       colnames(m)<-c("lower", "mean","upper")
       x<-xts(m,map_daily_data$x$dates[first:end])
       if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
-      dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+      if(input$mode_daily=="Drought stress") {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector() %>%
+          dyAxis("y", label = "Daily drought stress", valueRange = c(0, 1)) %>%
+          dyLimit(0.5, color="red")
+      } else {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector()
+      }
     }
   })
 
@@ -667,7 +677,17 @@ shinyServer(function(input, output) {
       colnames(m)<-c("lower", "mean","upper")
       x<-xts(m,map_hist_data$x$dates)
       if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
-      dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+      if(input$mode_hist=="Drought stress") {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector() %>%
+          dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+          dyLimit(0.5, color="red")
+      } else {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector()
+      }
     }
   })
   
@@ -767,7 +787,17 @@ shinyServer(function(input, output) {
       colnames(m)<-c("lower", "mean","upper")
       x<-xts(m,map_proj_data$x$dates)
       if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
-      dygraph(x, main= title) %>% dySeries(c("lower", "mean","upper"), label=label) %>% dyRangeSelector()
+      if(input$mode_proj=="Drought stress") {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector() %>%
+          dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+          dyLimit(0.5, color="red")
+      } else {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector()
+      }
     }
   })
 
