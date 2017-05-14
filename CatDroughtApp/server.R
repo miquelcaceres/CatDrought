@@ -206,7 +206,7 @@ shinyServer(function(input, output) {
   # Create an interactive map centered on catalonia
   output$map_daily <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground", layerId="basemap") %>%
+      addProviderTiles("Esri.WorldGrayCanvas", layerId="basemap") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
     
   })
@@ -331,7 +331,7 @@ shinyServer(function(input, output) {
   # Create an interactive map centered on catalonia
   output$map_hist <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
+      addProviderTiles("Esri.WorldGrayCanvas") %>%
       # addProviderTiles("Esri.WorldGrayCanvas") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
   })
@@ -343,7 +343,7 @@ shinyServer(function(input, output) {
   # Create an interactive map centered on catalonia
   output$map_proj <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles("Stamen.TerrainBackground") %>%
+      addProviderTiles("Esri.WorldGrayCanvas") %>%
       setView(lng = 1.74,lat = 41.69, zoom = 8)
   })
   observe({
