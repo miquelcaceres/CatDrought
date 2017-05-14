@@ -130,7 +130,7 @@ identity_trans <- function(dom, n = 10, digits = 1) {signif(seq(dom[1], dom[2], 
 ### Define server logic required to draw a histogram ###
 ########################################################
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   # Switch the mode of the daily output 
   observe({
     input_title <- "Choose variable"
@@ -583,6 +583,17 @@ shinyServer(function(input, output) {
     }
   })
 
+  #Changes tab panel
+  observeEvent(map_daily_click$x, {
+    if(!is.null(map_daily_click$x)){
+      print("hola")
+      updateTabsetPanel(session, "DailyTabset",
+                        selected = "Selected series"
+                        
+      )
+    }
+  })
+  
   # React to clicks on the historic map 
   observe({
 

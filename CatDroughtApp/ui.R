@@ -25,30 +25,41 @@ shinyUI(
                            selectInput("agg_daily", "Temporal aggregation (days)", choices=1:30, selected=1),
                            width=3),
                          mainPanel(
-                             leafletOutput("map_daily", width = "100%", height = "600px"),
-                             fluidRow(
-                               column(width =3,
-                                selectInput("display_daily", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
-                               ),
-                               column(width=3,
-                                 selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground"))
-                               ),
-                               column(width=3,
-                                 radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE)
-                                ),
-                               column(width=3,
-                                 sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
-                               )
+                           tabsetPanel(
+                             tabPanel("Map",
+                                  wellPanel(
+                                      fluidRow(
+                                        column(width=12,
+                                               leafletOutput("map_daily", width = "100%", height = "600px")
+                                        )
+                                      ),
+                                      fluidRow(
+                                        column(width =3,
+                                               selectInput("display_daily", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
+                                        ),
+                                        column(width=3,
+                                               selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground"))
+                                        ),
+                                        column(width=3,
+                                               radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE)
+                                        ),
+                                        column(width=3,
+                                               sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+                                        )
+                                      )
+                                  )
                              ),
+                             tabPanel("Selected series",
+                                      dygraphOutput("trends_daily")                  
+                             ),
+                             id="DailyTabset"
+                           ),
                          width=9)
                         
                     )
           ),
           wellPanel(
-            h4("Selected area/plot series:"),
             # verbatimTextOutput("pol_info_daily"),
-            dygraphOutput("trends_daily"),                  
-            hr(),
             p(strong("List of available inputs")),
             verbatimTextOutput("inputList_daily")
           )
@@ -118,21 +129,23 @@ shinyUI(
                verbatimTextOutput("inputList_proj")
              )
   
-    ), 
-    tabPanel("Technical specifications",
-             wellPanel(
-               includeMarkdown("../Docs/TechnicalSpecifications.Rmd")
-             )
     ),
-    tabPanel("Acknowledgements",
-             wellPanel(
-               includeMarkdown("../Docs/Credits.Rmd"),
-               hr(),
-               fluidRow(
-                 a(href = "http://www.ctfc.cat/", img(src="logo_ctfc.png")), 
-                 a(href = "http://www.creaf.cat/", img(src="logo_creaf.png"))
+    navbarMenu("About",
+               tabPanel("Technical specifications",
+                        wellPanel(
+                          includeMarkdown("../Docs/TechnicalSpecifications.Rmd")
+                        )
+               ),
+               tabPanel("Acknowledgements",
+                        wellPanel(
+                          includeMarkdown("../Docs/Credits.Rmd"),
+                          hr(),
+                          fluidRow(
+                            a(href = "http://www.ctfc.cat/", img(src="logo_ctfc.png")), 
+                            a(href = "http://www.creaf.cat/", img(src="logo_creaf.png"))
+                          )
+                        )
                )
-             )
     ),
     id="navbar",
     fluid=TRUE
