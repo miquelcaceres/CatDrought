@@ -66,7 +66,11 @@ input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plants transpiration 
 medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta")
 WB_variables <- data.frame(input = input_WB_var, medfate = medfate_WB_var)
 
-input_sp <- c("All woordy species", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris", "Pinus uncinata", "Pinus pinea", 
+input_DS_var <-c("Daily stress", "Cumulative stress")
+medfate_DS_var<-c("DDS","NDD")
+DS_variables <- data.frame(input = input_DS_var, medfate = medfate_DS_var)
+
+input_sp <- c("All woody species", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris", "Pinus uncinata", "Pinus pinea", 
               "Pinus pinaster", "Quercus ilex", "Quercus suber", "Quercus humilis", "Quercus faginea", "Fagus sylvatica")
 medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "PinusUncinata", "PinusPinea", "PinusPinaster", 
                 "QuercusIlex", "QuercusSuber", "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
@@ -108,6 +112,16 @@ pal_WB["LAI (m2/m2)", "max"] <- 9.5
 pal_WB["LAI (m2/m2)", "trans"] <- "identity"
 pal_WB["LAI (m2/m2)", "color"] <- "Greens"
 
+## Define color scales for rasters 
+pal_DS <- as.data.frame(matrix(NA, nrow = length(input_DS_var), ncol = 5, dimnames = list(input_DS_var, c("min", "max", "color", "trans", "rev"))))
+pal_DS$min <- 0
+pal_DS$rev <- T
+pal_DS$color <- "RdYlBu"
+pal_DS["Daily stress","trans"] <- "identity"
+pal_DS["Cumulative stress","trans"] <- "log"
+pal_DS["Daily stress","max"]<-1
+pal_DS["Cumulative stress","max"]<-365
+
 log_trans <- function(dom, n = 10, digits = 1) {signif(exp(seq(log(dom[1]+1), log(dom[2]+1), length.out = n))-1, digits = digits)}
 identity_trans <- function(dom, n = 10, digits = 1) {signif(seq(dom[1], dom[2], length.out = n), digits = digits)}
 
@@ -119,28 +133,26 @@ identity_trans <- function(dom, n = 10, digits = 1) {signif(seq(dom[1], dom[2], 
 shinyServer(function(input, output) {
   # Switch the mode of the daily output 
   observe({
+    input_title <- "Choose variable"
     if(input$mode_daily == "Climate") {
       input_name <- "clim_daily"
-      input_title <- "Choose variable"
       var_choice_daily <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
     } else if(input$mode_daily == "Soil water balance") {
       input_name <- "WB_daily"
-      input_title <- "Choose variable"
       var_choice_daily <- input_WB_var
       selected <- "Relative soil water content [0-1]"
     } else {
-      input_name <- "sp_daily"
-      input_title <- "Choose species"
-      var_choice_daily <- input_sp
-      selected <- "All woody species"
+      input_name <- "DS_daily"
+      var_choice_daily <- input_DS_var
+      selected <- "Daily stress"
     }
     
     output$var_choice_daily <- renderUI({
       selectInput(input_name, input_title, choices = var_choice_daily, selected = selected)
     })
   })
-    
+
   # Switch the mode of the historic output 
   observe({
     if(input$mode_hist == "Climate") {
@@ -276,19 +288,20 @@ shinyServer(function(input, output) {
           addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
       } 
     } else {
-      if(!is.null(input$sp_daily)){
+      if(!is.null(input$DS_daily) && !is.null(input$sp_daily)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
+        ds_var <- as.character(DS_variables[DS_variables$input == input$DS_daily, "medfate"])
         col <- as.character(species[species$input == input$sp_daily, "medfate"])
-        
+        # print(ds_var)
         dfin = input$date_daily
         dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
         dw = seq(dini, dfin, by="day")
         nd = length(dw)
-        load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",col, "/", dw[1], ".rda", sep = ""))
+        load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[1], ".rda", sep = ""))
         spdftmp = spdf
         if(nd>1) {
           for(d in 2:nd) {
-            load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",col, "/", dw[d], ".rda", sep = ""))
+            load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[d], ".rda", sep = ""))
             spdftmp@data = spdftmp@data + spdf@data
           }
         }
@@ -300,16 +313,16 @@ shinyServer(function(input, output) {
         proj4string(r) <- dataCRS
         r <- projectRaster(r, crs = mapCRS)
         
-        dom <- c(0,1)
-        bins <- seq(0,1,length.out = 15)
+        dom <- c(pal_DS[input$DS_daily,"min"],pal_DS[input$DS_daily,"max"])
+        bins <- do.call(paste(pal_DS[input$DS_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+        if(ds_var=="NDD") bins<-ceiling(bins)
         
-        pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = T)
-        # leaflet() %>% addRasterImage(r, opacity = input$alpha_daily, colors = pal) %>% addLegend(pal = pal, values = values(r))
-        
+        pal <- colorBin(pal_DS[input$DS_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[input$DS_daily, "rev"])
+
         leafletProxy("map_daily") %>%
           clearImages() %>%
           clearControls() %>%
-          addRasterImage(r, opacity = input$alpha_daily, colors = pal, layerId="raster", group="rasterGroup") %>% 
+          addRasterImage(r, opacity = input$alpha_daily, colors = pal, layerId="raster", group="rasterGroup") %>%
           addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
       }
     }

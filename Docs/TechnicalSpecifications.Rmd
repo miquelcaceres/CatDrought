@@ -45,9 +45,9 @@ Theta | Average soil moisture relative to field capacity. | [0-1] | Average
 
 ---
 
-*Tree drought stress output*
+*Daily drought stress*
 
-For each simulated forest stand, the daily drought stress for every species present is calculated by averaging daily drought stress of plant cohorts of the species, using LAI values as weights. The following species are tracked in terms of their daily drought stress.
+Daily drought stress is defined as the complement of relative whole-plant conductance. In other words, daily stress is higher when the species has a lower overall plant conductance (which can be due to a closure of stomata or the presence of emboli in vessels). For a given soil moisture level in a stand, the plants present may experience different levels of drought stress depending on their species identity, root system,.... For each simulated forest stand, the daily drought stress for every species present is calculated by averaging daily drought stress of plant cohorts of the species, using LAI values as weights. The following species are tracked in terms of their daily stress.
 
 Variable        | Definition                          | Units | Aggreg.
 --------------- | ----------------------------------- | ----- | -------
@@ -63,6 +63,13 @@ QuercusHumilis | Drought stress for Quercus humilis | [0,1] | Average
 QuercusFaginea | Drought stress for Quercus faginea | [0,1] | Average
 FagusSylvatica | Drought stress for Fagus sylvatica | [0,1] | Average
 Overall | Average drought stress across all woody plants | [0,1] | Average
+
+---
+
+*Cumulative drought stress*
+
+The cumulative effect of drought stress on forests is tracked by counting the number of consecutive days with daily drought stress values above 0.5 (i.e. less than 50% in conductance). Within a year, values of cumulative drought stress are therefore bounded between 0 and 365. Cumulative drought stress is represented for the same species (and overall) as in daily drought stress.
+
 
 ---
 
@@ -165,5 +172,11 @@ As mentioned above, daily temporal trends are stored for IFN3 plots only (i.e. n
 + Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
 + Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
 
+
+### Planned improvements
+
++ Soil input data from [SoilGrids](https://www.soilgrids.org)
++ Report both daily drought stress (a complement of relative whole-plant conductance) and the number of days with DDS > 0.5.
++ Combine IFN2 and IFN3 (and IFN4) in historical simulations.
 
 ---

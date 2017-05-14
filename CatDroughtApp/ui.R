@@ -3,6 +3,12 @@ library(shiny)
 library(leaflet)
 library(dygraphs)
 
+input_sp <- c("All woody species", "Pinus halepensis", "Pinus nigra", "Pinus sylvestris", "Pinus uncinata", "Pinus pinea", 
+              "Pinus pinaster", "Quercus ilex", "Quercus suber", "Quercus humilis", "Quercus faginea", "Fagus sylvatica")
+medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "PinusUncinata", "PinusPinea", "PinusPinaster", 
+                "QuercusIlex", "QuercusSuber", "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
+species <- data.frame(input = input_sp, medfate = medfate_sp)
+
 shinyUI(
   navbarPage("Catalan Forest Drought Prediction Tool",
      tabPanel("Current",
@@ -10,6 +16,10 @@ shinyUI(
                 sidebarLayout(sidebarPanel(
                            radioButtons("mode_daily", "Variable type", choices = c("Climate","Soil water balance", "Drought stress")),
                            uiOutput("var_choice_daily"),
+                           conditionalPanel(
+                             condition = "input.mode_daily=='Drought stress'",
+                             selectInput("sp_daily", "Choose species", choices = input_sp, selected = "Overall")
+                           ),
                            hr(),
                            dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
                            selectInput("agg_daily", "Temporal aggregation (days)", choices=1:30, selected=1),
@@ -21,7 +31,7 @@ shinyUI(
                                 selectInput("display_daily", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
                                ),
                                column(width=3,
-                                 selectInput("basemap_daily","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas"))
+                                 selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground"))
                                ),
                                column(width=3,
                                  radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE)
@@ -59,7 +69,7 @@ shinyUI(
                             selectInput("display_hist", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
                      ),
                      column(3,
-                            selectInput("basemap_hist","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas"))
+                            selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground"))
                      )
                    ),
                  width=9)
@@ -93,7 +103,7 @@ shinyUI(
                                     selectInput("display_proj", "Selection type", choices = c("none", "Counties", "Municipalities", "IFN plots"), selected = "none")
                              ),
                              column(3,
-                                    selectInput("basemap_proj","Base map", choices = c("Stamen.TerrainBackground","Esri.WorldGrayCanvas"))
+                                    selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground"))
                              )
                            ),
                        width=9)
