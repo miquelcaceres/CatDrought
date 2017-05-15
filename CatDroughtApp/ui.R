@@ -10,7 +10,7 @@ medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "
 species <- data.frame(input = input_sp, medfate = medfate_sp)
 
 shinyUI(
-  navbarPage("Catalan Forest Drought Prediction Tool",
+  navbarPage("Catalan Forest Drought asdsda Prediction Tool",
      #### CURRENT FOREST DROUGHT  ####
      tabPanel("Current",
           wellPanel(
