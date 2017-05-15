@@ -23,6 +23,10 @@ cat.pol <- spTransform(cat.pol, CRSobj = mapCRS)
 mun.pol <- readOGR(dsn = path.expand("www/Municipis shapefile"), encoding = "UTF-8")
 proj4string(mun.pol) <- dataCRS
 mun.pol <- spTransform(mun.pol, CRSobj = mapCRS)
+# Watershed boundaries
+con.pol <- readOGR(dsn = path.expand("www/Conques shapefile"), encoding = "UTF-8")
+proj4string(con.pol) <- dataCRS
+con.pol <- spTransform(con.pol, CRSobj = mapCRS)
 
 
 # Rasters grid topology
@@ -32,6 +36,9 @@ load("//SERVERPROCESS/Miquel/CatDrought/Rdata/IFN3_SPT_cat.rdata")
 IFN3.points <- SpatialPointsDataFrame(IFN3_SPT@coords, data.frame(ID = row.names(IFN3_SPT@coords)), proj4string = IFN3_SPT@proj4string)
 IFN3.points <- spTransform(IFN3.points, CRSobj = mapCRS)
 # Find county and municipality corresponding to each IFN plot
+op <- over(x = IFN3.points, y = con.pol, returnList = F)
+IFN3.points$ID_CONCA <- op$ID_USUARI
+IFN3.points$NOM_CONCA <- op$CONCA
 op <- over(x = IFN3.points, y = cat.pol, returnList = F)
 IFN3.points$COMARCA <- op$COMARCA
 IFN3.points$NOM_COMAR <- op$NOM_COMAR
@@ -359,6 +366,13 @@ shinyServer(function(input, output, session) {
       leafletProxy("map_daily") %>%
         clearShapes() %>%
         clearMarkerClusters()
+    } else if(input$display_daily == "Watersheds"){
+      leafletProxy("map_daily") %>%
+        clearShapes() %>%
+        clearMarkerClusters() %>%
+        addPolygons(data = con.pol, color = "black", weight = 1, fillOpacity = 0, label = ~CONCA,
+                    highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
+      
     } else if(input$display_daily == "Counties"){
       leafletProxy("map_daily") %>%
         clearShapes() %>%
@@ -387,6 +401,13 @@ shinyServer(function(input, output, session) {
       leafletProxy("map_hist") %>%
         clearShapes() %>%
         clearMarkerClusters()
+    } else if(input$display_hist == "Watersheds"){
+      leafletProxy("map_hist") %>%
+        clearShapes() %>%
+        clearMarkerClusters() %>%
+        addPolygons(data = con.pol, color = "black", weight = 1, fillOpacity = 0, label = ~CONCA,
+                    highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
+      
     } else if(input$display_hist == "Counties"){
       leafletProxy("map_hist") %>%
         clearShapes() %>%
@@ -409,7 +430,6 @@ shinyServer(function(input, output, session) {
       
     }
   })
-  
   # Add shapes to projected SWB
   observe({
     # print(paste0("Proj ",input$display_proj))
@@ -417,6 +437,13 @@ shinyServer(function(input, output, session) {
       leafletProxy("map_proj") %>%
         clearShapes() %>%
         clearMarkerClusters()
+    } else if(input$display_proj == "Watersheds"){
+      leafletProxy("map_proj") %>%
+        clearShapes() %>%
+        clearMarkerClusters() %>%
+        addPolygons(data = con.pol, color = "black", weight = 1, fillOpacity = 0, label = ~CONCA,
+                    highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
+      
     } else if(input$display_proj == "Counties"){
       leafletProxy("map_proj") %>%
         clearShapes() %>%
@@ -440,10 +467,10 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  # create a reactive value sensitive to clicks on shapes or markers
+  # create a reactive values sensitive to clicks on shapes or markers
   map_daily_click <- reactiveValues(x = list())
   observe({
-    if(input$display_daily %in% c("Counties","Municipalities")) {
+    if(input$display_daily %in% c("Watersheds","Counties","Municipalities")) {
       map_daily_click$x <- input$map_daily_shape_click
     } else if(input$display_daily=="IFN plots") {
       map_daily_click$x <- input$map_daily_marker_click
@@ -451,10 +478,9 @@ shinyServer(function(input, output, session) {
       map_daily_click$x <-NULL
     }
   })
-  
   map_hist_click <- reactiveValues(x = list())
   observe({
-    if(input$display_hist %in% c("Counties","Municipalities")) {
+    if(input$display_hist %in% c("Watersheds", "Counties","Municipalities")) {
       map_hist_click$x <- input$map_hist_shape_click
     } else if(input$display_hist=="IFN plots") {
       map_hist_click$x <- input$map_hist_marker_click
@@ -464,7 +490,7 @@ shinyServer(function(input, output, session) {
   })
   map_proj_click <- reactiveValues(x = list())
   observe({
-    if(input$display_proj %in% c("Counties","Municipalities")) {
+    if(input$display_proj %in% c("Watersheds","Counties","Municipalities")) {
       map_proj_click$x <- input$map_proj_shape_click
     } else if(input$display_proj=="IFN plots") {
       map_proj_click$x <- input$map_proj_marker_click
@@ -479,74 +505,7 @@ shinyServer(function(input, output, session) {
   map_hist_data <- reactiveValues(x = list())
   map_proj_data <- reactiveValues(x = list())
   
-  # React to clicks on the daily map 
-  observe({
-    if(!is.null(map_daily_click$x)){
-      
-      # Convert coordinates of the click zone into a spatial point
-      clicker <- SpatialPoints(coords = data.frame(x = map_daily_click$x$lng, y = map_daily_click$x$lat), proj4string = mapCRS) 
-      
-      if(input$display_daily == "Counties"){
-        info <- clicker %over% cat.pol
-        colnames(info) <- c("Id", "Name", "Capital", "Superficy")
-        info$type <- "county"
-        IFN3_sel <- IFN3.points@data[IFN3.points$COMARCA == info$Id,]
-      } else if(input$display_daily == "Municipalities"){
-        info <- clicker %over% mun.pol
-        colnames(info) <- c("Id", "County", "Province", "Name", "Name2", "Name3", "Capital", "Capital2", "Capital3", "Superficy", "X")
-        info$type <- "municipality"
-        IFN3_sel <- IFN3.points@data[IFN3.points$MUNICIPI == info$Id,]
-      } else if(input$display_daily == "IFN plots"){
-          IFN3_sel <- IFN3.points@data[as.character(IFN3.points$ID) == map_daily_click$x$id,]
-          info <- data.frame(Name = paste("plot '",IFN3_sel$ID,"'"), type = "IFN plot")
-      } else {
-          IFN3_sel <- IFN3.points@data[rep(FALSE,length(IFN3.points$ID)),]
-      }
-      # print(head(IFN3_sel))
-      
-      # Open relevant files and extract informations regarding the selected variable 
-      if(nrow(IFN3_sel)>0){
-        if(input$mode_daily %in% c("Climate", "Soil water balance")){
-          folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/SWBTrends"
-          plots_id <- IFN3_sel$ID
-          plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
-          load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-          
-          # open all the files of the individual plots
-          data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
-          for(i in 1:length(plots_id)){
-            load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-            data[,,i] <- as.matrix(trends)
-          }
-        } else if(input$mode_daily == "Drought stress"){ 
-            folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/DroughtStressTrends"
-            plots_id <- IFN3_sel$ID
-            plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
-            load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-            
-            # open all the files of the individual plots
-            data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
-            for(i in 1:length(plots_id)){
-              load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-              data[,,i] <- as.matrix(trends)
-            }
-          
-        } 
-        # calculate mean and condidence interval
-        means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
-        ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
-        ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
-        
-        dates <- as.Date(rownames(means))
-        map_daily_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
-      } else {
-        map_daily_data$x <- NULL
-      }
-    } else {
-      map_daily_data$x <- NULL
-    }
-  })
-  
+
   #Reacts to changes in variable selected and map_daily_data changes
   output$trends_daily<-renderDygraph({
     if(!is.null(map_daily_data$x)) {
@@ -582,18 +541,172 @@ shinyServer(function(input, output, session) {
       }
     }
   })
-
+  #Reacts to changes in variable selected and map_hist_data changes
+  output$trends_hist<-renderDygraph({
+    if(!is.null(map_hist_data$x)) {
+      if(input$mode_hist == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
+        title <- paste(input$clim_hist," at ",as.character(map_hist_data$x$info$Name))
+        label=input$clim_hist
+      } else if(input$mode_hist == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
+        title <- paste(input$WB_hist," at ",as.character(map_hist_data$x$info$Name))
+        label=input$WB_hist
+      } else {
+        col <- as.character(species[species$input == input$sp_hist, "medfate"])
+        title <- paste("Drought stress index for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
+        label="Drought stress"
+      } 
+      m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
+      colnames(m)<-c("lower", "mean","upper")
+      x<-xts(m,map_hist_data$x$dates)
+      if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
+      if(input$mode_hist=="Drought stress") {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector() %>%
+          dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+          dyLimit(0.5, color="red")
+      } else {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector()
+      }
+    }
+  })
+  #Reacts to changes in variable selected and map_proj_data changes
+  output$trends_proj<-renderDygraph({
+    if(!is.null(map_proj_data$x)) {
+      if(input$mode_proj == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+        title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
+        label=input$clim_proj
+      } else if(input$mode_proj == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+        title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
+        label=input$WB_proj
+      } else {
+        col <- as.character(species[species$input == input$sp_proj, "medfate"])
+        title <- paste("Drought stress index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
+        label="Drought stress"
+      }
+      title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
+      m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
+      colnames(m)<-c("lower", "mean","upper")
+      x<-xts(m,map_proj_data$x$dates)
+      if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
+      if(input$mode_proj=="Drought stress") {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector() %>%
+          dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+          dyLimit(0.5, color="red")
+      } else {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector()
+      }
+    }
+  })
+  
   #Changes tab panel
   observeEvent(map_daily_click$x, {
     if(!is.null(map_daily_click$x)){
-      print("hola")
       updateTabsetPanel(session, "DailyTabset",
                         selected = "Selected series"
                         
       )
     }
   })
+  observeEvent(map_hist_click$x, {
+    if(!is.null(map_hist_click$x)){
+      updateTabsetPanel(session, "HistTabset",
+                        selected = "Selected series"
+                        
+      )
+    }
+  })
+  observeEvent(map_proj_click$x, {
+    if(!is.null(map_proj_click$x)){
+      updateTabsetPanel(session, "ProjTabset",
+                        selected = "Selected series"
+                        
+      )
+    }
+  })
   
+  # React to clicks on the daily map 
+  observe({
+    if(!is.null(map_daily_click$x)){
+      
+      # Convert coordinates of the click zone into a spatial point
+      clicker <- SpatialPoints(coords = data.frame(x = map_daily_click$x$lng, y = map_daily_click$x$lat), proj4string = mapCRS) 
+      
+      if(input$display_daily == "Watersheds"){
+        info <- clicker %over% con.pol
+        colnames(info) <- c("Id", "Name", "Fl")
+        info$type <- "watershed"
+        IFN3_sel <- IFN3.points@data[IFN3.points$ID_CONCA == info$Id,]
+      } else if(input$display_daily == "Counties"){
+        info <- clicker %over% cat.pol
+        colnames(info) <- c("Id", "Name", "Capital", "Superficy")
+        info$type <- "county"
+        IFN3_sel <- IFN3.points@data[IFN3.points$COMARCA == info$Id,]
+      } else if(input$display_daily == "Municipalities"){
+        info <- clicker %over% mun.pol
+        colnames(info) <- c("Id", "County", "Province", "Name", "Name2", "Name3", "Capital", "Capital2", "Capital3", "Superficy", "X")
+        info$type <- "municipality"
+        IFN3_sel <- IFN3.points@data[IFN3.points$MUNICIPI == info$Id,]
+      } else if(input$display_daily == "IFN plots"){
+        IFN3_sel <- IFN3.points@data[as.character(IFN3.points$ID) == map_daily_click$x$id,]
+        info <- data.frame(Name = paste("plot '",IFN3_sel$ID,"'"), type = "IFN plot")
+      } else {
+        IFN3_sel <- IFN3.points@data[rep(FALSE,length(IFN3.points$ID)),]
+      }
+      # print(head(IFN3_sel))
+      
+      # Open relevant files and extract informations regarding the selected variable 
+      if(nrow(IFN3_sel)>0){
+        if(input$mode_daily %in% c("Climate", "Soil water balance")){
+          folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/SWBTrends"
+          plots_id <- IFN3_sel$ID
+          plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
+          load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
+          
+          # open all the files of the individual plots
+          data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
+          for(i in 1:length(plots_id)){
+            load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
+            data[,,i] <- as.matrix(trends)
+          }
+        } else if(input$mode_daily == "Drought stress"){ 
+          folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/DroughtStressTrends"
+          plots_id <- IFN3_sel$ID
+          plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
+          load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
+          
+          # open all the files of the individual plots
+          data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
+          for(i in 1:length(plots_id)){
+            load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
+            data[,,i] <- as.matrix(trends)
+          }
+          
+        } 
+        # calculate mean and condidence interval
+        means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+        ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+        ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+        
+        dates <- as.Date(rownames(means))
+        map_daily_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+      } else {
+        map_daily_data$x <- NULL
+      }
+    } else {
+      map_daily_data$x <- NULL
+    }
+  })
   # React to clicks on the historic map 
   observe({
 
@@ -602,7 +715,12 @@ shinyServer(function(input, output, session) {
       # Convert coordinates of the click zone into a spatial point
       clicker <- SpatialPoints(coords = data.frame(x = map_hist_click$x$lng, y = map_hist_click$x$lat), proj4string = mapCRS) 
       
-      if(input$display_hist == "Counties"){
+      if(input$display_hist == "Watersheds"){
+        info <- clicker %over% con.pol
+        colnames(info) <- c("Id", "Name", "Fl")
+        info$type <- "watershed"
+        IFN3_sel <- IFN3.points@data[IFN3.points$ID_CONCA == info$Id,]
+      } else if(input$display_hist == "Counties"){
         info <- clicker %over% cat.pol
         colnames(info) <- c("Id", "Name", "Capital", "Superficy")
         info$type <- "county"
@@ -667,42 +785,6 @@ shinyServer(function(input, output, session) {
       map_hist_data$x <- NULL
     }
   })
-  
-  #Reacts to changes in variable selected and map_hist_data changes
-  output$trends_hist<-renderDygraph({
-    if(!is.null(map_hist_data$x)) {
-      if(input$mode_hist == "Climate") {
-        col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
-        title <- paste(input$clim_hist," at ",as.character(map_hist_data$x$info$Name))
-        label=input$clim_hist
-      } else if(input$mode_hist == "Soil water balance") {
-        col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
-        title <- paste(input$WB_hist," at ",as.character(map_hist_data$x$info$Name))
-        label=input$WB_hist
-      } else {
-        col <- as.character(species[species$input == input$sp_hist, "medfate"])
-        title <- paste("Drought stress index for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
-        label="Drought stress"
-      } 
-      m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
-      colnames(m)<-c("lower", "mean","upper")
-      x<-xts(m,map_hist_data$x$dates)
-      if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
-      if(input$mode_hist=="Drought stress") {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector() %>%
-          dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
-          dyLimit(0.5, color="red")
-      } else {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector()
-      }
-    }
-  })
-  
-
   # React to clicks on the projection map 
   observe({
     if(!is.null(map_proj_click$x)){
@@ -710,7 +792,12 @@ shinyServer(function(input, output, session) {
       # Convert coordinates of the click zone into a spatial point
       clicker <- SpatialPoints(coords = data.frame(x = map_proj_click$x$lng, y = map_proj_click$x$lat), proj4string = mapCRS) 
       
-      if(input$display_proj == "Counties"){
+      if(input$display_proj == "Watersheds"){
+        info <- clicker %over% con.pol
+        colnames(info) <- c("Id", "Name", "Fl")
+        info$type <- "watershed"
+        IFN3_sel <- IFN3.points@data[IFN3.points$ID_CONCA == info$Id,]
+      } else if(input$display_proj == "Counties"){
         info <- clicker %over% cat.pol
         colnames(info) <- c("Id", "Name", "Capital", "Superficy")
         info$type <- "county"
@@ -777,41 +864,7 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  #Reacts to changes in variable selected and map_proj_data changes
-  output$trends_proj<-renderDygraph({
-    if(!is.null(map_proj_data$x)) {
-      if(input$mode_proj == "Climate") {
-        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-        title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
-        label=input$clim_proj
-      } else if(input$mode_proj == "Soil water balance") {
-        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
-        title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
-        label=input$WB_proj
-      } else {
-        col <- as.character(species[species$input == input$sp_proj, "medfate"])
-        title <- paste("Drought stress index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
-        label="Drought stress"
-      }
-      title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
-      m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
-      colnames(m)<-c("lower", "mean","upper")
-      x<-xts(m,map_proj_data$x$dates)
-      if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
-      if(input$mode_proj=="Drought stress") {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector() %>%
-          dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
-          dyLimit(0.5, color="red")
-      } else {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector()
-      }
-    }
-  })
-
+  
   # What are the different inputs?
   output$inputList_daily <- renderPrint({
     str(reactiveValuesToList(input))
