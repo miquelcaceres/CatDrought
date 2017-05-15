@@ -1,5 +1,5 @@
 
-dates = seq(as.Date("2017-01-01"), as.Date("2017-05-07"), by="day")
+dates = seq(as.Date("2017-01-01"), Sys.Date()-1, by="day")
 weeks = cut(dates,breaks="week")
 nweeks = length(levels(weeks))
 
@@ -88,8 +88,8 @@ for(res in c("1km", "Smoothed")) {
     # for(i in c(9)) {
     var = medfate_sp[i]
     cat(paste("\n\n Processing", var, "at", res,"\n"))
-    minv = 0
-    maxv = 1
+    minv = log(0+1)
+    maxv = log(365)
     b = seq(minv,maxv, length.out=15)
     cols = colorRampPalette(c("dark blue","yellow","dark red"))(length(b)-1)
     pb = txtProgressBar(0, length(levels(weeks)), style=3)
@@ -99,11 +99,11 @@ for(res in c("1km", "Smoothed")) {
       # w = levels(weeks)[1] 
       dw = dates[weeks==w]
       nd = length(dw)
-      load(paste0(base,"/Rdata/Maps/",res,"/DroughtStress/",var,"/",dw[1],".rda"))
+      load(paste0(base,"/Rdata/Maps/",res,"/DroughtStress/NDD/",var,"/",dw[1],".rda"))
       spdftmp = spdf
       if(nd>1) {
         for(d in 2:nd) {
-          load(paste0(base,"/Rdata/Maps/",res,"/DroughtStress/",var,"/",dw[d],".rda"))
+          load(paste0(base,"/Rdata/Maps/",res,"/DroughtStress/NDD/",var,"/",dw[d],".rda"))
           spdftmp@data = spdftmp@data + spdf@data
         }
       }
@@ -113,7 +113,8 @@ for(res in c("1km", "Smoothed")) {
       if(nchar(js)==1) js = paste0("0",js)
       png(paste0("GIFs/", res,"/",var,"/",var,"_",js,".png"), width=width, height=height, bg="light gray")
       par(mar=c(0.5,0.5,3,0.5))
-      image(spdf[var], breaks = b, main=paste0("Week ", j, ": ", dw[1], " to ", dw[length(dw)]), col=cols)
+      spdf@data$logNDD = log(spdf@data[,"NDD"]+1)
+      image(spdf["logNDD"], breaks = b, main=paste0("Week ", j, ": ", dw[1], " to ", dw[length(dw)]), col=cols)
       plot(cat.contour, add=TRUE, lwd=1.5)
       dev.off()
     }

@@ -11,7 +11,7 @@ species <- data.frame(input = input_sp, medfate = medfate_sp)
 
 shinyUI(
   navbarPage("Catalan Forest Drought Prediction Tool",
-     #### CURRENT FOREST DROUGHT  ####
+    #### CURRENT FOREST DROUGHT  ####
      tabPanel("Current",
           wellPanel(
                 fluidRow(
