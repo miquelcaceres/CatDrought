@@ -154,12 +154,12 @@ shinyUI(
     navbarMenu("Documentation",
                tabPanel("Technical specifications",
                         wellPanel(
-                          includeMarkdown("../Docs/TechnicalSpecifications.Rmd")
+                          includeMarkdown("Docs/TechnicalSpecifications.Rmd")
                         )
                ),
                tabPanel("Acknowledgements",
                         wellPanel(
-                          includeMarkdown("../Docs/Credits.Rmd"),
+                          includeMarkdown("Docs/Credits.Rmd"),
                           hr(),
                           hr(),
                           fluidRow(
