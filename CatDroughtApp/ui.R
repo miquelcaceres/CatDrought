@@ -151,7 +151,7 @@ shinyUI(
           )
   
     ),
-    navbarMenu("About",
+    navbarMenu("Documentation",
                tabPanel("Technical specifications",
                         wellPanel(
                           includeMarkdown("../Docs/TechnicalSpecifications.Rmd")
@@ -161,9 +161,17 @@ shinyUI(
                         wellPanel(
                           includeMarkdown("../Docs/Credits.Rmd"),
                           hr(),
+                          hr(),
                           fluidRow(
-                            a(href = "http://www.ctfc.cat/", img(src="logo_ctfc.png")), 
-                            a(href = "http://www.creaf.cat/", img(src="logo_creaf.png"))
+                            column(3),
+                            column(2,
+                              a(href = "http://www.ctfc.cat/", img(src="logo_ctfc.png"))
+                            ),
+                            column(2),
+                            column(2,
+                                   a(href = "http://www.creaf.cat/", img(src="logo_creaf.png"))
+                            ),
+                            column(3)
                           )
                         )
                )

@@ -173,10 +173,17 @@ As mentioned above, daily temporal trends are stored for IFN3 plots only (i.e. n
 + Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
 
 
-### Planned improvements
+### Improvements
+
+*Planned*
 
 + Soil input data from [SoilGrids](https://www.soilgrids.org)
-+ Report both daily drought stress (a complement of relative whole-plant conductance) and the number of days with DDS > 0.5.
-+ Combine IFN2 and IFN3 (and IFN4) in historical simulations.
++ Combine initialization IFN2 (1987-91), IFN3 (2000-2001) and IFN4 (2014) in historical simulations.
++ Use IFN4 (2014) in climate change simulations.
+
+*Needed*
+
++ Validation/comparison with remote sensing data (SMOS, RWC).
++ Inclusion of later water fluxes.
 
 ---
