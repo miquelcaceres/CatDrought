@@ -11,6 +11,7 @@ height = 700
 load("D:/Recerca/Datasets/Limits/catalonia.rdata")
 
 
+
 ## Define color scales for SWB rasters 
 pal_WB <- as.data.frame(matrix(NA, nrow = length(vars), ncol = 5, dimnames = list(vars, c("min", "max", "color", "trans", "rev"))))
 pal_WB$min <- 0
