@@ -1,4 +1,5 @@
 library(shiny)
+library(shinythemes)
 # Libraries for ui
 library(leaflet)
 library(dygraphs)
@@ -11,7 +12,8 @@ species <- data.frame(input = input_sp, medfate = medfate_sp)
 
 shinyUI(
   navbarPage("Catalan Forest Drought Prediction Tool",
-    #### CURRENT FOREST DROUGHT  ####
+     theme = shinythemes::shinytheme("sandstone"),
+     #### CURRENT FOREST DROUGHT  ####
      tabPanel("Current",
           wellPanel(
                 fluidRow(
@@ -31,48 +33,47 @@ shinyUI(
                 ),
                 tabsetPanel(
                   tabPanel("Map",
-                    sidebarLayout(
-                      sidebarPanel(
-                        wellPanel(
-                           dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
-                           selectInput("agg_daily", "Temporal aggregation (days)", choices=1:30, selected=1),
+                      wellPanel(
+                        sidebarLayout(
+                         sidebarPanel(
+                           fluidRow(
+                             column(width=8,
+                                dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1)
+                             ),
+                             column(width=4,
+                                    selectInput("agg_daily", "Aggr.", choices=1:30, selected=1)
+                             )
+                           ),
                            hr(),
                            selectInput("display_daily", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
                            hr(),
                            selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
-                           radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
+                           radioButtons("resolution_daily", "Raster resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
                            sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                            hr(),
-                           downloadButton('downloadRasterDaily', 'Download raster')
-                          ), 
-                      width=3),
-                      mainPanel(
-                            wellPanel(
+                           downloadButton('downloadRasterDaily', 'Download raster'),
+                         width=3),
+                         mainPanel(
                                leafletOutput("map_daily", width = "100%", height = "600px")
-                            )
-                       ,width=9)
-                    )
+                         ,width=9)
+                       )
+                      )
                   ),
                   tabPanel("Selected series",
-                           fluidRow(
-                             wellPanel(
-                               dygraphOutput("trends_daily") 
-                             )
-                           ),
-                           fluidRow(
-                             wellPanel(
-                               downloadButton('downloadTrendDaily', 'Download trend')
-                             )
-                           )
+                        wellPanel(
+                            dygraphOutput("trends_daily"), 
+                            hr(),
+                            downloadButton('downloadTrendDaily', 'Download trend')
+                        )
                   ),
                    id="DailyTabset"
                 )
-          ),
-          wellPanel(
-            # verbatimTextOutput("pol_info_daily"),
-            p(strong("List of available inputs")),
-            verbatimTextOutput("inputList_daily")
           )
+          # wellPanel(
+          #   # verbatimTextOutput("pol_info_daily"),
+          #   p(strong("List of available inputs")),
+          #   verbatimTextOutput("inputList_daily")
+          # )
     ),
     #### HISTORIC FOREST DROUGHT  ####
     tabPanel("Historic (1990-2015)",
@@ -91,13 +92,19 @@ shinyUI(
               ),
               tabsetPanel(
                 tabPanel("Map",
-                         sidebarLayout(
+                      wellPanel(
+                           sidebarLayout(
                              sidebarPanel(
-                               wellPanel(
-                                 selectInput("years_hist","Year", choices=as.character(1990:2015), selected="2015"),
-                                 conditionalPanel(
-                                   condition = "input.agg_hist=='Month'",
-                                   selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
+                                 fluidRow(
+                                   column(width=6,
+                                     selectInput("years_hist","Year", choices=as.character(1990:2015), selected="2015")
+                                   ),
+                                   column(width=6,
+                                          conditionalPanel(
+                                            condition = "input.agg_hist=='Month'",
+                                            selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
+                                          )
+                                   )
                                  ),
                                  hr(),
                                  selectInput("display_hist", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
@@ -106,33 +113,26 @@ shinyUI(
                                  sliderInput("alpha_hist", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                                  hr(),
                                  downloadButton('downloadRasterHist', 'Download raster')
-                               )
                                ,width=3),
                              mainPanel(
-                               wellPanel(
-                                 leafletOutput("map_hist", width = "100%", height = "600px")
-                               ),
-                               width=9)
+                                 leafletOutput("map_hist", width = "100%", height = "600px"),
+                              width=9)
                          )
+                      )
                 ),
                 tabPanel("Selected series",
-                         fluidRow(
-                           wellPanel(
-                             dygraphOutput("trends_hist") 
-                           )
-                         ),
-                         fluidRow(
-                           wellPanel(
-                             downloadButton('downloadTrendHist', 'Download trend')
-                           )
-                         )
+                      wellPanel(
+                        dygraphOutput("trends_hist") ,
+                        hr(),
+                        downloadButton('downloadTrendHist', 'Download trend')
+                      )
                 ),
                 id = "HistTabset")
-        ),
-        wellPanel(
-           p(strong("List of available inputs")),
-           verbatimTextOutput("inputList_hist")
         )
+        # wellPanel(
+        #    p(strong("List of available inputs")),
+        #    verbatimTextOutput("inputList_hist")
+        # )
     ), 
     #### CC FOREST DROUGHT  ####
     tabPanel("Climate change scenarios",
@@ -156,41 +156,36 @@ shinyUI(
            ),
            tabsetPanel(
              tabPanel("Map",
-                sidebarLayout(
-                    sidebarPanel(
-                      wellPanel(
-                        selectInput("display_proj", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
-                        hr(),
-                        selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
-                        hr(),
-                        downloadButton('downloadRasterProj', 'Download raster')
-                      ),
-                    width=3),
-                    mainPanel(
-                      wellPanel(
-                        leafletOutput("map_proj", width = "100%", height = "600px")
-                      ),
-                    width=9)
-                  )
+               wellPanel(
+                 sidebarLayout(
+                   sidebarPanel(
+                     selectInput("display_proj", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
+                     hr(),
+                     selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                     hr(),
+                     downloadButton('downloadRasterProj', 'Download raster')
+                     ,
+                     width=3),
+                   mainPanel(
+                     leafletOutput("map_proj", width = "100%", height = "600px")
+                     ,
+                     width=9)
+                 )
+               )
              ),
              tabPanel("Selected series",
-                      fluidRow(
-                        wellPanel(
-                          dygraphOutput("trends_proj") 
-                        )
-                      ),
-                      fluidRow(
-                        wellPanel(
+                  wellPanel(
+                          dygraphOutput("trends_proj"),
+                          hr(),
                           downloadButton('downloadTrendProj', 'Download trend')
-                        )
-                      )
+                  )
              ),
              id = "ProjTabset")
-          ),
-          wellPanel(
-             p(strong("List of available inputs")),
-             verbatimTextOutput("inputList_proj")
           )
+          # wellPanel(
+          #    p(strong("List of available inputs")),
+          #    verbatimTextOutput("inputList_proj")
+          # )
   
     ),
     navbarMenu("Documentation",

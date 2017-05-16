@@ -1095,15 +1095,15 @@ shinyServer(function(input, output, session) {
   ) 
   
   # What are the different inputs?
-  output$inputList_daily <- renderPrint({
-    str(reactiveValuesToList(input))
-    str(map_daily_click$x)
-    str(map_daily_data$x)
-  })
-  output$inputList_hist <- renderPrint({
-    str(reactiveValuesToList(input))
-  })
-  output$inputList_proj <- renderPrint({
-    str(reactiveValuesToList(input))
-  })
+  # output$inputList_daily <- renderPrint({
+  #   str(reactiveValuesToList(input))
+  #   str(map_daily_click$x)
+  #   str(map_daily_data$x)
+  # })
+  # output$inputList_hist <- renderPrint({
+  #   str(reactiveValuesToList(input))
+  # })
+  # output$inputList_proj <- renderPrint({
+  #   str(reactiveValuesToList(input))
+  # })
 })
