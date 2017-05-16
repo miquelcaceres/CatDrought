@@ -1027,7 +1027,7 @@ shinyServer(function(input, output, session) {
     }
     first=which(!is.na(map_daily_data$x$means[,col]))[1]
     end = length(map_daily_data$x$means[,col])
-    m<-cbind( map_daily_data$x$ci_sup[first:end,col], map_daily_data$x$means[first:end,col],map_daily_data$x$ci_inf[first:end,col])
+    m<-cbind( map_daily_data$x$ci_inf[first:end,col], map_daily_data$x$means[first:end,col],map_daily_data$x$ci_sup[first:end,col])
     colnames(m)<-c("lower", "mean","upper")
     rownames(m)<-as.character(map_daily_data$x$dates[first:end])
     # as.data.frame(m)
@@ -1053,7 +1053,7 @@ shinyServer(function(input, output, session) {
     }
     first=which(!is.na(map_hist_data$x$means[,col]))[1]
     end = length(map_hist_data$x$means[,col])
-    m<-cbind( map_hist_data$x$ci_sup[first:end,col], map_hist_data$x$means[first:end,col],map_hist_data$x$ci_inf[first:end,col])
+    m<-cbind( map_hist_data$x$ci_inf[first:end,col], map_hist_data$x$means[first:end,col],map_hist_data$x$ci_sup[first:end,col])
     colnames(m)<-c("lower", "mean","upper")
     rownames(m)<-as.character(map_hist_data$x$dates[first:end])
     # as.data.frame(m)
@@ -1079,7 +1079,7 @@ shinyServer(function(input, output, session) {
     }
     first=which(!is.na(map_proj_data$x$means[,col]))[1]
     end = length(map_proj_data$x$means[,col])
-    m<-cbind( map_proj_data$x$ci_sup[first:end,col], map_proj_data$x$means[first:end,col],map_proj_data$x$ci_inf[first:end,col])
+    m<-cbind( map_proj_data$x$ci_inf[first:end,col], map_proj_data$x$means[first:end,col],map_proj_data$x$ci_sup[first:end,col])
     colnames(m)<-c("lower", "mean","upper")
     rownames(m)<-as.character(map_proj_data$x$dates[first:end])
     # as.data.frame(m)
