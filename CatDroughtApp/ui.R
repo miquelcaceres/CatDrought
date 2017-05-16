@@ -15,8 +15,8 @@ shinyUI(
      tabPanel("Current",
           wellPanel(
                 fluidRow(
-                  column(width=4,
-                         radioButtons("mode_daily", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), inline=TRUE)
+                  column(width=3,
+                         selectInput("mode_daily", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"))
                   ),
                   column(width=3,
                          uiOutput("var_choice_daily")
@@ -26,7 +26,8 @@ shinyUI(
                            condition = "input.mode_daily=='Drought stress'",
                            selectInput("sp_daily", "Choose species", choices = input_sp, selected = "Overall")
                          )
-                  )
+                  ),
+                  column(width=3)
                 ),
                 tabsetPanel(
                   tabPanel("Map",
@@ -40,7 +41,9 @@ shinyUI(
                            hr(),
                            selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                            radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
-                           sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+                           sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
+                           hr(),
+                           downloadButton('downloadDataDaily', 'Download raster')
                           ), 
                       width=3),
                       mainPanel(
@@ -66,24 +69,34 @@ shinyUI(
     tabPanel("Historic (1990-2015)",
         wellPanel(
               fluidRow(
-                 column(width=4,
-                        radioButtons("mode_hist", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), inline=T)
+                 column(width=3,
+                        selectInput("mode_hist", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"))
                  ),
                  column(width=3,
                         uiOutput("var_choice_hist")
                  ),
                  column(width = 3,
-                        radioButtons("agg_hist", "Temporal scale", choices = c("Year", "Month"), selected="Month", inline=TRUE)
-                 )
+                        radioButtons("agg_hist", "Temporal resolution", choices = c("Year", "Month"), selected="Year", inline=TRUE)
+                 ),
+                 column(width=3)
               ),
               tabsetPanel(
                 tabPanel("Map",
                          sidebarLayout(
                              sidebarPanel(
                                wellPanel(
+                                 selectInput("years_hist","Year", choices=as.character(1990:2015), selected="2015"),
+                                 conditionalPanel(
+                                   condition = "input.agg_hist=='Month'",
+                                   selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
+                                 ),
+                                 hr(),
                                  selectInput("display_hist", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
                                  hr(),
-                                 selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground"))
+                                 selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                                 sliderInput("alpha_hist", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
+                                 hr(),
+                                 downloadButton('downloadDataHist', 'Download raster')
                                )
                                ,width=3),
                              mainPanel(
@@ -108,7 +121,7 @@ shinyUI(
         wellPanel(
            fluidRow(
              column(width=3,
-                    radioButtons("mode_proj", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), inline=T)
+                    selectInput("mode_proj", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"))
              ),
              column(width=3,
                     uiOutput("var_choice_proj")
@@ -120,7 +133,7 @@ shinyUI(
                     selectInput("rcp_proj", "Climate scenario", choices = c("rcp4.5", "rcp8.5"))
              ),
              column(width=2,
-                    radioButtons("agg_proj", "Temporal scale", choices = c("Year", "Month"), inline=TRUE)
+                    radioButtons("agg_proj", "Temporal resolution", choices = c("Year", "Month"), inline=TRUE)
              )
            ),
            tabsetPanel(
@@ -130,7 +143,9 @@ shinyUI(
                       wellPanel(
                         selectInput("display_proj", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
                         hr(),
-                        selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground"))
+                        selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                        hr(),
+                        downloadButton('downloadDataProj', 'Download raster')
                       ),
                     width=3),
                     mainPanel(

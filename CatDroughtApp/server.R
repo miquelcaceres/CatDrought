@@ -102,6 +102,10 @@ pal_clim[c("Potential evapo-transpiration (mm)"), "max"] <- 15
 pal_clim[c("Precipitation (mm)"), "rev"] <- F
 pal_clim[c("Precipitation (mm)"), "color"] <- "Blues"
 pal_clim[c("Potential evapo-transpiration (mm)"), "color"] <- "Greens"
+pal_clim[c("SPEI (k=3)","SPEI (k=6)","SPEI (k=12)"), "color"] <- "RdYlBu"
+pal_clim[c("SPEI (k=3)","SPEI (k=6)","SPEI (k=12)"), "min"] <- -4
+pal_clim[c("SPEI (k=3)","SPEI (k=6)","SPEI (k=12)"), "max"] <- 4
+pal_clim[c("SPEI (k=3)","SPEI (k=6)","SPEI (k=12)"), "trans"] <- "identity"
 
 ## Define color scales for rasters 
 pal_WB <- as.data.frame(matrix(NA, nrow = length(input_WB_var), ncol = 5, dimnames = list(input_WB_var, c("min", "max", "color", "trans", "rev"))))
@@ -227,6 +231,7 @@ shinyServer(function(input, output, session) {
       addProviderTiles(input$basemap_daily,layerId="basemap") %>% 
       showGroup("rasterGroup")
   }) 
+  
   # Add raster layers for daily drought
   observe({
     # print(input$var_daily)
@@ -308,35 +313,150 @@ shinyServer(function(input, output, session) {
         dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
         dw = seq(dini, dfin, by="day")
         nd = length(dw)
-        load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[1], ".rda", sep = ""))
-        spdftmp = spdf
-        if(nd>1) {
-          for(d in 2:nd) {
-            load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[d], ".rda", sep = ""))
-            spdftmp@data = spdftmp@data + spdf@data
+        file = paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[1], ".rda", sep = "")
+        if(file.exists(file)) {
+          load(file)
+          spdftmp = spdf
+          if(nd>1) {
+            for(d in 2:nd) {
+              load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[d], ".rda", sep = ""))
+              spdftmp@data = spdftmp@data + spdf@data
+            }
           }
+          spdftmp@data =spdftmp@data /nd
+          spdf = spdftmp
+          
+          
+          r <- raster(spdf)
+          proj4string(r) <- dataCRS
+          r <- projectRaster(r, crs = mapCRS)
+          
+          dom <- c(pal_DS[input$DS_daily,"min"],pal_DS[input$DS_daily,"max"])
+          bins <- do.call(paste(pal_DS[input$DS_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+          if(ds_var=="NDD") bins<-ceiling(bins)
+          
+          pal <- colorBin(pal_DS[input$DS_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[input$DS_daily, "rev"])
+          
+          leafletProxy("map_daily") %>%
+            clearImages() %>%
+            clearControls() %>%
+            addRasterImage(r, opacity = input$alpha_daily, colors = pal, layerId="raster", group="rasterGroup") %>%
+            addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster") 
         }
-        spdftmp@data =spdftmp@data /nd
-        spdf = spdftmp
-        
-        
+      }
+    }
+  })
+  
+  # Add raster layers for historic drought
+  observe({
+    if(input$mode_hist == "Climate" && !is.null(input$clim_hist)){
+      folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
+      col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
+      
+      if(input$agg_hist=="Year") file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
+      else file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+      if(file.exists(file)) {
+        load(file)
         r <- raster(spdf)
         proj4string(r) <- dataCRS
         r <- projectRaster(r, crs = mapCRS)
         
-        dom <- c(pal_DS[input$DS_daily,"min"],pal_DS[input$DS_daily,"max"])
-        bins <- do.call(paste(pal_DS[input$DS_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-        if(ds_var=="NDD") bins<-ceiling(bins)
+        if(col %in% c("PET","Rain")) {
+          if(input$agg_hist=="Year") {
+            dom <- c(0,3000)
+            bins <- c(seq(0,1500, by=250),2000,2500,3000)
+          } else {
+            dom <- c(0,600)
+            bins <- c(seq(0,200, by=25),250,300,350,400,600)
+          }  
+          pal <- colorBin(pal_clim[input$clim_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[input$clim_hist, "rev"])
+        } else {
+          dom <- c(pal_clim[input$clim_hist,"min"],pal_clim[input$clim_hist,"max"])
+          bins <- do.call(paste(pal_clim[input$clim_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+          pal <- colorBin(pal_clim[input$clim_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[input$clim_hist, "rev"])
+          
+        }
         
-        pal <- colorBin(pal_DS[input$DS_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[input$DS_daily, "rev"])
-
-        leafletProxy("map_daily") %>%
+        leafletProxy("map_hist") %>%
           clearImages() %>%
           clearControls() %>%
-          addRasterImage(r, opacity = input$alpha_daily, colors = pal, layerId="raster", group="rasterGroup") %>%
-          addLegend(pal = pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
+          addRasterImage(r, opacity = input$alpha_hist, colors = pal, layerId="raster", group="rasterGroup") %>% 
+          addLegend(pal = pal, values = values(r),opacity = input$alpha_hist, position = "bottomright", layerId="raster")
       }
     }
+    else if(input$mode_hist == "Soil water balance" && !is.null(input$WB_hist)){
+      folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
+      col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
+      
+      if(input$agg_hist=="Year") file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
+      else file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+      if(file.exists(file)) {
+        load(file)
+        r <- raster(spdf)
+        proj4string(r) <- dataCRS
+        r <- projectRaster(r, crs = mapCRS)
+        
+        if(col %in% c("NetPrec")) {
+          if(input$agg_hist=="Year") {
+            dom <- c(0,3000)
+            bins <- c(seq(0,1500, by=250),2000,2500,3000)
+          } else {
+            dom <- c(0,600)
+            bins <- c(seq(0,200, by=25),250,300,350,400,600)
+          }  
+        } else if(col %in% c("Eplant")) {
+          if(input$agg_hist=="Year") {
+            dom <- c(0,1500)
+            bins <- c(seq(0,500, by=50),750,1000,1500)
+          } else {
+            dom <- c(0,300)
+            bins <- c(seq(0,100, by=10),150,200,250,300)
+          }  
+        } else if(col %in% c("Esoil","DeepDrainage","Runoff")) {
+          if(input$agg_hist=="Year") dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*100)
+          else dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*12)
+          bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+        } else {
+          dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"])
+          bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+        }
+        pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+        
+        
+        leafletProxy("map_hist") %>%
+          clearImages() %>%
+          clearControls() %>%
+          addRasterImage(r, opacity = input$alpha_hist, colors = pal, layerId="raster", group="rasterGroup") %>% 
+          addLegend(pal = pal, values = values(r),opacity = input$alpha_hist, position = "bottomright", layerId="raster")
+      }
+    }
+    else if(input$mode_hist == "Drought stress" && !is.null(input$sp_hist)){
+      folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
+      col <- as.character(species[species$input == input$sp_hist, "medfate"])
+      
+      if(input$agg_hist=="Year") file = paste(folder, "/", input$agg_hist, "/DroughtStress/",col, "/", input$years_hist, ".rda", sep = "")
+      else file = paste(folder, "/", input$agg_hist, "/DroughtStress/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+      if(file.exists(file)) {
+        load(file)
+        r <- raster(spdf)
+        proj4string(r) <- dataCRS
+        r <- projectRaster(r, crs = mapCRS)
+        
+        dom <- c(pal_DS["Daily stress","min"],pal_DS["Daily stress","max"])
+        bins <- do.call(paste(pal_DS["Daily stress", "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+        pal <- colorBin(pal_DS["Daily stress","color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS["Daily stress", "rev"])
+        
+        
+        leafletProxy("map_hist") %>%
+          clearImages() %>%
+          clearControls() %>%
+          addRasterImage(r, opacity = input$alpha_hist, colors = pal, layerId="raster", group="rasterGroup") %>% 
+          addLegend(pal = pal, values = values(r),opacity = input$alpha_hist, position = "bottomright", layerId="raster")
+      } else {
+        warning(paste0("File ", file, " not found!"))
+      }
+    }
+    
   })
   
   # Create an interactive map centered on catalonia
