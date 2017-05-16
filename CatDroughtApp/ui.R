@@ -43,7 +43,7 @@ shinyUI(
                            radioButtons("resolution_daily", "Spatial resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
                            sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                            hr(),
-                           downloadButton('downloadDataDaily', 'Download raster')
+                           downloadButton('downloadRasterDaily', 'Download raster')
                           ), 
                       width=3),
                       mainPanel(
@@ -54,8 +54,17 @@ shinyUI(
                     )
                   ),
                   tabPanel("Selected series",
-                        dygraphOutput("trends_daily")                  
-                   ),
+                           fluidRow(
+                             wellPanel(
+                               dygraphOutput("trends_daily") 
+                             )
+                           ),
+                           fluidRow(
+                             wellPanel(
+                               downloadButton('downloadTrendDaily', 'Download trend')
+                             )
+                           )
+                  ),
                    id="DailyTabset"
                 )
           ),
@@ -96,7 +105,7 @@ shinyUI(
                                  selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                                  sliderInput("alpha_hist", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                                  hr(),
-                                 downloadButton('downloadDataHist', 'Download raster')
+                                 downloadButton('downloadRasterHist', 'Download raster')
                                )
                                ,width=3),
                              mainPanel(
@@ -107,7 +116,16 @@ shinyUI(
                          )
                 ),
                 tabPanel("Selected series",
-                         dygraphOutput("trends_hist")
+                         fluidRow(
+                           wellPanel(
+                             dygraphOutput("trends_hist") 
+                           )
+                         ),
+                         fluidRow(
+                           wellPanel(
+                             downloadButton('downloadTrendHist', 'Download trend')
+                           )
+                         )
                 ),
                 id = "HistTabset")
         ),
@@ -145,7 +163,7 @@ shinyUI(
                         hr(),
                         selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                         hr(),
-                        downloadButton('downloadDataProj', 'Download raster')
+                        downloadButton('downloadRasterProj', 'Download raster')
                       ),
                     width=3),
                     mainPanel(
@@ -156,7 +174,16 @@ shinyUI(
                   )
              ),
              tabPanel("Selected series",
-                      dygraphOutput("trends_proj")
+                      fluidRow(
+                        wellPanel(
+                          dygraphOutput("trends_proj") 
+                        )
+                      ),
+                      fluidRow(
+                        wellPanel(
+                          downloadButton('downloadTrendProj', 'Download trend')
+                        )
+                      )
              ),
              id = "ProjTabset")
           ),
