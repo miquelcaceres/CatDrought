@@ -108,6 +108,8 @@ shinyUI(
                                  selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
                                ),
                                hr(),
+                               radioButtons("resolution_hist", "Raster resolution", choices = c("Smoothed","1km"), selected = "Smoothed"),
+                               hr(),
                                selectInput("display_hist", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
                                hr(),
                                downloadButton('downloadRasterHist', 'Download raster')

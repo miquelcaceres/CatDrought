@@ -367,8 +367,8 @@ shinyServer(function(input, output, session) {
       folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
       col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
       
-      if(input$agg_hist=="Year") file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
-      else file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+      if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
+      else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
       if(file.exists(file)) {
         load(file)
 
@@ -397,8 +397,8 @@ shinyServer(function(input, output, session) {
       folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
       col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
       
-      if(input$agg_hist=="Year") file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
-      else file = paste(folder, "/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+      if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
+      else file = paste(folder, "/",input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
       if(file.exists(file)) {
         load(file)
 
@@ -438,8 +438,8 @@ shinyServer(function(input, output, session) {
       folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
       col <- as.character(species[species$input == input$sp_hist, "medfate"])
       
-      if(input$agg_hist=="Year") file = paste(folder, "/", input$agg_hist, "/DroughtStress/",col, "/", input$years_hist, ".rda", sep = "")
-      else file = paste(folder, "/", input$agg_hist, "/DroughtStress/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+      if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/DroughtStress/",col, "/", input$years_hist, ".rda", sep = "")
+      else file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/DroughtStress/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
       if(file.exists(file)) {
         load(file)
 
