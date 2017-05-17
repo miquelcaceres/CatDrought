@@ -118,12 +118,21 @@ Weather station data of the current day is downloaded from APIs provided by the 
 
 ### MODE 2: Historic (1990-2015) forest drought
 
-In this mode, the soil water balance model is used to simulate water balance for the historical period between 1990 and 2015 (IFN3 sampling was conducted in Catalonia between 2000 and 2001). Unlike current-day simulations, climate change simulations are conducted for IFN3 plots only. Moreover, only monthly and yearly summaries are stored. Initialization procedure is the same as for current-day simulations.
+In this mode, the soil water balance model is used to simulate water balance for the historical period between 1990 and 2015. Unlike current-day simulations, climate change simulations are conducted for forest inventory plots only. Moreover, only monthly and yearly summaries are stored. 
 
+*Simulation locations and initialization*
+
+The second and third forest inventories in Spain (IFN2 and IFN3) are comparable in sampling methods. In Catalonia, IFN2 sampling was conducted between 1987 and 1991, whereas IFN3 sampling was conducted between 2000 and 2001. In order to simulate historic soil water balance and drought stress, simulations are run on both IFN2 and IFN3 plot data. Since IFN3 was more complete than IFN2, simulations using IFN2 plot data are restricted to those plots that were resampled in IFN3 (10,469 plots), even if in some cases the exact sampling location may have changed. For those 'common' plots, the simulation results are averaged assigning weights to IFN2 and IFN3 according to the year of simulation, as described in De Cáceres et al. (2015). For those IFN3 plots that do not have IFN2 counterpart, only the simulations with IFN3 data is used. Initialization procedure is the same as for current-day simulations.
+
+The following diagram illustrates the workflow of tasks necessary for the initialization and simulations in the historic mode:
+
+![Workflow for historic simulations](../www/Workflow_historic.png)
+
+---
 
 *Climate forcing*
 
-Historic weather series for each forest plot is obtained by interpolating daily weather station data for the 1990-2010 period, using package *meteoland*. Surface weather station data was obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
+Historic weather series for each forest plot is obtained by interpolating daily weather station data for the 1990-2015 period, using package *meteoland*. Surface weather station data was obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
 
 
 
