@@ -5,14 +5,22 @@ output: html_document
 
 ### Authorship
 
+This web-based service has been develop by the [Vegetation Modeling Group](http://vegmod.ctfc.cat/) at [Forest Sciences Centre of Catalonia (CTFC)](http://www.ctfc.cat), in collaboration with the [Center for Ecological Research and Forestry Applications (CREAF)](http://www.creaf.cat/):
+
++ *Idea and conceptual design* : Miquel De Cáceres (CTFC-CEMFOR/CREAF) & Jordi Martínez Vilalta (UAB/CREAF)
 + *Model development* : Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
 + *User interface*: Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
+
+---
 
 ### Data sources
 
 + Information elaborated using daily weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es).
 + Historic (1990-2015) weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
 + Climate scenarios (2006-2100) downloaded from [Earth System Grid Federation (ESGF)](http://esgf.llnl.gov/).
++ Forest inventory data was obtained from the Spanish [Ministerio de Agricultura y Pesca, Alimentación y Medio Ambiente](http://www.mapama.gob.es/es/biodiversidad/servicios/banco-datos-naturaleza/informacion-disponible/ifn3.aspx).
+
+---
 
 ### Scientific advisory board
 
@@ -28,6 +36,8 @@ output: html_document
 + Jordi Vayreda (CREAF)
 + Mario Beltrán (AGS-CTFC)
 
+
+---
 
 ### Funding projects
 

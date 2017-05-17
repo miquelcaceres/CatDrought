@@ -33,7 +33,10 @@ shinyUI(
                 ),
                 tabsetPanel(
                   tabPanel("Map",
-                      wellPanel(
+                         tags$head(
+                             includeCSS("styles.css")
+                         ),
+                        wellPanel(
                         sidebarLayout(
                          sidebarPanel(
                            fluidRow(
@@ -47,9 +50,7 @@ shinyUI(
                            hr(),
                            selectInput("display_daily", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
                            hr(),
-                           selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                            radioButtons("resolution_daily", "Raster resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
-                           sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
                            hr(),
                            downloadButton('downloadRasterDaily', 'Download raster'),
                          width=3),
@@ -66,8 +67,20 @@ shinyUI(
                             downloadButton('downloadTrendDaily', 'Download trend')
                         )
                   ),
-                   id="DailyTabset"
+                    
+                  id="DailyTabset"
+                ),
+                conditionalPanel(
+                  condition = "input.DailyTabset=='Map'",
+                  absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                                draggable = TRUE, top = 253, left = "auto", right = 65, bottom = "auto",
+                                width = 250, height = 180,
+                                h4(""),
+                                selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                                sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+                  )
                 )
+
           )
           # wellPanel(
           #   # verbatimTextOutput("pol_info_daily"),
@@ -92,6 +105,10 @@ shinyUI(
               ),
               tabsetPanel(
                 tabPanel("Map",
+                         tags$head(
+                           # Include our custom CSS
+                           includeCSS("styles.css")
+                         ),
                       wellPanel(
                            sidebarLayout(
                              sidebarPanel(
@@ -109,9 +126,6 @@ shinyUI(
                                  hr(),
                                  selectInput("display_hist", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
                                  hr(),
-                                 selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
-                                 sliderInput("alpha_hist", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE),
-                                 hr(),
                                  downloadButton('downloadRasterHist', 'Download raster')
                                ,width=3),
                              mainPanel(
@@ -127,7 +141,18 @@ shinyUI(
                         downloadButton('downloadTrendHist', 'Download trend')
                       )
                 ),
-                id = "HistTabset")
+                id = "HistTabset"
+              ),
+              conditionalPanel(
+                condition = "input.HistTabset=='Map'",
+                absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                              draggable = TRUE, top = 253, left = "auto", right = 65, bottom = "auto",
+                              width = 250, height = 180,
+                              h4(""),
+                              selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                              sliderInput("alpha_hist", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+                )
+              )
         )
         # wellPanel(
         #    p(strong("List of available inputs")),
@@ -156,12 +181,13 @@ shinyUI(
            ),
            tabsetPanel(
              tabPanel("Map",
+              tags$head(
+                  includeCSS("styles.css")
+              ),                      
                wellPanel(
                  sidebarLayout(
                    sidebarPanel(
                      selectInput("display_proj", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
-                     hr(),
-                     selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                      hr(),
                      downloadButton('downloadRasterProj', 'Download raster')
                      ,
@@ -180,7 +206,19 @@ shinyUI(
                           downloadButton('downloadTrendProj', 'Download trend')
                   )
              ),
-             id = "ProjTabset")
+             id = "ProjTabset"
+             ),
+             conditionalPanel(
+               condition = "input.ProjTabset=='Map'",
+               absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                            draggable = TRUE, top = 253, left = "auto", right = 65, bottom = "auto",
+                           width = 250, height = 180,
+                           h4(""),
+                           selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                           sliderInput("alpha_proj", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+               )
+             )
+           
           )
           # wellPanel(
           #    p(strong("List of available inputs")),
@@ -209,7 +247,9 @@ shinyUI(
                             column(2,
                               a(href = "http://www.ctfc.cat/", img(src="logo_ctfc.png"))
                             ),
-                            column(2),
+                            column(2,
+                              a(href = "http://vegmod.ctfc.cat/", img(src="LOGO_Group.png"))
+                            ),
                             column(2,
                                    a(href = "http://www.creaf.cat/", img(src="logo_creaf.png"))
                             ),

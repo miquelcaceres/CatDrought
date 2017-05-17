@@ -14,6 +14,12 @@ output: html_document
 
 This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Cáceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
 
+The following diagram illustrates the workflow of tasks necessary for the initialization of the tool and every day actions:
+
+![Workflow](../www/Workflow.png)
+
+---
+
 ### Soil water balance (SWB) model
 
 The water balance model described in De Cáceres et al. (2015) (implemented in the *medfate* R package) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Cáceres et al. (2015).
