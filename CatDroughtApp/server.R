@@ -22,11 +22,11 @@ proj4string(cat.pol) <- catpolCRS
 cat.pol <- spTransform(cat.pol, CRSobj = mapCRS)
 # Municipalities boundaries
 mun.pol <- readOGR(dsn = path.expand("www/Municipis shapefile"), encoding = "UTF-8")
-proj4string(mun.pol) <- dataCRS
+# proj4string(mun.pol) <- dataCRS # the original file already has a (identical) crs
 mun.pol <- spTransform(mun.pol, CRSobj = mapCRS)
 # Watershed boundaries
 con.pol <- readOGR(dsn = path.expand("www/Conques shapefile"), encoding = "UTF-8")
-proj4string(con.pol) <- dataCRS
+proj4string(con.pol) <- catpolCRS # the original file already has a crs but it seems wrong
 con.pol <- spTransform(con.pol, CRSobj = mapCRS)
 
 
