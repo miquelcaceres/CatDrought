@@ -15,10 +15,9 @@ shinyUI(
      theme = shinythemes::shinytheme("sandstone"),
      #### CURRENT FOREST DROUGHT  ####
      tabPanel("Current",
-          wellPanel(
                 fluidRow(
                   column(width=3,
-                         selectInput("mode_daily", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"))
+                         selectInput("mode_daily", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), selected = "Soil water balance")
                   ),
                   column(width=3,
                          uiOutput("var_choice_daily")
@@ -39,24 +38,18 @@ shinyUI(
                         wellPanel(
                         sidebarLayout(
                          sidebarPanel(
-                           fluidRow(
-                             column(width=8,
-                                dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1)
-                             ),
-                             column(width=4,
-                                    selectInput("agg_daily", "Aggr.", choices=1:30, selected=1)
-                             )
-                           ),
+                           dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
+                           selectInput("agg_daily", "Aggr. (days)", choices=1:30, selected=1),
                            hr(),
                            selectInput("display_daily", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
                            hr(),
-                           radioButtons("resolution_daily", "Raster resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed", inline=TRUE),
+                           radioButtons("resolution_daily", "Raster resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed"),
                            hr(),
                            downloadButton('downloadRasterDaily', 'Download raster'),
-                         width=3),
+                         width=2),
                          mainPanel(
                                leafletOutput("map_daily", width = "100%", height = "600px")
-                         ,width=9)
+                         ,width=10)
                        )
                       )
                   ),
@@ -73,14 +66,13 @@ shinyUI(
                 conditionalPanel(
                   condition = "input.DailyTabset=='Map'",
                   absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                                draggable = TRUE, top = 253, left = "auto", right = 65, bottom = "auto",
+                                draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
                                 width = 250, height = 180,
                                 h4(""),
                                 selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                                 sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
                   )
-                )
-
+  
           )
           # wellPanel(
           #   # verbatimTextOutput("pol_info_daily"),
@@ -90,10 +82,9 @@ shinyUI(
     ),
     #### HISTORIC FOREST DROUGHT  ####
     tabPanel("Historic (1990-2015)",
-        wellPanel(
               fluidRow(
                  column(width=3,
-                        selectInput("mode_hist", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"))
+                        selectInput("mode_hist", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), selected = "Soil water balance")
                  ),
                  column(width=3,
                         uiOutput("var_choice_hist")
@@ -106,31 +97,24 @@ shinyUI(
               tabsetPanel(
                 tabPanel("Map",
                          tags$head(
-                           # Include our custom CSS
                            includeCSS("styles.css")
                          ),
                       wellPanel(
                            sidebarLayout(
                              sidebarPanel(
-                                 fluidRow(
-                                   column(width=6,
-                                     selectInput("years_hist","Year", choices=as.character(1990:2015), selected="2015")
-                                   ),
-                                   column(width=6,
-                                          conditionalPanel(
-                                            condition = "input.agg_hist=='Month'",
-                                            selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
-                                          )
-                                   )
-                                 ),
-                                 hr(),
-                                 selectInput("display_hist", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
-                                 hr(),
-                                 downloadButton('downloadRasterHist', 'Download raster')
-                               ,width=3),
+                               selectInput("years_hist","Year", choices=as.character(1990:2015), selected="2015"),
+                               conditionalPanel(
+                                 condition = "input.agg_hist=='Month'",
+                                 selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
+                               ),
+                               hr(),
+                               selectInput("display_hist", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
+                               hr(),
+                               downloadButton('downloadRasterHist', 'Download raster')
+                               ,width=2),
                              mainPanel(
                                  leafletOutput("map_hist", width = "100%", height = "600px"),
-                              width=9)
+                              width=10)
                          )
                       )
                 ),
@@ -146,12 +130,11 @@ shinyUI(
               conditionalPanel(
                 condition = "input.HistTabset=='Map'",
                 absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                              draggable = TRUE, top = 253, left = "auto", right = 65, bottom = "auto",
+                              draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
                               width = 250, height = 180,
                               h4(""),
                               selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                               sliderInput("alpha_hist", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
-                )
               )
         )
         # wellPanel(
@@ -161,10 +144,9 @@ shinyUI(
     ), 
     #### CC FOREST DROUGHT  ####
     tabPanel("Climate change scenarios",
-        wellPanel(
            fluidRow(
              column(width=3,
-                    selectInput("mode_proj", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"))
+                    selectInput("mode_proj", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), selected = "Soil water balance")
              ),
              column(width=3,
                     uiOutput("var_choice_proj")
@@ -191,11 +173,11 @@ shinyUI(
                      hr(),
                      downloadButton('downloadRasterProj', 'Download raster')
                      ,
-                     width=3),
+                     width=2),
                    mainPanel(
                      leafletOutput("map_proj", width = "100%", height = "600px")
                      ,
-                     width=9)
+                     width=10)
                  )
                )
              ),
@@ -211,14 +193,13 @@ shinyUI(
              conditionalPanel(
                condition = "input.ProjTabset=='Map'",
                absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                            draggable = TRUE, top = 253, left = "auto", right = 65, bottom = "auto",
+                            draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
                            width = 250, height = 180,
                            h4(""),
                            selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
                            sliderInput("alpha_proj", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
                )
-             )
-           
+
           )
           # wellPanel(
           #    p(strong("List of available inputs")),
@@ -228,17 +209,12 @@ shinyUI(
     ),
     navbarMenu("Documentation",
                tabPanel("User's guide",
-                        wellPanel(
                           includeMarkdown("Docs/UserGuide.Rmd")
-                        )
                ),
                tabPanel("Technical specifications",
-                        wellPanel(
                           includeMarkdown("Docs/TechnicalSpecifications.Rmd")
-                        )
                ),
                tabPanel("Acknowledgements",
-                        wellPanel(
                           includeMarkdown("Docs/Credits.Rmd"),
                           hr(),
                           hr(),
@@ -255,7 +231,6 @@ shinyUI(
                             ),
                             column(3)
                           )
-                        )
                )
     ),
     id="navbar",
