@@ -1,0 +1,11 @@
+---
+title: "User's guide"
+author: "Miquel De Caceres"
+date: "16 de mayo de 2017"
+output: html_document
+---
+
+### User guide
+
+TO BE DONE
+

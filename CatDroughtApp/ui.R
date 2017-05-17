@@ -189,6 +189,11 @@ shinyUI(
   
     ),
     navbarMenu("Documentation",
+               tabPanel("User's guide",
+                        wellPanel(
+                          includeMarkdown("Docs/UserGuide.Rmd")
+                        )
+               ),
                tabPanel("Technical specifications",
                         wellPanel(
                           includeMarkdown("Docs/TechnicalSpecifications.Rmd")
