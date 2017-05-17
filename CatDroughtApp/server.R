@@ -58,7 +58,7 @@ available_plots_trends <- unlist(strsplit(available_plots_trends,split = ".rda")
 folder_projections <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/ProjectedSWB/CCLM4-8-17/rcp4.5/"
 available_plots_projections <- list.files(folder_projections)
 available_plots_projections <- unlist(strsplit(available_plots_projections,split = ".rda"))
-folder_historic <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/HistoricSWB/"
+folder_historic <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/HistoricSWB/IFN2-3/"
 available_plots_historic <- list.files(folder_historic)
 available_plots_historic <- unlist(strsplit(available_plots_historic,split = ".rda"))
 
@@ -891,7 +891,7 @@ shinyServer(function(input, output, session) {
       
       # Open relevant files and extract informations regarding the selected variable 
       if(nrow(IFN3_sel)>0){
-        folder <- paste0("//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/HistoricSWB/")
+        folder <- paste0("//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/HistoricSWB/IFN2-3/")
         plots_id <- IFN3_sel$ID
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_historic]
         if(length(plots_id)>0) {

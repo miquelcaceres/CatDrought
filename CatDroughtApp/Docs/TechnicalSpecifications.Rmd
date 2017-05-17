@@ -14,11 +14,6 @@ output: html_document
 
 This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Cáceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
 
-The following diagram illustrates the workflow of tasks necessary for the initialization of the tool and every day actions:
-
-![Workflow](../www/Workflow.png)
-
----
 
 ### Soil water balance (SWB) model
 
@@ -83,6 +78,12 @@ The cumulative effect of drought stress on forests is tracked by counting the nu
 
 In this mode, the water balance model is run once every day for each simulation location after gathering weather station data and interpolating weather over the target simulation location. Soil moisture and other state variables are stored from one day to the other, so that the accumulation of drought stress (or the relieving effect of precipitations) can be simulated.
 
+The following diagram illustrates the workflow of tasks necessary for the initialization of the tool and every day actions:
+
+![Workflow](../www/Workflow.png)
+
+---
+
 *Simulation locations*
 
 SWB simulations are conducted on two sets of locations:
@@ -139,7 +140,7 @@ Climate scenarios were downloaded from [ESFG (Earth System Grid Federation](http
 CGM             | RCM                     | Domain | RCP | Resolution
 --------------- | ----------------------- | ------ | ------------ | ----------
 CNRM-CERFACS	 | CCLM4-8-17	| Europe | 4.5 | 11 km
-CNRM-CERFACS	 | RCA4	| Europe | 8.5 | 11 km
+CNRM-CERFACS	 | CCLM4-8-17	| Europe | 8.5 | 11 km
 CNRM-CERFACS	 | RCA4	| Europe | 4.5 | 11 km
 CNRM-CERFACS	 | RCA4	| Europe | 8.5 | 11 km
 
