@@ -7,5 +7,5 @@ output: html_document
 
 ### User guide
 
-TO BE DONE
+TO BE DONE WHEN A STABLE VERSION O USER INTERFACE IS ACCEPTED
 

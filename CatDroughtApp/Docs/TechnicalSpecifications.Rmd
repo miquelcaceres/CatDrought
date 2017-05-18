@@ -1,7 +1,9 @@
 ---
-title: "Catalan Forest Drought Prediction Tool"
-author: "Miquel De Cáceres, Antoine Cabon, Jordi Martinez-Vilalta"
-output: html_document
+title: "Technical specifications"
+author: "Miquel De Cáceres"
+output: 
+  html_document:
+    toc: TRUE
 ---
 
 <!-- # Catalan Forest Drought Prediction Tool -->
@@ -114,6 +116,20 @@ The imputation process of IFN3 plots to 200x200 m pixels may entail gross errors
 
 Weather station data of the current day is downloaded from APIs provided by the Spanish [Agencia Estatal de Meteorologia (AEMET)](https://opendata.aemet.es/centrodedescargas/inicio). This information, complemented with weather data from previous days, is used to interpolate weather variables over the simulation locations (pixels or IFN3 plots). Interpolation routines are implemented in package *meteoland*. 
 
+*Mapping*
+
+The spatial scope of displayed results is within Catalonia boundaries and at a maximum 2km distance from IFN3 plots. Two raster resolution levels and three display options are offered:
+
++ Smoothed 1 km2
++	1 km2
++	200 x 200 m
+
+Values at 1km2 are calculated averaging 200 x 200 m pixels. Smoothing is done on 1 km2 pixels using a spatial kernel of radius 2 km (R package *spatstat*). Maps are usually displayed at the daily scale, but the user can decide to map values aggregated temporally up to a number of days Temporal aggregation follows the function (sum or average) indicated in variable tables above.
+
+*Temporal trends*
+
+Daily temporal trends are stored for IFN3 plots only (i.e. not for pixels). Average trends can be displayed at four spatial levels: (a) Watersheds; (b) Counties; (c) Municipalities; and (d) IFN3 plots. The user can select the desired spatial structure depending on each level. In the case of IFN3 plots the trends of the selected IFN3 plot are displayed. For the other levels, the application loads the trends of all the IFN3 plots within county/municipality boundaries and calculates average and 5%-95% confidence interval.
+
 ---
 
 ### MODE 2: Historic (1990-2015) forest drought
@@ -157,27 +173,52 @@ CNRM-CERFACS	 | RCA4	| Europe | 8.5 | 11 km
 
 Statistical downscaling is applied to daily climate data, which includes a bias correction. Bias correction is conducted using package *meteoland*, and requires a local historic meteorological series to use as reference for bias estimation. This is obtained by interpolating daily weather station data over IFN3 plots for the 1990-2005 period (station data from AEMET and SMC).
 
-### Mapping
-
-*Spatial scope and resolution*
-
-The spatial scope of displayed results is within Catalonia boundaries and at a maximum 2km distance from IFN3 plots. Two raster resolution levels and three display options are offered:
-
-+ Smoothed 1 km2
-+	1 km2
-+	200 x 200 m
-
-Simulations are done at 200 x 200 m resolution. Values at 1km2 are calculated averaging 200 x 200 m pixels. Smoothing is done on 1 km2 pixels using a spatial kernel of radius 2 km (R package *spatstat*).
-
-*Temporal aggregation*
-
-Maps are usually displayed at the daily scale, but the user can decide to map values aggregated temporally up to a number of weeks. Temporal aggregation follows the function (sum or average) indicated in variable tables above.
-
-### Temporal trends
-
-As mentioned above, daily temporal trends are stored for IFN3 plots only (i.e. not for pixels). Trends can be displayed at three spatial levels: (a) Counties; (b) Municipalities; and (c) IFN3 plots. The user can select the desired spatial structure depending on each level. In the case of IFN3 plots the trends of the selected IFN3 plot are displayed. For the other two levels, the application loads the trends of all the IFN3 plots within county/municipality boundaries and calculates average and 5-95 confidence interval.
 
 
+### Computational times
+
+The following table provides an idea of current computational times of the different tasks:
+
+
+MODE               | Task                         | Computational time | Parellized | Daily |
+------------------ | ---------------------------- |:------------------:|:----------:|:-----:| 
+MODE 1 (current)   | Initialization               |  10 min            | No         | No    |
+MODE 1 (current)   | Plot meteo interpolation     |  1 min             | No         | Yes   |
+MODE 1 (current)   | Plot soil water balance      |  2 min             | Yes        | Yes   |
+MODE 1 (current)   | Plot update trends           |  2 min             | No         | Yes   |
+MODE 1 (current)   | Pixel meteo interpolation    |  4 min             | Yes        | Yes   |
+MODE 1 (current)   | Pixel soil water balance     |  3 min             | Yes        | Yes   | 
+MODE 1 (current)   | Smoothing for maps           |  1 min             | No         | Yes   |
+MODE 2/3           | Plot interpolation 1990-2015 |  1 week            | No         | No    |
+MODE 2 (historic)  | Soil water balance IFN2/IFN3 |  18 hours          | No         | No    |
+MODE 2 (historic)  | Merging IFN2-IFN3 outputs    |  5 min             | No         | No    |
+MODE 2 (historic)  | Mapping                      |  30 min            | No         | No    |
+MODE 3 (projection)| Bias correction & SWB        |  1 week            | No         | No    |
+
+---
+
+Daily routines in total account for 13 min of computation in a server with 8 cores.
+
+---
+
+### Known issues and potential improvements
+
+*Known issues*
+
++ Historic meteo stations have zero precipitation records that suggest the need for quality check
+
+
+*Potential improvements*
+
++ Replace plot-based historic meteo interpolation by 1km pixel-based over Catalonia for mapping purposes (¿?)
++ Soil input data from [SoilGrids](https://www.soilgrids.org)
++ Combine initialization IFN2 (1987-91), IFN3 (2000-2001) and IFN4 (2014) in historical simulations.
++ Use IFN4 (2014) in climate change simulations.
++ Validation/comparison with remote sensing data (SMOS, RWC).
++ Inclusion of hydraulic redistribution
++ Inclusion of lateral water fluxes.
+
+---
 
 ### References
 
@@ -188,18 +229,5 @@ As mentioned above, daily temporal trends are stored for IFN3 plots only (i.e. n
 + Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
 + Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
 
-
-### Improvements
-
-*Planned*
-
-+ Soil input data from [SoilGrids](https://www.soilgrids.org)
-+ Combine initialization IFN2 (1987-91), IFN3 (2000-2001) and IFN4 (2014) in historical simulations.
-+ Use IFN4 (2014) in climate change simulations.
-
-*Needed*
-
-+ Validation/comparison with remote sensing data (SMOS, RWC).
-+ Inclusion of later water fluxes.
 
 ---
