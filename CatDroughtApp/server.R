@@ -9,7 +9,8 @@ library(chron)
 library(leaflet)
 library(dygraphs)
 library(xts)
-
+library(Kendall)
+library(zyp)
 
 
 # App data requisites
@@ -693,6 +694,7 @@ shinyServer(function(input, output, session) {
       }
     }
   })
+
   #Reacts to changes in variable selected and map_hist_data changes
   output$trends_hist<-renderDygraph({
     if(!is.null(map_hist_data$x)) {
@@ -1067,6 +1069,40 @@ shinyServer(function(input, output, session) {
       write.table(historicTrends(), file=file,sep="\t", quote=FALSE)
     }
   ) 
+  output$MK_hist<-renderPrint({
+    if(!is.null(map_hist_data$x)) {
+      if(input$mode_hist == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
+      } else if(input$mode_hist == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
+      } else {
+        col <- as.character(species[species$input == input$sp_hist, "medfate"])
+      }
+      first=which(!is.na(map_hist_data$x$means[,col]))[1]
+      end = length(map_hist_data$x$means[,col])
+      return(MannKendall(map_hist_data$x$means[first:end,col]))
+    }
+  })
+  output$TS_slope_hist<-renderPrint({
+    if(!is.null(map_hist_data$x)) {
+      if(input$mode_hist == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
+      } else if(input$mode_hist == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
+      } else {
+        col <- as.character(species[species$input == input$sp_hist, "medfate"])
+      }
+      first=which(!is.na(map_hist_data$x$means[,col]))[1]
+      end = length(map_hist_data$x$means[,col])
+      t = first:end
+      m = map_hist_data$x$means[first:end,col]
+      # print(rbind(t,m))
+      z<-zyp.sen(m~t)
+      # print(z)
+      cat(paste0(as.numeric(coefficients(z)[2]), " units per ", ifelse(isolate(input$agg_hist)=="Month", "month", "year")))
+    }
+  })
+
   
   #Downloads projected trends
   projectedTrends<-reactive({
@@ -1093,6 +1129,40 @@ shinyServer(function(input, output, session) {
       write.table(projectedTrends(), file=file,sep="\t", quote=FALSE)
     }
   ) 
+  output$MK_proj<-renderPrint({
+    if(!is.null(map_proj_data$x)) {
+      if(input$mode_proj == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+      } else if(input$mode_proj == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+      } else {
+        col <- as.character(species[species$input == input$sp_proj, "medfate"])
+      }
+      first=which(!is.na(map_proj_data$x$means[,col]))[1]
+      end = length(map_proj_data$x$means[,col])
+      return(MannKendall(map_proj_data$x$means[first:end,col]))
+    }
+  })
+  output$TS_slope_proj<-renderPrint({
+    if(!is.null(map_proj_data$x)) {
+      if(input$mode_proj == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+      } else if(input$mode_proj == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+      } else {
+        col <- as.character(species[species$input == input$sp_proj, "medfate"])
+      }
+      first=which(!is.na(map_proj_data$x$means[,col]))[1]
+      end = length(map_proj_data$x$means[,col])
+      t = first:end
+      m = map_proj_data$x$means[first:end,col]
+      # print(rbind(t,m))
+      z<-zyp.sen(m~t)
+      # print(z)
+      cat(paste0(as.numeric(coefficients(z)[2]), " units per ", ifelse(isolate(input$agg_proj)=="Month", "month", "year")))
+    }
+  })
+  
   
   # What are the different inputs?
   # output$inputList_daily <- renderPrint({

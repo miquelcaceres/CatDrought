@@ -124,6 +124,17 @@ shinyUI(
                       wellPanel(
                         dygraphOutput("trends_hist") ,
                         hr(),
+                        fluidRow(
+                          column(3,
+                            h4("Mann-Kendall test"),
+                            verbatimTextOutput("MK_hist")
+                          ),
+                          column(3,
+                            h4("Ten-sheil slope"),
+                            verbatimTextOutput("TS_slope_hist")
+                          )
+                        ),
+                        hr(),
                         downloadButton('downloadTrendHist', 'Download trend')
                       )
                 ),
@@ -186,6 +197,17 @@ shinyUI(
              tabPanel("Selected series",
                   wellPanel(
                           dygraphOutput("trends_proj"),
+                          hr(),
+                          fluidRow(
+                            column(3,
+                                   h4("Mann-Kendall test"),
+                                   verbatimTextOutput("MK_proj")
+                            ),
+                            column(3,
+                                   h4("Ten-sheil slope"),
+                                   verbatimTextOutput("TS_slope_proj")
+                            )
+                          ),
                           hr(),
                           downloadButton('downloadTrendProj', 'Download trend')
                   )
