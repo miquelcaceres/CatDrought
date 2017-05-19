@@ -10,6 +10,8 @@ medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "
                 "QuercusIlex", "QuercusSuber", "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
 species <- data.frame(input = input_sp, medfate = medfate_sp)
 
+basemaps <- c("Esri.WorldGrayCanvas","Esri.WorldImagery","Esri.WorldTerrain","Esri.WorldShadedRelief","Stamen.TerrainBackground")
+
 shinyUI(
   navbarPage("Catalan Forest Drought Prediction Tool",
      theme = shinythemes::shinytheme("sandstone"),
@@ -69,7 +71,7 @@ shinyUI(
                                 draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
                                 width = 250, height = 180,
                                 h4(""),
-                                selectInput("basemap_daily","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                                selectInput("basemap_daily","Base map", choices = basemaps),
                                 sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
                   )
   
@@ -89,10 +91,15 @@ shinyUI(
                  column(width=3,
                         uiOutput("var_choice_hist")
                  ),
+                 column(width=3,
+                        conditionalPanel(
+                          condition = "input.mode_hist=='Drought stress'",
+                          selectInput("sp_hist", "Choose species", choices = input_sp, selected = "Overall")
+                        )
+                 ),
                  column(width = 3,
                         radioButtons("agg_hist", "Temporal resolution", choices = c("Year", "Month"), selected="Year", inline=TRUE)
-                 ),
-                 column(width=3)
+                 )
               ),
               tabsetPanel(
                 tabPanel("Map",
@@ -146,7 +153,7 @@ shinyUI(
                               draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
                               width = 250, height = 180,
                               h4(""),
-                              selectInput("basemap_hist","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                              selectInput("basemap_hist","Base map", choices = basemaps),
                               sliderInput("alpha_hist", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
               )
         )
@@ -182,6 +189,11 @@ shinyUI(
                wellPanel(
                  sidebarLayout(
                    sidebarPanel(
+                     radioButtons("raster_trend_proj", "Raster type", choices=c("Overall change", "Slope")),
+                     selectInput("alpha_cut_proj", "Sign. level", choices=c(1.0,0.1,0.05,0.01,0.001,0.0001), selected=1.0),
+                     hr(),
+                     radioButtons("resolution_proj", "Raster resolution", choices = c("Smoothed","1km"), selected = "Smoothed"),
+                     hr(),
                      selectInput("display_proj", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
                      hr(),
                      downloadButton('downloadRasterProj', 'Download raster')
@@ -220,7 +232,7 @@ shinyUI(
                             draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
                            width = 250, height = 180,
                            h4(""),
-                           selectInput("basemap_proj","Base map", choices = c("Esri.WorldGrayCanvas","Stamen.TerrainBackground")),
+                           selectInput("basemap_proj","Base map", choices = basemaps),
                            sliderInput("alpha_proj", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
                )
 
