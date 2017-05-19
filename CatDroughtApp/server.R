@@ -480,8 +480,8 @@ shinyServer(function(input, output, session) {
         sel = spdf_pval@data[1,]>input$alpha_cut_proj
         sel[is.na(sel)] = FALSE
         spdf@data[sel,1] = 0
-        dom = c(min(spdf@data[,1], na.rm=TRUE)-0.001, max(spdf@data[,1], na.rm=TRUE)+0.001)
-        print(dom)
+        abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
+        dom = c(-abs_val -0.001, abs_val+0.001)
         bins <- identity_trans(dom = dom, n = 15, digits = 3)
         pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
         map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
@@ -500,8 +500,8 @@ shinyServer(function(input, output, session) {
         sel = spdf_pval@data[1,]>input$alpha_cut_proj
         sel[is.na(sel)] = FALSE
         spdf@data[sel,1] = 0
-        dom = c(min(spdf@data[,1], na.rm=TRUE)-0.001, max(spdf@data[,1], na.rm=TRUE)+0.001)
-        print(dom)
+        abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
+        dom = c(-abs_val -0.001, abs_val+0.001)
         bins <- identity_trans(dom = dom, n = 15, digits = 3)
         pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
         map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
@@ -522,8 +522,8 @@ shinyServer(function(input, output, session) {
           sel = spdf_pval@data[1,]>input$alpha_cut_proj
           sel[is.na(sel)] = FALSE
           spdf@data[sel,1] = 0
-          dom = c(min(spdf@data[,1], na.rm=TRUE)-0.001, max(spdf@data[,1], na.rm=TRUE)+0.001)
-          print(dom)
+          abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
+          dom = c(-abs_val -0.001, abs_val+0.001)
           bins <- identity_trans(dom = dom, n = 15, digits = 3)
           pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
           map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
