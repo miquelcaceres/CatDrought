@@ -219,7 +219,7 @@ shinyServer(function(input, output, session) {
   observe({
     if(input$mode_daily == "Climate"){
       if(!is.null(input$clim_daily)){
-        folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
+        folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Current"
         col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
         dfin = input$date_daily
         dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
@@ -247,7 +247,7 @@ shinyServer(function(input, output, session) {
     } 
     else if(input$mode_daily == "Soil water balance"){
       if(!is.null(input$WB_daily)){
-        folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
+        folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Current"
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
         dfin = input$date_daily
         dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
@@ -277,7 +277,7 @@ shinyServer(function(input, output, session) {
     } 
     else {
       if(!is.null(input$DS_daily) && !is.null(input$sp_daily)){
-        folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps"
+        folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Current"
         ds_var <- as.character(DS_variables[DS_variables$input == input$DS_daily, "medfate"])
         col <- as.character(species[species$input == input$sp_daily, "medfate"])
         # print(ds_var)
@@ -423,9 +423,9 @@ shinyServer(function(input, output, session) {
         if(file.exists(file)) {
           load(file)
           
-          dom <- c(pal_DS["Daily stress","min"],pal_DS["Daily stress","max"])
-          bins <- do.call(paste(pal_DS["Daily stress", "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-          pal <- colorBin(pal_DS["Daily stress","color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS["Daily stress", "rev"])
+          dom <- c(pal_DS[input$DS_hist,"min"],pal_DS[input$DS_hist,"max"])
+          bins <- do.call(paste(pal_DS[input$DS_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+          pal <- colorBin(pal_DS[input$DS_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[input$DS_hist, "rev"])
           
           map_hist_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
         } 
@@ -482,7 +482,7 @@ shinyServer(function(input, output, session) {
         spdf@data[sel,1] = 0
         abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
         dom = c(-abs_val -0.001, abs_val+0.001)
-        bins <- identity_trans(dom = dom, n = 15, digits = 3)
+        bins <- identity_trans(dom = dom, n = 14, digits = 3)
         pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
         map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
       } 
@@ -502,7 +502,7 @@ shinyServer(function(input, output, session) {
         spdf@data[sel,1] = 0
         abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
         dom = c(-abs_val -0.001, abs_val+0.001)
-        bins <- identity_trans(dom = dom, n = 15, digits = 3)
+        bins <- identity_trans(dom = dom, n = 14, digits = 3)
         pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
         map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
       } 
@@ -524,7 +524,7 @@ shinyServer(function(input, output, session) {
           spdf@data[sel,1] = 0
           abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
           dom = c(-abs_val -0.001, abs_val+0.001)
-          bins <- identity_trans(dom = dom, n = 15, digits = 3)
+          bins <- identity_trans(dom = dom, n = 14, digits = 3)
           pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
           map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
         } 
