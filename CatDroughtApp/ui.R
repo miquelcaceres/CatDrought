@@ -165,11 +165,17 @@ shinyUI(
     #### CC FOREST DROUGHT  ####
     tabPanel("Climate change scenarios",
            fluidRow(
-             column(width=3,
+             column(width=2,
                     selectInput("mode_proj", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), selected = "Soil water balance")
              ),
-             column(width=3,
+             column(width=2,
                     uiOutput("var_choice_proj")
+             ),
+             column(width=2,
+                    conditionalPanel(
+                      condition = "input.mode_proj=='Drought stress'",
+                      selectInput("sp_proj", "Choose species", choices = input_sp, selected = "Overall")
+                    )
              ),
              column(width=2,
                     selectInput("rcm_proj", "Climate model", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4"))

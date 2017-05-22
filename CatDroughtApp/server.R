@@ -189,22 +189,20 @@ shinyServer(function(input, output, session) {
 
   # Switch the mode of the projection output 
   output$var_choice_proj <- renderUI({
+    input_title <- "Choose variable"
     if(input$mode_proj == "Climate") {
       input_name <- "clim_proj"
-      input_title <- "Choose variable"
       if(input$agg_proj=="Month") var_choice_proj <- input_clim_var
       else var_choice_proj <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
     } else if(input$mode_proj == "Soil water balance") {
       input_name <- "WB_proj"
-      input_title <- "Choose variable"
       var_choice_proj <- input_WB_var[-2]
       selected <- "Relative soil water content [0-1]"
     } else {
-      input_name <- "sp_proj"
-      input_title <- "Choose species"
-      var_choice_proj <- input_sp
-      selected <- "All woody species"
+      input_name <- "DS_proj"
+      var_choice_proj <- input_DS_var
+      selected <- "Daily stress"
     }
     selectInput(input_name, input_title, choices = var_choice_proj, selected = selected)
   })
@@ -513,6 +511,7 @@ shinyServer(function(input, output, session) {
     else if(input$mode_proj == "Drought stress" && !is.null(input$sp_proj)){
       col <- as.character(species[species$input == input$sp_proj, "medfate"])
       ds_var <- as.character(DS_variables[DS_variables$input == input$DS_proj, "medfate"])
+      print(ds_var)
       if(length(ds_var)>0){
         file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",col, ".rda", sep = "")
         if(file.exists(file)) {
@@ -525,7 +524,7 @@ shinyServer(function(input, output, session) {
           abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
           dom = c(-abs_val -0.001, abs_val+0.001)
           bins <- identity_trans(dom = dom, n = 14, digits = 3)
-          pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
+          pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = T)
           map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
         } 
         else {
@@ -753,120 +752,7 @@ shinyServer(function(input, output, session) {
   map_proj_data <- reactiveValues(x = list())
   
 
-  #Reacts to changes in variable selected and map_daily_data changes
-  output$trends_daily<-renderDygraph({
-    if(!is.null(map_daily_data$x)) {
-      if(input$mode_daily == "Climate") {
-        col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
-        title <- paste(input$clim_daily," at ",as.character(map_daily_data$x$info$Name))
-        label=input$clim_daily
-      } else if(input$mode_daily == "Soil water balance") {
-        col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
-        title <- paste(input$WB_daily," at ",as.character(map_daily_data$x$info$Name))
-        label=input$WB_daily
-      } else {
-        col <- as.character(species[species$input == input$sp_daily, "medfate"])
-        title <- paste("Drought stress index for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
-        label="Drought stress"
-      }
-      first=which(!is.na(map_daily_data$x$means[,col]))[1]
-      end = length(map_daily_data$x$means[,col])
-      m<-cbind( map_daily_data$x$ci_sup[first:end,col], map_daily_data$x$means[first:end,col],map_daily_data$x$ci_inf[first:end,col])
-      colnames(m)<-c("lower", "mean","upper")
-      x<-xts(m,map_daily_data$x$dates[first:end])
-      if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
-      if(input$mode_daily=="Drought stress") {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector() %>%
-          dyAxis("y", label = "Daily drought stress", valueRange = c(0, 1)) %>%
-          dyLimit(0.5, color="red")
-      } else {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector()
-      }
-    }
-  })
 
-  # Reacts to changes in variable selected and map_hist_data changes
-  output$trends_hist<-renderDygraph({
-    if(!is.null(map_hist_data$x)) {
-      if(input$mode_hist == "Climate") {
-        col <- as.character(clim_variables[isolate(clim_variables$input == input$clim_hist), "medfate"])
-        title <- paste(input$clim_hist," at ",as.character(map_hist_data$x$info$Name))
-        label=input$clim_hist
-      } else if(input$mode_hist == "Soil water balance") {
-        col <- as.character(WB_variables[isolate(WB_variables$input == input$WB_hist), "medfate"])
-        title <- paste(input$WB_hist," at ",as.character(map_hist_data$x$info$Name))
-        label=input$WB_hist
-      } else {
-        col <- as.character(species[species$input == input$sp_hist, "medfate"])
-        if(isolate(input$DS_hist=="Daily stress")) title <- paste("Drought stress index for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
-        else title <- paste("Cumulative stress for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
-        label="Drought stress"
-      }
-      if(col %in% names(map_hist_data$x$means)){
-        m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
-        colnames(m)<-c("lower", "mean","upper")
-        x<-xts(m,map_hist_data$x$dates)
-        if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
-        if(input$mode_hist=="Drought stress") {
-          if(input$DS_hist=="Daily stress"){
-            dygraph(x, main= title) %>%
-              dySeries(c("lower", "mean","upper"), label=label) %>%
-              dyRangeSelector() %>%
-              dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
-              dyLimit(0.5, color="red")
-          } else {
-            dygraph(x, main= title) %>%
-              dySeries(c("lower", "mean","upper"), label=label) %>%
-              dyRangeSelector() %>%
-              dyAxis("y", label = "Maximum cumulative drought stress")
-          }
-        } else {
-          dygraph(x, main= title) %>%
-            dySeries(c("lower", "mean","upper"), label=label) %>%
-            dyRangeSelector()
-        }
-      }
-    }
-  })
-  #Reacts to changes in variable selected and map_proj_data changes
-  output$trends_proj<-renderDygraph({
-    if(!is.null(map_proj_data$x)) {
-      if(input$mode_proj == "Climate") {
-        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-        title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
-        label=input$clim_proj
-      } else if(input$mode_proj == "Soil water balance") {
-        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
-        title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
-        label=input$WB_proj
-      } else {
-        col <- as.character(species[species$input == input$sp_proj, "medfate"])
-        title <- paste("Drought stress index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
-        label="Drought stress"
-      }
-      title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
-      m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
-      colnames(m)<-c("lower", "mean","upper")
-      x<-xts(m,map_proj_data$x$dates)
-      if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
-      if(input$mode_proj=="Drought stress") {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector() %>%
-          dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
-          dyLimit(0.5, color="red")
-      } else {
-        dygraph(x, main= title) %>% 
-          dySeries(c("lower", "mean","upper"), label=label) %>% 
-          dyRangeSelector()
-      }
-    }
-  })
-  
   #Changes tab panel
   observeEvent(map_daily_click$x, {
     if(!is.null(map_daily_click$x)){
@@ -1089,8 +975,8 @@ shinyServer(function(input, output, session) {
         plots_id <- IFN3_sel$ID
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_projections]
         if(length(plots_id)>0) {
-          load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
           if(input$mode_proj %in% c("Climate","Soil water balance")){
+            load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
             if(input$agg_proj== "Month") trends = swb_month
             else trends = swb_year
             # open all the files of the individual plots
@@ -1101,35 +987,176 @@ shinyServer(function(input, output, session) {
               else trends = swb_year
               data[,,i] <- as.matrix(trends)
             }
+            
+            # calculate mean and condidence interval
+            means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+            ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+            ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+            
+            dates <- as.Date(rownames(means))
+            map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+            
           }
           else if(input$mode_proj == "Drought stress"){ 
-            
-            if(input$agg_proj== "Month") trends = dds_month
-            else trends = dds_year
-            # open all the files of the individual plots
-            data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
-            for(i in 1:length(plots_id)){
-              load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-              if(input$agg_proj== "Month") trends = dds_month
-              else trends = dds_year
-              data[,,i] <- as.matrix(trends)
+            if(!is.null(input$DS_proj)){
+              load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
+              if(input$DS_proj=="Daily stress"){
+                if(input$agg_proj== "Month") trends = dds_month
+                else trends = dds_year
+              } else {
+                if(input$agg_proj== "Month") trends = ndd_month
+                else trends = ndd_year
+              }
+              # open all the files of the individual plots
+              data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
+              for(i in 1:length(plots_id)){
+                load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
+                if(input$DS_proj=="Daily stress"){
+                  if(input$agg_proj== "Month") trends = dds_month
+                  else trends = dds_year
+                } else {
+                  if(input$agg_proj== "Month") trends = ndd_month
+                  else trends = ndd_year
+                }
+                data[,,i] <- as.matrix(trends)
+              }
+              # calculate mean and condidence interval
+              means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+              ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+              ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+              
+              dates <- as.Date(rownames(means))
+              map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+              print(map_proj_data$x)
             }
           }
-          # calculate mean and condidence interval
-          means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
-          ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
-          ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
-          
-          dates <- as.Date(rownames(means))
-          map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
-        } else {
-          map_proj_data$x <- NULL
-        }
+        } 
+      } 
+    } 
+  })
+  
+  
+  #Reacts to changes in variable selected and map_daily_data changes
+  output$trends_daily<-renderDygraph({
+    if(!is.null(map_daily_data$x)) {
+      if(input$mode_daily == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
+        title <- paste(input$clim_daily," at ",as.character(map_daily_data$x$info$Name))
+        label=input$clim_daily
+      } else if(input$mode_daily == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
+        title <- paste(input$WB_daily," at ",as.character(map_daily_data$x$info$Name))
+        label=input$WB_daily
       } else {
-        map_proj_data$x <- NULL
+        col <- as.character(species[species$input == input$sp_daily, "medfate"])
+        title <- paste("Drought stress index for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
+        label="Drought stress"
       }
-    } else {
-      map_proj_data$x <- NULL
+      first=which(!is.na(map_daily_data$x$means[,col]))[1]
+      end = length(map_daily_data$x$means[,col])
+      m<-cbind( map_daily_data$x$ci_sup[first:end,col], map_daily_data$x$means[first:end,col],map_daily_data$x$ci_inf[first:end,col])
+      colnames(m)<-c("lower", "mean","upper")
+      x<-xts(m,map_daily_data$x$dates[first:end])
+      if(map_daily_data$x$nplots>1) title<-title<-paste0(title, " (",map_daily_data$x$nplots," plots)")
+      if(input$mode_daily=="Drought stress") {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector() %>%
+          dyAxis("y", label = "Daily drought stress", valueRange = c(0, 1)) %>%
+          dyLimit(0.5, color="red")
+      } else {
+        dygraph(x, main= title) %>% 
+          dySeries(c("lower", "mean","upper"), label=label) %>% 
+          dyRangeSelector()
+      }
+    }
+  })
+  
+  # Reacts to changes in variable selected and map_hist_data changes
+  output$trends_hist<-renderDygraph({
+    if(!is.null(map_hist_data$x)) {
+      if(input$mode_hist == "Climate") {
+        col <- as.character(clim_variables[isolate(clim_variables$input == input$clim_hist), "medfate"])
+        title <- paste(input$clim_hist," at ",as.character(map_hist_data$x$info$Name))
+        label=input$clim_hist
+      } else if(input$mode_hist == "Soil water balance") {
+        col <- as.character(WB_variables[isolate(WB_variables$input == input$WB_hist), "medfate"])
+        title <- paste(input$WB_hist," at ",as.character(map_hist_data$x$info$Name))
+        label=input$WB_hist
+      } else {
+        col <- as.character(species[species$input == input$sp_hist, "medfate"])
+        if(isolate(input$DS_hist=="Daily stress")) title <- paste("Drought stress index for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
+        else title <- paste("Cumulative stress for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
+        label="Drought stress"
+      }
+      if(col %in% names(map_hist_data$x$means)){
+        m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
+        colnames(m)<-c("lower", "mean","upper")
+        x<-xts(m,map_hist_data$x$dates)
+        if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
+        if(input$mode_hist=="Drought stress") {
+          if(input$DS_hist=="Daily stress"){
+            dygraph(x, main= title) %>%
+              dySeries(c("lower", "mean","upper"), label=label) %>%
+              dyRangeSelector() %>%
+              dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+              dyLimit(0.5, color="red")
+          } else {
+            dygraph(x, main= title) %>%
+              dySeries(c("lower", "mean","upper"), label=label) %>%
+              dyRangeSelector() %>%
+              dyAxis("y", label = "Maximum cumulative drought stress")
+          }
+        } else {
+          dygraph(x, main= title) %>%
+            dySeries(c("lower", "mean","upper"), label=label) %>%
+            dyRangeSelector()
+        }
+      }
+    }
+  })
+  #Reacts to changes in variable selected and map_proj_data changes
+  output$trends_proj<-renderDygraph({
+    if(!is.null(map_proj_data$x)) {
+      if(input$mode_proj == "Climate") {
+        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+        title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
+        label=input$clim_proj
+      } else if(input$mode_proj == "Soil water balance") {
+        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+        title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
+        label=input$WB_proj
+      } else {
+        col <- as.character(species[species$input == input$sp_proj, "medfate"])
+        if(isolate(input$DS_proj=="Daily stress")) title <- paste("Drought stress index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
+        else title <- paste("Cumulative stress for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
+        label="Drought stress"
+      }
+      if(col %in% names(map_proj_data$x$means)){
+        title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
+        m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
+        colnames(m)<-c("lower", "mean","upper")
+        x<-xts(m,map_proj_data$x$dates)
+        if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
+        if(input$mode_proj=="Drought stress") {
+          if(input$DS_proj=="Daily stress"){
+            dygraph(x, main= title) %>%
+              dySeries(c("lower", "mean","upper"), label=label) %>%
+              dyRangeSelector() %>%
+              dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+              dyLimit(0.5, color="red")
+          } else {
+            dygraph(x, main= title) %>%
+              dySeries(c("lower", "mean","upper"), label=label) %>%
+              dyRangeSelector() %>%
+              dyAxis("y", label = "Maximum cumulative drought stress")
+          }
+        } else {
+          dygraph(x, main= title) %>% 
+            dySeries(c("lower", "mean","upper"), label=label) %>% 
+            dyRangeSelector()
+        }
+      }
     }
   })
   
@@ -1259,9 +1286,11 @@ shinyServer(function(input, output, session) {
       } else {
         col <- as.character(species[species$input == input$sp_proj, "medfate"])
       }
-      first=which(!is.na(map_proj_data$x$means[,col]))[1]
-      end = length(map_proj_data$x$means[,col])
-      return(MannKendall(map_proj_data$x$means[first:end,col]))
+      if((length(col)>0) && (!is.null(map_proj_data$x$means))){
+        first=which(!is.na(map_proj_data$x$means[,col]))[1]
+        end = length(map_proj_data$x$means[,col])
+        MannKendall(map_proj_data$x$means[first:end,col])
+      }
     }
   })
   output$TS_slope_proj<-renderText({
@@ -1273,14 +1302,16 @@ shinyServer(function(input, output, session) {
       } else {
         col <- as.character(species[species$input == input$sp_proj, "medfate"])
       }
-      first=which(!is.na(map_proj_data$x$means[,col]))[1]
-      end = length(map_proj_data$x$means[,col])
-      t = first:end
-      m = map_proj_data$x$means[first:end,col]
-      # print(rbind(t,m))
-      z<-zyp.sen(m~t)
-      # print(z)
-      paste0(signif(as.numeric(coefficients(z)[2])), " units per ", ifelse(isolate(input$agg_proj)=="Month", "month", "year"))
+      if((length(col)>0) && (!is.null(map_proj_data$x$means))){
+        first=which(!is.na(map_proj_data$x$means[,col]))[1]
+        end = length(map_proj_data$x$means[,col])
+        t = first:end
+        m = map_proj_data$x$means[first:end,col]
+        # print(rbind(t,m))
+        z<-zyp.sen(m~t)
+        # print(z)
+        paste0(signif(as.numeric(coefficients(z)[2])), " units per ", ifelse(isolate(input$agg_proj)=="Month", "month", "year"))
+      }
     }
   })
   
