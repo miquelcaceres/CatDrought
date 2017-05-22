@@ -109,7 +109,7 @@ shinyUI(
                       wellPanel(
                            sidebarLayout(
                              sidebarPanel(
-                               selectInput("years_hist","Year", choices=as.character(1990:2015), selected="2015"),
+                               selectInput("years_hist","Year", choices=c("1990-2015",as.character(1990:2015)), selected="1990-2015"),
                                conditionalPanel(
                                  condition = "input.agg_hist=='Month'",
                                  selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
@@ -195,7 +195,7 @@ shinyUI(
                wellPanel(
                  sidebarLayout(
                    sidebarPanel(
-                     radioButtons("raster_trend_proj", "Raster type", choices=c("Overall change", "Slope")),
+                     radioButtons("raster_trend_proj", "Raster type", choices=c("Slope","Absolute change", "Relative change")),
                      selectInput("alpha_cut_proj", "Sign. level", choices=c(1.0,0.1,0.05,0.01,0.001,0.0001), selected=1.0),
                      hr(),
                      radioButtons("resolution_proj", "Raster resolution", choices = c("Smoothed","1km"), selected = "Smoothed"),

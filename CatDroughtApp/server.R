@@ -351,7 +351,7 @@ shinyServer(function(input, output, session) {
         if(col %in% c("PET","Rain")) {
           if(input$agg_hist=="Year") {
             dom <- c(0,3000)
-            bins <- c(seq(0,1500, by=250),2000,2500,3000)
+            bins <- c(seq(0,1600, by=200),2000,2500,3000)
           } else {
             dom <- c(0,600)
             bins <- c(seq(0,200, by=25),250,300,350,400,600)
@@ -467,6 +467,7 @@ shinyServer(function(input, output, session) {
   # Sets raster layers for projection drought
   observe({
     folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Projected"
+    folderhist<-"//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
     if(input$mode_proj == "Climate" && !is.null(input$clim_proj)){
       col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
       file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, ".rda", sep = "")
@@ -474,13 +475,32 @@ shinyServer(function(input, output, session) {
       if(file.exists(file)) {
         load(file)
         spdf = spdf_slope
-        if(input$raster_trend_proj=="Overall change") spdf@data[,1] = spdf@data[,1]*95
+        if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
+        else if(input$raster_trend_proj=="Relative change") {
+          spdf@data[,1] = spdf@data[,1]*95
+          spdf_p = spdf
+          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1990-2015.rda", sep = "")
+          if(file.exists(filehist)) {
+            load(filehist)
+            spdf_h = spdf
+            spdf = spdf_p 
+            spdf@data[,1] = 100*(spdf@data[,1]/spdf_h@data[,1])
+          } else {
+            warning(paste0("File historic ", filehist, " not found!"))
+            spdf = spdf_p 
+          }
+        }
         sel = spdf_pval@data[1,]>input$alpha_cut_proj
         sel[is.na(sel)] = FALSE
         spdf@data[sel,1] = 0
         abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
-        dom = c(-abs_val -0.001, abs_val+0.001)
-        bins <- identity_trans(dom = dom, n = 14, digits = 3)
+        if(input$raster_trend_proj=="Relative change") {
+          dom = c(-300,300)
+          bins <- c(-300,-200,-100,-50,-25,-10,-5,5,10,25,50,100,200,300)
+        } else {
+          dom = c(-abs_val -0.001, abs_val+0.001)
+          bins <- identity_trans(dom = dom, n = 14, digits = 3)
+        }
         pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
         map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
       } 
@@ -494,13 +514,32 @@ shinyServer(function(input, output, session) {
       if(file.exists(file)) {
         load(file)
         spdf = spdf_slope
-        if(input$raster_trend_proj=="Overall change") spdf@data[,1] = spdf@data[,1]*95
+        if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
+        else if(input$raster_trend_proj=="Relative change") {
+          spdf@data[,1] = spdf@data[,1]*95
+          spdf_p = spdf
+          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1990-2015.rda", sep = "")
+          if(file.exists(filehist)) {
+            load(filehist)
+            spdf_h = spdf
+            spdf = spdf_p 
+            spdf@data[,1] = 100*(spdf@data[,1]/spdf_h@data[,1])
+          } else {
+            warning(paste0("File historic ", filehist, " not found!"))
+            spdf = spdf_p 
+          }
+        }
         sel = spdf_pval@data[1,]>input$alpha_cut_proj
         sel[is.na(sel)] = FALSE
         spdf@data[sel,1] = 0
         abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
-        dom = c(-abs_val -0.001, abs_val+0.001)
-        bins <- identity_trans(dom = dom, n = 14, digits = 3)
+        if(input$raster_trend_proj=="Relative change") {
+          dom = c(-300,300)
+          bins <- c(-300,-200,-100,-50,-25,-10,-5,5,10,25,50,100,200,300)
+        } else {
+          dom = c(-abs_val -0.001, abs_val+0.001)
+          bins <- identity_trans(dom = dom, n = 14, digits = 3)
+        }
         pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
         map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
       } 
@@ -513,17 +552,37 @@ shinyServer(function(input, output, session) {
       ds_var <- as.character(DS_variables[DS_variables$input == input$DS_proj, "medfate"])
       print(ds_var)
       if(length(ds_var)>0){
-        file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",col, ".rda", sep = "")
+        file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, ".rda", sep = "")
         if(file.exists(file)) {
           load(file)
           spdf = spdf_slope
-          if(input$raster_trend_proj=="Overall change") spdf@data[,1] = spdf@data[,1]*95
+          if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
+          else if(input$raster_trend_proj=="Relative change") {
+            spdf@data[,1] = spdf@data[,1]*95
+            spdf_p = spdf
+            filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, "/1990-2015.rda", sep = "")
+            if(file.exists(filehist)) {
+              load(filehist)
+              spdf_h = spdf
+              spdf = spdf_p 
+              spdf@data[,1] = 100*(spdf@data[,1]/spdf_h@data[,1])
+            } else {
+              warning(paste0("File historic ", filehist, " not found!"))
+              spdf = spdf_p 
+            }
+          }
+          
           sel = spdf_pval@data[1,]>input$alpha_cut_proj
           sel[is.na(sel)] = FALSE
           spdf@data[sel,1] = 0
           abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
-          dom = c(-abs_val -0.001, abs_val+0.001)
-          bins <- identity_trans(dom = dom, n = 14, digits = 3)
+          if(input$raster_trend_proj=="Relative change") {
+            dom = c(-300,300)
+            bins <- c(-300,-200,-100,-50,-25,-10,-5,5,10,25,50,100,200,300)
+          } else {
+            dom = c(-abs_val -0.001, abs_val+0.001)
+            bins <- identity_trans(dom = dom, n = 14, digits = 3)
+          }
           pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = T)
           map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
         } 
