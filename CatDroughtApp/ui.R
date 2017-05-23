@@ -266,7 +266,10 @@ shinyUI(
                           includeMarkdown("Docs/UserGuide.Rmd")
                ),
                tabPanel("Technical specifications",
+                        # wellPanel(
                           includeMarkdown("Docs/TechnicalSpecifications.Rmd")
+                          # style = "overflow-y:scroll; max-height: 700px"
+                        # )
                ),
                tabPanel("Acknowledgements",
                           includeMarkdown("Docs/Credits.Rmd"),

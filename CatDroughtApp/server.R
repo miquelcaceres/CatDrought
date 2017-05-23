@@ -31,12 +31,16 @@ proj4string(con.pol) <- catpolCRS # the original file already has a crs but it s
 con.pol <- spTransform(con.pol, CRSobj = mapCRS)
 
 
+
 # Rasters grid topology
 gt1km=GridTopology(c(260000,4498000), c(1000,1000), c(262,253))
 # IFN plots
 load("//SERVERPROCESS/Miquel/CatDrought/Rdata/IFN3_SPT_cat.rdata")
 IFN3.points <- SpatialPointsDataFrame(IFN3_SPT@coords, data.frame(ID = row.names(IFN3_SPT@coords)), proj4string = IFN3_SPT@proj4string)
 IFN3.points <- spTransform(IFN3.points, CRSobj = mapCRS)
+IFN3.points$elevation = IFN3_SPT$elevation
+IFN3.points$slope = IFN3_SPT$slope
+IFN3.points$aspect = IFN3_SPT$aspect
 # Find county and municipality corresponding to each IFN plot
 op <- over(x = IFN3.points, y = con.pol, returnList = F)
 IFN3.points$ID_CONCA <- op$ID_USUARI
@@ -64,7 +68,9 @@ available_plots_historic <- list.files(folder_historic)
 available_plots_historic <- unlist(strsplit(available_plots_historic,split = ".rda"))
 
 
-
+##Weather station locations
+# load("//SERVERPROCESS/Miquel/CatDrought/Rdata/WeatherStations.Rdata")
+# station.prec <- spTransform(station.prec, CRSobj = mapCRS)
 
 ## Variable names correspondance between ui and medfate outputs
 input_clim_var <- c("Precipitation (mm)", "Potential evapo-transpiration (mm)", "SPEI (k=3)", "SPEI (k=6)", "SPEI (k=12)")
@@ -638,9 +644,23 @@ shinyServer(function(input, output, session) {
         clearControls() %>%
         addRasterImage(r, opacity = input$alpha_hist, colors = map_hist_raster_data$x$pal, layerId="raster", group="rasterGroup") %>% 
         addLegend(pal = map_hist_raster_data$x$pal, values = values(r),opacity = input$alpha_hist, position = "bottomright", layerId="raster")
-      
     }
   })
+  # observe({
+  #   print(input$years_hist)
+  #   sel = !is.na(station.prec@data[,as.character(input$years_hist)])
+  #   station.prec$ID = paste(row.names(station.prec@data),as.character(station.prec@data[,as.character(input$years_hist)]), sep="/")
+  #   a = station.prec[sel,]
+  #   print(station.prec$ID[sel][a@data[,as.character(input$years_hist)]<150])
+  #   leafletProxy("map_hist") %>%
+  #     clearMarkers() %>%
+  #     addCircleMarkers(data = station.prec[sel,], radius = 5, 
+  #                      color=ifelse(station.prec@data[sel,as.character(input$years_hist)]>150,"black","yellow"), 
+  #                      stroke = F, fillOpacity = 0.8, 
+  #                      label = ~as.character(ID))
+  #   
+  # })
+  
   #Downloads historic rasters
   historicRaster<-reactive({
     if(!is.null(map_hist_raster_data$x)) {
@@ -734,7 +754,6 @@ shinyServer(function(input, output, session) {
     else if(input$mode_proj == "Drought stress" && !is.null(input$sp_proj)){
       col <- as.character(species[species$input == input$sp_proj, "medfate"])
       ds_var <- as.character(DS_variables[DS_variables$input == input$DS_proj, "medfate"])
-      print(ds_var)
       if(length(ds_var)>0){
         file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, ".rda", sep = "")
         if(file.exists(file)) {
@@ -873,7 +892,8 @@ shinyServer(function(input, output, session) {
     } else if(input$display_daily == "IFN plots"){
           leafletProxy("map_daily") %>%
             clearShapes() %>%
-            addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_trends,], radius = 5, color="black", stroke = F, fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),  
+            addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_trends,], radius = 5, color="black", stroke = F, fillOpacity = 0.7, 
+                             label = ~as.character(ID), layerId = ~as.character(ID),  
                              clusterOptions = markerClusterOptions(showCoverageOnHover = T, disableClusteringAtZoom = 12))
           
     }
@@ -908,7 +928,8 @@ shinyServer(function(input, output, session) {
     } else if(input$display_hist == "IFN plots"){
       leafletProxy("map_hist") %>%
         clearShapes() %>%
-        addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_historic,], radius = 5, stroke = F, color="black", fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),  
+        addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_historic,], radius = 5, stroke = F, color="black", fillOpacity = 0.7, 
+                         label = ~as.character(ID), layerId = ~as.character(ID),  
                          clusterOptions = markerClusterOptions(showCoverageOnHover = T, disableClusteringAtZoom = 12))
       
     }
@@ -1266,7 +1287,6 @@ shinyServer(function(input, output, session) {
               
               dates <- as.Date(rownames(means))
               map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
-              print(map_proj_data$x)
             }
           }
         } 
