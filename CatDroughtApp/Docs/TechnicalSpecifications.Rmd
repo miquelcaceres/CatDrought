@@ -192,8 +192,9 @@ MODE 1 (current)   | Smoothing for maps            |  1 min             | No    
 MODE 2/3           | Meteo interpolation 1990-2015 |  7 days            | No         | No    |
 MODE 2 (historic)  | Soil water balance IFN2/IFN3  |  18 hours          | No         | No    |
 MODE 2 (historic)  | Mapping                       |  2 hours           | No         | No    |
+MODE 2 (historic)  | Trend mapping                 |  1 hour            | No         | No    |
 MODE 3 (projection)| Bias correction & SWB         |  10 days           | No         | No    |
-MODE 3 (projection)| Mapping                       |  10 hours          | No         | No    |
+MODE 3 (projection)| Trend mapping                 |  10 hours          | No         | No    |
 
 ---
 

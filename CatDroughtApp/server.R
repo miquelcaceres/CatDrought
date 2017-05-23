@@ -143,6 +143,49 @@ log_trans <- function(dom, n = 10, digits = 1) {signif(exp(seq(log(dom[1]+1), lo
 identity_trans <- function(dom, n = 10, digits = 1) {signif(seq(dom[1], dom[2], length.out = n), digits = digits)}
 
 
+clim_scale_bins<-function(varName, bins) {
+  dom = c(min(bins), max(bins))
+  return(list(dom = dom,
+              bins = bins,
+              pal=colorBin(pal_clim[varName,"color"], 
+                      domain = dom, na.color = "transparent", 
+                      bins = bins, reverse = pal_clim[varName, "rev"])))
+}
+clim_scale<-function(varName){
+  dom <- c(pal_clim[varName,"min"],pal_clim[varName,"max"])
+  bins <- do.call(paste(pal_clim[varName, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 14, digits = 2))
+  pal <- colorBin(pal_clim[varName,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[varName, "rev"])
+  return(list(dom = dom,bins = bins,pal = pal))
+}
+WB_scale<-function(varName, bins) {
+  dom = c(min(bins), max(bins))
+  return(list(dom = dom,
+              bins = bins,
+              pal=colorBin(pal_WB[varName,"color"], 
+                           domain = dom, na.color = "transparent", 
+                           bins = bins, reverse = pal_WB[varName, "rev"])))
+}
+DS_scale<-function(varName){
+  dom <- c(pal_DS[varName,"min"],pal_DS[varName,"max"])
+  bins <- do.call(paste(pal_DS[varName, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 14, digits = 2))
+  pal <- colorBin(pal_DS[varName,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[varName, "rev"])
+  return(list(dom = dom,bins = bins,pal = pal))
+}
+
+abs_change_scale<-function(values, n=14, reverse = F) {
+  abs_val = max(abs(values), na.rm=TRUE)
+  dom = c(-abs_val -0.001, abs_val+0.001)
+  bins = identity_trans(dom = dom, n = n, digits = 3)
+  pal = colorBin(c("red","white","blue"), domain = dom, na.color = "transparent", bins = bins, reverse = reverse)
+  return(list(dom=dom, bins=bins, pal=pal))
+}
+rel_change_scale<-function(reverse = F) {
+  dom = c(-300,300)
+  bins <- c(-300,-200,-100,-50,-25,-10,-5,5,10,25,50,100,200,300)
+  pal = colorBin(c("red","white","blue"), domain = dom, na.color = "transparent", bins = bins, reverse = reverse)
+  return(list(dom=dom, bins=bins, pal=pal))
+}
+
 ########################################################
 ### Define server logic required to draw a histogram ###
 ########################################################
@@ -155,7 +198,7 @@ shinyServer(function(input, output, session) {
       input_name <- "clim_daily"
       var_choice_daily <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
-    } else if(input$mode_daily == "Soil water balance") {
+    } else if(input$mode_daily == "Forest water balance") {
       input_name <- "WB_daily"
       var_choice_daily <- input_WB_var
       selected <- "Relative soil water content [0-1]"
@@ -166,8 +209,7 @@ shinyServer(function(input, output, session) {
     }
     selectInput(input_name, input_title, choices = var_choice_daily, selected = selected)
   })
-  # Switch the mode of the historic output 
-  
+  # Switch the mode of the historic output
   output$var_choice_hist <- renderUI({
     input_title <- "Choose variable"
     if(input$mode_hist == "Climate") {
@@ -175,7 +217,7 @@ shinyServer(function(input, output, session) {
       if(input$agg_hist=="Month") var_choice_hist <- input_clim_var
       else var_choice_hist <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
-    } else if(input$mode_hist == "Soil water balance") {
+    } else if(input$mode_hist == "Forest water balance") {
       input_name <- "WB_hist"
       var_choice_hist <- input_WB_var[-2]
       selected <- "Relative soil water content [0-1]"
@@ -186,7 +228,6 @@ shinyServer(function(input, output, session) {
     }
     selectInput(input_name, input_title, choices = var_choice_hist, selected = selected)
   })
-
   # Switch the mode of the projection output 
   output$var_choice_proj <- renderUI({
     input_title <- "Choose variable"
@@ -195,7 +236,7 @@ shinyServer(function(input, output, session) {
       if(input$agg_proj=="Month") var_choice_proj <- input_clim_var
       else var_choice_proj <- input_clim_var[1:2]
       selected <- "Precipitation (mm)"
-    } else if(input$mode_proj == "Soil water balance") {
+    } else if(input$mode_proj == "Forest water balance") {
       input_name <- "WB_proj"
       var_choice_proj <- input_WB_var[-2]
       selected <- "Relative soil water content [0-1]"
@@ -243,7 +284,7 @@ shinyServer(function(input, output, session) {
         map_daily_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
       } 
     } 
-    else if(input$mode_daily == "Soil water balance"){
+    else if(input$mode_daily == "Forest water balance"){
       if(!is.null(input$WB_daily)){
         folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Current"
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
@@ -343,96 +384,247 @@ shinyServer(function(input, output, session) {
       folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
       col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
       
-      if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
-      else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
-      if(file.exists(file)) {
-        load(file)
-
-        if(col %in% c("PET","Rain")) {
-          if(input$agg_hist=="Year") {
-            dom <- c(0,3000)
-            bins <- c(seq(0,1600, by=200),2000,2500,3000)
+      #Set file to read
+      if(input$climate_hist!='Year') {
+        if(input$raster_trend_hist=="Average") {## Multiyear average
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist, ".rda", sep = "")
+          if(file.exists(file)) {
+            load(file)
+            if(input$agg_hist=="Year") {
+              if(col %in% c("PET","Rain")) scale = clim_scale_bins(input$clim_hist, bins =c(seq(0,800, by=100),1000,1200,1400,2000,3000))
+              else scale = clim_scale(input$clim_hist)
+            } else {
+              if(col %in% c("PET","Rain")) scale = clim_scale_bins(input$clim_hist, bins =c(seq(0,100, by=20),125,150,200,250))
+              else scale = clim_scale(input$clim_hist)
+            }
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
           } else {
-            dom <- c(0,600)
-            bins <- c(seq(0,200, by=25),250,300,350,400,600)
-          }  
-          pal <- colorBin(pal_clim[input$clim_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[input$clim_hist, "rev"])
-        } else {
-          dom <- c(pal_clim[input$clim_hist,"min"],pal_clim[input$clim_hist,"max"])
-          bins <- do.call(paste(pal_clim[input$clim_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-          pal <- colorBin(pal_clim[input$clim_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[input$clim_hist, "rev"])
-          
+            warning(paste0("File ", file, " not found!"))
+          }
         }
-        map_hist_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
-      } 
-      else {
-        warning(paste0("File ", file, " not found!"))
-      }
-    }
-    else if(input$mode_hist == "Soil water balance" && !is.null(input$WB_hist)){
-      folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
-      col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
-      
-      if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
-      else file = paste(folder, "/",input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
-      if(file.exists(file)) {
-        load(file)
-
-        if(col %in% c("NetPrec")) {
-          if(input$agg_hist=="Year") {
-            dom <- c(0,3000)
-            bins <- c(seq(0,1500, by=250),2000,2500,3000)
+        else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) { ## Multiyear absolute change
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-trend.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,"-trend.rda", sep = "")
+          if(file.exists(file)) {
+            load(file)
+            if(input$raster_trend_hist=="Absolute change") { ## Multiyear absolute change
+              spdf = spdf_slope
+              spdf@data[,1] = spdf@data[,1]*26
+              scale = abs_change_scale(spdf@data[,1], reverse=ifelse(col=="PET",T,F))
+              spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
+            } else if(input$raster_trend_hist=="Relative change") { ## Multiyear relative change
+              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = ""))
+              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,".rda", sep = ""))
+              spdf_h = spdf
+              spdf = spdf_slope
+              spdf@data[,1] = 100*(spdf@data[,1]*26/spdf_h@data[,1])
+              scale = rel_change_scale(reverse=ifelse(col=="PET",T,F))
+              spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
+            }
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
           } else {
-            dom <- c(0,600)
-            bins <- c(seq(0,200, by=25),250,300,350,400,600)
-          }  
-        } else if(col %in% c("Eplant")) {
-          if(input$agg_hist=="Year") {
-            dom <- c(0,1500)
-            bins <- c(seq(0,500, by=50),750,1000,1500)
-          } else {
-            dom <- c(0,300)
-            bins <- c(seq(0,100, by=10),150,200,250,300)
-          }  
-        } else if(col %in% c("Esoil","DeepDrainage","Runoff")) {
-          if(input$agg_hist=="Year") dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*100)
-          else dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*12)
-          bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-        } else {
-          dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"])
-          bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+            warning(paste0("File ", file, " not found!"))
+          }
         }
-        pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
-        
-        map_hist_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
-      } 
+      }      
       else {
-        warning(paste0("File ", file, " not found!"))
-      }
-    }
-    else if(input$mode_hist == "Drought stress" && !is.null(input$sp_hist)){
-      folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
-      col <- as.character(species[species$input == input$sp_hist, "medfate"])
-      ds_var <- as.character(DS_variables[DS_variables$input == input$DS_hist, "medfate"])
-      print(ds_var)
-      if(length(ds_var)>0){
-        if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/", input$years_hist, ".rda", sep = "")
-        else file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/DroughtStress/", ds_var,"/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+        if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
+        else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+        #Load if exists
         if(file.exists(file)) {
           load(file)
-          
-          dom <- c(pal_DS[input$DS_hist,"min"],pal_DS[input$DS_hist,"max"])
-          bins <- do.call(paste(pal_DS[input$DS_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-          pal <- colorBin(pal_DS[input$DS_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[input$DS_hist, "rev"])
-          
-          map_hist_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+          if(input$agg_hist=="Year") {
+            if(col %in% c("PET","Rain")) scale = clim_scale_bins(input$clim_hist, bins =c(seq(0,800, by=100),1000,1200,1400,2000,3000))
+            else  scale = clim_scale(input$clim_hist)
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+          } else {
+            if(col %in% c("PET","Rain")) scale = clim_scale_bins(input$clim_hist, bins =c(seq(0,250, by=25),300,400,600))
+            else  scale = clim_scale(input$clim_hist)
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+          }  
         } 
         else {
           warning(paste0("File ", file, " not found!"))
         }
       }
     }
-    
+    else if(input$mode_hist == "Forest water balance" && !is.null(input$WB_hist)){
+      folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
+      col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
+
+      #Set file to read
+      if(input$climate_hist!='Year') {
+        if(input$raster_trend_hist=="Average") {
+          if(input$agg_hist=="Year") {
+            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = "")
+            if(file.exists(file)) {
+              load(file)
+              if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,1500, by=250),2000,2500,3000))
+              else if(col=="Eplant") scale = WB_scale(input$WB_hist, c(seq(0,500, by=50),750,1000,1500))
+              else if(col %in% c("Esoil", "Runoff","DeepDrainage")) {
+                dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*100)
+                bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+                pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+                scale = list(dom =dom, bins=bins, pal=pal)
+              }
+              else {
+                dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"])
+                bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+                pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+                scale = list(dom =dom, bins=bins, pal=pal)
+              }
+              map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+            } else {
+              warning(paste0("File ", file, " not found!"))
+            }
+          } else {
+            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist, ".rda", sep = "")
+            if(file.exists(file)) {
+              load(file)
+              if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,200, by=25),250,300,350,400,600))
+              else if(col=="Eplant") scale = WB_scale(input$WB_hist, c(seq(0,100, by=10),150,200,250,300))
+              else if(col %in% c("Esoil", "Runoff","DeepDrainage")) {
+                dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*12)
+                bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+                pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+                scale = list(dom =dom, bins=bins, pal=pal)
+              }
+              else {
+                dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"])
+                bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+                pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+                scale = list(dom =dom, bins=bins, pal=pal)
+              }
+              map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+            } else {
+              warning(paste0("File ", file, " not found!"))
+            }
+          }
+        } 
+        else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) {
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-trend.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,"-trend.rda", sep = "")
+          if(file.exists(file)) {
+            load(file)
+            if(input$raster_trend_hist=="Absolute change") {
+              spdf = spdf_slope
+              spdf@data[,1] = spdf@data[,1]*26
+              scale = abs_change_scale(spdf@data[,1])
+              spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
+            } else {
+              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = ""))
+              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,".rda", sep = ""))
+              spdf_h = spdf
+              spdf = spdf_slope
+              spdf@data[,1] = 100*(spdf@data[,1]*26/spdf_h@data[,1])
+              scale = rel_change_scale()
+              spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
+            }
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+          } else {
+            warning(paste0("File ", file, " not found!"))
+          }
+        }
+      } else { #Specific year/month
+        if(input$agg_hist=="Year") {
+          file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
+          if(file.exists(file)) {
+            load(file)
+            if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,1500, by=250),2000,2500,3000))
+            else if(col=="Eplant") scale = WB_scale(input$WB_hist, c(seq(0,500, by=50),750,1000,1500))
+            else if(col %in% c("Esoil", "Runoff","DeepDrainage")){
+              dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*100)
+              bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+              pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+              scale = list(dom =dom, bins=bins, pal=pal)
+            } else {
+              dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"])
+              bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+              pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+              scale = list(dom =dom, bins=bins, pal=pal)
+            }
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+          } else {
+            warning(paste0("File ", file, " not found!"))
+          }
+        }  else {
+          file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+          load(file)
+          if(file.exists(file)) {
+            if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,200, by=25),250,300,350,400,600))
+            else if(col=="Eplant") scale = WB_scale(input$WB_hist, c(seq(0,100, by=10),150,200,250,300))
+            else if(col %in% c("Esoil", "Runoff","DeepDrainage")) {
+              dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"]*12)
+              bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+              pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+              scale = list(dom =dom, bins=bins, pal=pal)
+            }
+            else {
+              dom <- c(pal_WB[input$WB_hist,"min"],pal_WB[input$WB_hist,"max"])
+              bins <- do.call(paste(pal_WB[input$WB_hist, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+              pal <- colorBin(pal_WB[input$WB_hist,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_hist, "rev"])
+              scale = list(dom =dom, bins=bins, pal=pal)
+            }
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+          }
+        }
+      }     
+    }
+    else if(input$mode_hist == "Drought stress" && !is.null(input$sp_hist)){
+      folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Historic"
+      col <- as.character(species[species$input == input$sp_hist, "medfate"])
+      ds_var <- as.character(DS_variables[DS_variables$input == input$DS_hist, "medfate"])
+      if(length(ds_var)>0){
+        if(input$climate_hist!='Year') {
+          if(input$raster_trend_hist=="Average") {
+            if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015.rda", sep = "")
+            else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-",input$month_hist, ".rda", sep = "")
+            if(file.exists(file)) {
+              load(file)
+              scale = DS_scale(input$DS_hist)
+              map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+            } else {
+              warning(paste0("File ", file, " not found!"))
+            }
+          }
+          else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) {
+            if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-trend.rda", sep = "")
+            else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-",input$month_hist, "-trend.rda", sep = "")
+            if(file.exists(file)) {
+              load(file)
+              if(input$raster_trend_hist=="Absolute change") { ## Multiyear absolute change
+                spdf = spdf_slope
+                spdf@data[,1] = spdf@data[,1]*26
+                scale = abs_change_scale(spdf@data[,1],reverse=TRUE)
+                spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
+              } else if(input$raster_trend_hist=="Relative change") { ## Multiyear relative change
+                if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015.rda", sep = ""))
+                else  load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-",input$month_hist,".rda", sep = ""))
+                spdf_h = spdf
+                spdf = spdf_slope
+                spdf@data[,1] = 100*(spdf@data[,1]*26/spdf_h@data[,1])
+                scale = rel_change_scale(reverse=TRUE)
+                spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
+              }
+              map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+            } else {
+              warning(paste0("File ", file, " not found!"))
+            }
+          }
+        } else { # Year to year
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/", input$years_hist, ".rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/",input$agg_hist, "/DroughtStress/", ds_var,"/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+          if(file.exists(file)) {
+            load(file)
+            scale = DS_scale(input$DS_hist)
+            map_hist_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+          } else {
+            warning(paste0("File ", file, " not found!"))
+          }
+        }  
+      }
+    }
   })
   #Draws historic raster layer
   observe({
@@ -493,22 +685,18 @@ shinyServer(function(input, output, session) {
         sel = spdf_pval@data[1,]>input$alpha_cut_proj
         sel[is.na(sel)] = FALSE
         spdf@data[sel,1] = 0
-        abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
         if(input$raster_trend_proj=="Relative change") {
-          dom = c(-300,300)
-          bins <- c(-300,-200,-100,-50,-25,-10,-5,5,10,25,50,100,200,300)
+          scale = rel_change_scale(reverse = ifelse(col=="PET",T,F))
         } else {
-          dom = c(-abs_val -0.001, abs_val+0.001)
-          bins <- identity_trans(dom = dom, n = 14, digits = 3)
+          scale = abs_change_scale(spdf@data[,1], reverse = ifelse(col=="PET",T,F))
         }
-        pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
-        map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+        map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
       } 
       else {
         warning(paste0("File ", file, " not found!"))
       }
     }
-    else if(input$mode_proj == "Soil water balance" && !is.null(input$WB_proj)){
+    else if(input$mode_proj == "Forest water balance" && !is.null(input$WB_proj)){
       col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
       file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, ".rda", sep = "")
       if(file.exists(file)) {
@@ -532,16 +720,12 @@ shinyServer(function(input, output, session) {
         sel = spdf_pval@data[1,]>input$alpha_cut_proj
         sel[is.na(sel)] = FALSE
         spdf@data[sel,1] = 0
-        abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
         if(input$raster_trend_proj=="Relative change") {
-          dom = c(-300,300)
-          bins <- c(-300,-200,-100,-50,-25,-10,-5,5,10,25,50,100,200,300)
+          scale = rel_change_scale(reverse = F)
         } else {
-          dom = c(-abs_val -0.001, abs_val+0.001)
-          bins <- identity_trans(dom = dom, n = 14, digits = 3)
+          scale = abs_change_scale(spdf@data[,1], reverse = F)
         }
-        pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = F)
-        map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+        map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
       } 
       else {
         warning(paste0("File ", file, " not found!"))
@@ -575,16 +759,12 @@ shinyServer(function(input, output, session) {
           sel = spdf_pval@data[1,]>input$alpha_cut_proj
           sel[is.na(sel)] = FALSE
           spdf@data[sel,1] = 0
-          abs_val = max(abs(spdf@data[,1]), na.rm=TRUE)
           if(input$raster_trend_proj=="Relative change") {
-            dom = c(-300,300)
-            bins <- c(-300,-200,-100,-50,-25,-10,-5,5,10,25,50,100,200,300)
+            scale = rel_change_scale(reverse = T)
           } else {
-            dom = c(-abs_val -0.001, abs_val+0.001)
-            bins <- identity_trans(dom = dom, n = 14, digits = 3)
+            scale = abs_change_scale(spdf@data[,1], reverse = T)
           }
-          pal <- colorBin("RdYlBu", domain = dom, na.color = "transparent", bins = bins, reverse = T)
-          map_proj_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+          map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
         } 
         else {
           warning(paste0("File ", file, " not found!"))
@@ -870,7 +1050,7 @@ shinyServer(function(input, output, session) {
       
       # Open relevant files and extract informations regarding the selected variable 
       if(nrow(IFN3_sel)>0){
-        if(input$mode_daily %in% c("Climate", "Soil water balance")){
+        if(input$mode_daily %in% c("Climate", "Forest water balance")){
           folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Plots/SWBTrends"
           plots_id <- IFN3_sel$ID
           plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
@@ -946,7 +1126,7 @@ shinyServer(function(input, output, session) {
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_historic]
         if(length(plots_id)>0) {
           load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-          if(input$mode_hist %in% c("Climate","Soil water balance")){
+          if(input$mode_hist %in% c("Climate","Forest water balance")){
             if(input$agg_hist== "Month") trends = swb_month
             else trends = swb_year
             # open all the files of the individual plots
@@ -1034,7 +1214,7 @@ shinyServer(function(input, output, session) {
         plots_id <- IFN3_sel$ID
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_projections]
         if(length(plots_id)>0) {
-          if(input$mode_proj %in% c("Climate","Soil water balance")){
+          if(input$mode_proj %in% c("Climate","Forest water balance")){
             load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
             if(input$agg_proj== "Month") trends = swb_month
             else trends = swb_year
@@ -1102,7 +1282,7 @@ shinyServer(function(input, output, session) {
         col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
         title <- paste(input$clim_daily," at ",as.character(map_daily_data$x$info$Name))
         label=input$clim_daily
-      } else if(input$mode_daily == "Soil water balance") {
+      } else if(input$mode_daily == "Forest water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
         title <- paste(input$WB_daily," at ",as.character(map_daily_data$x$info$Name))
         label=input$WB_daily
@@ -1138,7 +1318,7 @@ shinyServer(function(input, output, session) {
         col <- as.character(clim_variables[isolate(clim_variables$input == input$clim_hist), "medfate"])
         title <- paste(input$clim_hist," at ",as.character(map_hist_data$x$info$Name))
         label=input$clim_hist
-      } else if(input$mode_hist == "Soil water balance") {
+      } else if(input$mode_hist == "Forest water balance") {
         col <- as.character(WB_variables[isolate(WB_variables$input == input$WB_hist), "medfate"])
         title <- paste(input$WB_hist," at ",as.character(map_hist_data$x$info$Name))
         label=input$WB_hist
@@ -1181,7 +1361,7 @@ shinyServer(function(input, output, session) {
         col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
         title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
         label=input$clim_proj
-      } else if(input$mode_proj == "Soil water balance") {
+      } else if(input$mode_proj == "Forest water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
         title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
         label=input$WB_proj
@@ -1223,7 +1403,7 @@ shinyServer(function(input, output, session) {
   dailyTrends<-reactive({
     if(input$mode_daily == "Climate") {
       col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
-    } else if(input$mode_daily == "Soil water balance") {
+    } else if(input$mode_daily == "Forest water balance") {
       col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
     } else {
       col <- as.character(species[species$input == input$sp_daily, "medfate"])
@@ -1249,7 +1429,7 @@ shinyServer(function(input, output, session) {
   historicTrends<-reactive({
     if(input$mode_hist == "Climate") {
       col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
-    } else if(input$mode_hist == "Soil water balance") {
+    } else if(input$mode_hist == "Forest water balance") {
       col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
     } else {
       col <- as.character(species[species$input == input$sp_hist, "medfate"])
@@ -1274,7 +1454,7 @@ shinyServer(function(input, output, session) {
     if(!is.null(map_hist_data$x)) {
       if(isolate(input$mode_hist == "Climate")) {
         col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
-      } else if(input$mode_hist == "Soil water balance") {
+      } else if(input$mode_hist == "Forest water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
       } else {
         col <- as.character(species[species$input == input$sp_hist, "medfate"])
@@ -1292,7 +1472,7 @@ shinyServer(function(input, output, session) {
     if(!is.null(map_hist_data$x)) {
       if(input$mode_hist == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
-      } else if(input$mode_hist == "Soil water balance") {
+      } else if(input$mode_hist == "Forest water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_hist, "medfate"])
       } else {
         col <- as.character(species[species$input == input$sp_hist, "medfate"])
@@ -1315,7 +1495,7 @@ shinyServer(function(input, output, session) {
   projectedTrends<-reactive({
     if(input$mode_proj == "Climate") {
       col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-    } else if(input$mode_proj == "Soil water balance") {
+    } else if(input$mode_proj == "Forest water balance") {
       col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
     } else {
       col <- as.character(species[species$input == input$sp_proj, "medfate"])
@@ -1340,7 +1520,7 @@ shinyServer(function(input, output, session) {
     if(!is.null(map_proj_data$x)) {
       if(input$mode_proj == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-      } else if(input$mode_proj == "Soil water balance") {
+      } else if(input$mode_proj == "Forest water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
       } else {
         col <- as.character(species[species$input == input$sp_proj, "medfate"])
@@ -1356,7 +1536,7 @@ shinyServer(function(input, output, session) {
     if(!is.null(map_proj_data$x)) {
       if(input$mode_proj == "Climate") {
         col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-      } else if(input$mode_proj == "Soil water balance") {
+      } else if(input$mode_proj == "Forest water balance") {
         col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
       } else {
         col <- as.character(species[species$input == input$sp_proj, "medfate"])

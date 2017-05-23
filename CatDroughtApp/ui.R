@@ -10,7 +10,7 @@ medfate_sp <- c("Overall", "PinusHalepensis", "PinusNigra", "PinusSylvestris", "
                 "QuercusIlex", "QuercusSuber", "QuercusHumilis", "QuercusFaginea", "FagusSylvatica")
 species <- data.frame(input = input_sp, medfate = medfate_sp)
 
-basemaps <- c("Esri.WorldGrayCanvas","Esri.WorldImagery","Esri.WorldTerrain","Esri.WorldShadedRelief","Stamen.TerrainBackground")
+basemaps <- c("Esri.WorldGrayCanvas","Esri.WorldImagery","Esri.WorldShadedRelief","Stamen.TerrainBackground")
 
 shinyUI(
   navbarPage("Catalan Forest Drought Prediction Tool",
@@ -19,7 +19,7 @@ shinyUI(
      tabPanel("Current",
                 fluidRow(
                   column(width=3,
-                         selectInput("mode_daily", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), selected = "Soil water balance")
+                         selectInput("mode_daily", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
                   ),
                   column(width=3,
                          uiOutput("var_choice_daily")
@@ -86,7 +86,7 @@ shinyUI(
     tabPanel("Historic (1990-2015)",
               fluidRow(
                  column(width=3,
-                        selectInput("mode_hist", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), selected = "Soil water balance")
+                        selectInput("mode_hist", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
                  ),
                  column(width=3,
                         uiOutput("var_choice_hist")
@@ -109,10 +109,22 @@ shinyUI(
                       wellPanel(
                            sidebarLayout(
                              sidebarPanel(
-                               selectInput("years_hist","Year", choices=c("1990-2015",as.character(1990:2015)), selected="1990-2015"),
+                               radioButtons("climate_hist", label="Mode", choices=c("1990-2015 period", "Year")),
+                               conditionalPanel(
+                                 condition = "input.climate_hist=='Year'",
+                                 selectInput("years_hist",label=NULL, choices=as.character(1990:2015))
+                               ),
                                conditionalPanel(
                                  condition = "input.agg_hist=='Month'",
                                  selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
+                               ),
+                               conditionalPanel(
+                                 condition = "input.climate_hist=='1990-2015 period'",
+                                 radioButtons("raster_trend_hist", "Raster type", choices = c("Average","Absolute change", "Relative change")),
+                                 conditionalPanel(
+                                   condition= "input.raster_trend_hist!='Average'",
+                                   selectInput("alpha_cut_hist", "Sign. level", choices=c(1.0,0.5,0.1,0.05,0.01,0.001,0.0001), selected=1.0)
+                                 )
                                ),
                                hr(),
                                radioButtons("resolution_hist", "Raster resolution", choices = c("Smoothed","1km"), selected = "Smoothed"),
@@ -166,7 +178,7 @@ shinyUI(
     tabPanel("Climate change scenarios",
            fluidRow(
              column(width=2,
-                    selectInput("mode_proj", "Variable type", choices = c("Climate","Soil water balance", "Drought stress"), selected = "Soil water balance")
+                    selectInput("mode_proj", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
              ),
              column(width=2,
                     uiOutput("var_choice_proj")
@@ -196,7 +208,7 @@ shinyUI(
                  sidebarLayout(
                    sidebarPanel(
                      radioButtons("raster_trend_proj", "Raster type", choices=c("Slope","Absolute change", "Relative change")),
-                     selectInput("alpha_cut_proj", "Sign. level", choices=c(1.0,0.1,0.05,0.01,0.001,0.0001), selected=1.0),
+                     selectInput("alpha_cut_proj", "Sign. level", choices=c(1.0,0.5,0.1,0.05,0.01,0.001,0.0001), selected=1.0),
                      hr(),
                      radioButtons("resolution_proj", "Raster resolution", choices = c("Smoothed","1km"), selected = "Smoothed"),
                      hr(),
