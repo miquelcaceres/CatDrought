@@ -83,7 +83,7 @@ shinyUI(
           # )
     ),
     #### HISTORIC FOREST DROUGHT  ####
-    tabPanel("Historic (1990-2015)",
+    tabPanel("Historic (1990-2016)",
               fluidRow(
                  column(width=3,
                         selectInput("mode_hist", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
@@ -109,7 +109,7 @@ shinyUI(
                       wellPanel(
                            sidebarLayout(
                              sidebarPanel(
-                               radioButtons("climate_hist", label="Mode", choices=c("1990-2015 period", "Year")),
+                               radioButtons("climate_hist", label="Mode", choices=c("1990-2016 period", "Year")),
                                conditionalPanel(
                                  condition = "input.climate_hist=='Year'",
                                  selectInput("years_hist",label=NULL, choices=as.character(1990:2015))
@@ -119,7 +119,7 @@ shinyUI(
                                  selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
                                ),
                                conditionalPanel(
-                                 condition = "input.climate_hist=='1990-2015 period'",
+                                 condition = "input.climate_hist=='1990-2016 period'",
                                  radioButtons("raster_trend_hist", "Raster type", choices = c("Average","Absolute change", "Relative change")),
                                  conditionalPanel(
                                    condition= "input.raster_trend_hist!='Average'",
