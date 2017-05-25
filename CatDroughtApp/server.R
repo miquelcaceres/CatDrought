@@ -702,14 +702,12 @@ shinyServer(function(input, output, session) {
             spdf = spdf_p 
           }
         }
-        sel = spdf_pval@data[1,]>input$alpha_cut_proj
-        sel[is.na(sel)] = FALSE
-        spdf@data[sel,1] = 0
         if(input$raster_trend_proj=="Relative change") {
           scale = rel_change_scale(reverse = ifelse(col=="PET",T,F))
         } else {
           scale = abs_change_scale(spdf@data[,1], reverse = ifelse(col=="PET",T,F))
         }
+        spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_proj),1] = NA
         map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
       } 
       else {
@@ -737,14 +735,12 @@ shinyServer(function(input, output, session) {
             spdf = spdf_p 
           }
         }
-        sel = spdf_pval@data[1,]>input$alpha_cut_proj
-        sel[is.na(sel)] = FALSE
-        spdf@data[sel,1] = 0
         if(input$raster_trend_proj=="Relative change") {
           scale = rel_change_scale(reverse = F)
         } else {
           scale = abs_change_scale(spdf@data[,1], reverse = F)
         }
+        spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_proj),1] = NA
         map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
       } 
       else {
@@ -1151,18 +1147,19 @@ shinyServer(function(input, output, session) {
             if(input$agg_hist== "Month") trends = swb_month
             else trends = swb_year
             # open all the files of the individual plots
+            datest<-row.names(trends)
             data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
             for(i in 1:length(plots_id)){
               load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
               if(input$agg_hist== "Month") trends = swb_month
               else trends = swb_year
-              data[,,i] <- as.matrix(trends)
+              data[,,i] <- as.matrix(trends[datest,])
             }
             means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
             ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
             ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
             
-            dates <- as.Date(rownames(means))
+            dates <- as.Date(datest)
             map_hist_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
           } 
           else if(input$mode_hist == "Drought stress"){ 
@@ -1174,6 +1171,7 @@ shinyServer(function(input, output, session) {
                 if(input$agg_hist== "Month") trends = ndd_month
                 else trends = ndd_year
               }
+              datest<-row.names(trends)
               # open all the files of the individual plots
               data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
               for(i in 1:length(plots_id)){
@@ -1185,13 +1183,13 @@ shinyServer(function(input, output, session) {
                   if(input$agg_hist== "Month") trends = ndd_month
                   else trends = ndd_year
                 }
-                data[,,i] <- as.matrix(trends)
+                data[,,i] <- as.matrix(trends[datest,])
               }
               means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
               ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
               ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
               
-              dates <- as.Date(rownames(means))
+              dates <- as.Date(datest)
               map_hist_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
               
             }
@@ -1351,7 +1349,12 @@ shinyServer(function(input, output, session) {
       if(col %in% names(map_hist_data$x$means)){
         m<-cbind( map_hist_data$x$ci_sup[,col], map_hist_data$x$means[,col],map_hist_data$x$ci_inf[,col])
         colnames(m)<-c("lower", "mean","upper")
-        x<-xts(m,map_hist_data$x$dates)
+        rownames(m)<-as.character(map_hist_data$x$dates)
+        if(input$agg_hist=="Month" && !input$allmonths_hist) {
+          mth = as.numeric(format(as.Date(rownames(m)),"%m"))
+          m = m[mth==as.numeric(input$trend_month_hist),]
+        }
+        x<-xts(m,as.Date(rownames(m)))
         if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
         if(input$mode_hist=="Drought stress") {
           if(input$DS_hist=="Daily stress"){
@@ -1395,7 +1398,12 @@ shinyServer(function(input, output, session) {
         title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
         m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
         colnames(m)<-c("lower", "mean","upper")
-        x<-xts(m,map_proj_data$x$dates)
+        rownames(m)<-as.character(map_proj_data$x$dates)
+        if(input$agg_proj=="Month" && !input$allmonths_proj) {
+          mth = as.numeric(format(as.Date(rownames(m)),"%m"))
+          m = m[mth==as.numeric(input$trend_month_proj),]
+        }
+        x<-xts(m,as.Date(rownames(m)))
         if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
         if(input$mode_proj=="Drought stress") {
           if(input$DS_proj=="Daily stress"){
@@ -1483,7 +1491,13 @@ shinyServer(function(input, output, session) {
         if(col %in% names(map_hist_data$x$means)){
           first=which(!is.na(map_hist_data$x$means[,col]))[1]
           end = length(map_hist_data$x$means[,col])
-          MannKendall(map_hist_data$x$means[first:end,col])
+          m = map_hist_data$x$means[first:end,col]
+          names(m)<-as.character(map_hist_data$x$dates[first:end])
+          if(input$agg_hist=="Month" && !input$allmonths_hist) {
+            mth = as.numeric(format(as.Date(names(m)),"%m"))
+            m = m[mth==as.numeric(input$trend_month_hist)]
+          }
+          MannKendall(m)
         }
       }
     }
@@ -1501,10 +1515,20 @@ shinyServer(function(input, output, session) {
         if(col %in% names(map_hist_data$x$means)) {
           first=which(!is.na(map_hist_data$x$means[,col]))[1]
           end = length(map_hist_data$x$means[,col])
-          t = first:end
           m = map_hist_data$x$means[first:end,col]
+          names(m)<-as.character(map_hist_data$x$dates[first:end])
+          timeunit = "year"
+          if(input$agg_hist=="Month") {
+            timeunit = "month"
+            if(!input$allmonths_hist) {
+              mth = as.numeric(format(as.Date(names(m)),"%m"))
+              m = m[mth==as.numeric(input$trend_month_hist)]
+              timeunit="year"
+            }
+          }
+          t = 1:length(m)
           z<-zyp.sen(m~t)
-          paste0(signif(as.numeric(coefficients(z)[2])), " units per ", ifelse(isolate(input$agg_hist)=="Month", "month", "year"))
+          paste0(signif(as.numeric(coefficients(z)[2])), " units per ", timeunit)
         }
       }
     }
@@ -1548,7 +1572,13 @@ shinyServer(function(input, output, session) {
       if((length(col)>0) && (!is.null(map_proj_data$x$means))){
         first=which(!is.na(map_proj_data$x$means[,col]))[1]
         end = length(map_proj_data$x$means[,col])
-        MannKendall(map_proj_data$x$means[first:end,col])
+        m = map_proj_data$x$means[first:end,col]
+        names(m)<-as.character(map_proj_data$x$dates[first:end])
+        if(input$agg_proj=="Month" && !input$allmonths_proj) {
+          mth = as.numeric(format(as.Date(names(m)),"%m"))
+          m = m[mth==as.numeric(input$trend_month_proj)]
+        }
+        MannKendall(m)
       }
     }
   })
@@ -1564,12 +1594,20 @@ shinyServer(function(input, output, session) {
       if((length(col)>0) && (!is.null(map_proj_data$x$means))){
         first=which(!is.na(map_proj_data$x$means[,col]))[1]
         end = length(map_proj_data$x$means[,col])
-        t = first:end
         m = map_proj_data$x$means[first:end,col]
-        # print(rbind(t,m))
+        names(m)<-as.character(map_proj_data$x$dates[first:end])
+        timeunit = "year"
+        if(input$agg_proj=="Month") {
+          timeunit = "month"
+          if(!input$allmonths_proj) {
+            mth = as.numeric(format(as.Date(names(m)),"%m"))
+            m = m[mth==as.numeric(input$trend_month_proj)]
+            timeunit="year"
+          }
+        }
+        t = 1:length(m)
         z<-zyp.sen(m~t)
-        # print(z)
-        paste0(signif(as.numeric(coefficients(z)[2])), " units per ", ifelse(isolate(input$agg_proj)=="Month", "month", "year"))
+        paste0(signif(as.numeric(coefficients(z)[2])), " units per ", timeunit)
       }
     }
   })

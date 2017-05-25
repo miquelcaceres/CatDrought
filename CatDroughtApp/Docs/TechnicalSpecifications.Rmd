@@ -14,27 +14,29 @@ output:
 
 ### Overview
 
-This service offers model-based estimates of the recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Cáceres et al. 2015). Water balance is done at the stand level, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
+This service offers model-based estimates of the historic (1986-2016), recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Cáceres et al. 2015). Water balance is done at the stand level only, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
 
 
 ### Soil water balance (SWB) model
 
-The water balance model described in De Cáceres et al. (2015) (implemented in the *medfate* R package) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Cáceres et al. (2015).
+The water balance model described in De Cáceres et al. (2015) (implemented in the *medfate* R package) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (i.e. precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Cáceres et al. (2015).
+
 
 *Weather inputs*
 
-The SWB model requires knowing the following daily weather variables: precipitation, potential evapotranspiration (PET). Average daily temperature is also required to calculate growth degree days and update phenological status, but this variable is not stored.
+The SWB model requires values of the following daily weather variables: precipitation, potential evapotranspiration (PET). Average daily temperature is also required to calculate growth degree days and update phenological status, but this variable is not currently stored.
 
 Variable name	| Definition | Units | Aggreg.
 ------------- | ---------- | ----- | -------
 PET	| Penman’s potential evapotranspiration	| mm/day	| Sum
 Precipitation	| Precipitation	| mm/day	| Sum
 
+
 ---
 
-*Soil water balance output*
+*Forest water balance*
 
-The SWB model updates the leaf area index (LAI) of forests according to phenology and produces the following variables describing the water balance in forest stands:
+Every simulation day, the SWB model updates the leaf area index (LAI) of forests according to a simple phenology model and produces the following variables describing the water balance in forest stands:
 
 Variable name	| Definition | Units | Aggreg.
 ------------- | ---------- | ----- | -------
@@ -46,13 +48,17 @@ Eplant | Plant transpiration | mm/day | Sum
 Esoil | Soil evaporation | mm/day | Sum
 Theta | Average soil moisture relative to field capacity. | [0-1] | Average
 
+
+Net precipitation is gross precipitation minus the water intercepted by the canopy and evaporated from there. After going through the canopy, water infiltrates into the soil. Runoff is the amount of water that does not infiltrate and leaves the forest stand as an overland flow. Even if water infiltrates into the soil, part of it flows through macroscopic pores and is exported to layers not accessible to plants through deep drainage. Plant transpiration is the amount of water that flows through stems and is evaporated from leaf surfaces. Soil evaporation is the amount of water that is evaporated from the soil surface.
+
 ---
 
-*Daily drought stress*
+*Relative conductance and daily drought stress*
 
-Daily drought stress is defined as the complement of relative whole-plant conductance. In other words, daily stress is higher when the species has a lower overall plant conductance (which can be due to a closure of stomata or the presence of emboli in vessels). For a given soil moisture level in a stand, the plants present may experience different levels of drought stress depending on their species identity, root system,.... For each simulated forest stand, the daily drought stress for every species present is calculated by averaging daily drought stress of plant cohorts of the species, using LAI values as weights. The following species are tracked in terms of their daily stress.
+Plant transpiration depends on atmospheric demand, soil water content and species identities. Some species close suffer from drought stress at higher soil water contents than others. Whole-plant relative conductance is a relative measure of how much plant transpiration is reduced due to stress. The *daily drought stress* (DDS) index is defined as the complement ofthe whole-plant relative conductance. In other words, daily stress is higher when the species has a lower overall plant conductance (which can be due to a closure of stomata or the presence of emboli in vessels). For a given soil moisture level in a stand, plants present may experience different levels of drought stress depending on their species identity, root system,.... For each simulated forest stand, the daily drought stress for every species present is calculated by averaging daily drought stress of plant cohorts of the species, using LAI values as weights. The following species are tracked in terms of their daily stress.
 
-Variable        | Definition                          | Units | Aggreg.
+
+Species        | Definition                          | Units | Aggreg.
 --------------- | ----------------------------------- | ----- | -------
 PinusHalepensis	| Drought stress for Pinus halepensis	| [0,1] | Average
 PinusNigra | Drought stress for Pinus nigra | [0,1] | Average
@@ -71,8 +77,23 @@ Overall | Average drought stress across all woody plants | [0,1] | Average
 
 *Cumulative drought stress*
 
-The cumulative effect of drought stress on forests is tracked by counting the number of consecutive days with daily drought stress values above 0.5 (i.e. less than 50% in conductance). Within a year, values of cumulative drought stress are therefore bounded between 0 and 365. Cumulative drought stress is represented for the same species (and overall) as in daily drought stress.
+The cumulative effect of drought stress on forests is tracked by counting the *number of consecutive days* with daily drought stress values above 0.5 (i.e. less than 50% in conductance). Assuming that in the first of january stress will always be below 50%, within a year values of cumulative drought stress are therefore bounded between 0 and 365. Cumulative drought stress is represented for the same species (and overall) as in daily drought stress.
 
+
+Species        | Definition                          | Units | Aggreg.
+--------------- | ----------------------------------- | ----- | -------
+PinusHalepensis	| Drought stress for Pinus halepensis	| [0,365] | Maximum
+PinusNigra | Drought stress for Pinus nigra | [0,365] | Maximum
+PinusSylvestris | Drought stress for Pinus sylvestris | [0,365]| Maximum
+PinusUncinata | Drought stress for Pinus uncinata | [0,365] | Maximum
+PinusPinea | Drought stress for Pinus pinea | [0,365] | Maximum
+PinusPinaster | Drought stress for Pinus pinaster | [0,365] | Maximum
+QuercusIlex | Drought stress for Quercus ilex | [0,365] | Maximum
+QuercusSuber | Drought stress for Quercus suber | [0,365] | Maximum
+QuercusHumilis | Drought stress for Quercus humilis | [0,365] | Maximum
+QuercusFaginea | Drought stress for Quercus faginea | [0,365] | Maximum
+FagusSylvatica | Drought stress for Fagus sylvatica | [0,365] | Maximum
+Overall | Average drought stress across all woody plants | [0,365] | Maximum
 
 ---
 
@@ -132,9 +153,9 @@ Daily temporal trends are stored for IFN3 plots only (i.e. not for pixels). Aver
 
 ---
 
-### MODE 2: Historic (1990-2015) forest drought
+### MODE 2: Historic (1986-2016) forest drought
 
-In this mode, the soil water balance model is used to simulate water balance for the historical period between 1990 and 2015. Unlike current-day simulations, climate change simulations are conducted for forest inventory plots only. Moreover, only monthly and yearly summaries are stored. 
+In this mode, the soil water balance model is used to simulate water balance for the historical period between 1986 and 2016. Unlike current-day simulations, climate change simulations are conducted for forest inventory plots only. Moreover, only monthly and yearly summaries are stored. 
 
 *Simulation locations and initialization*
 
@@ -148,7 +169,7 @@ The following diagram illustrates the workflow of tasks necessary for the initia
 
 *Climate forcing*
 
-Historic weather series for each forest plot is obtained by interpolating daily weather station data for the 1990-2015 period, using package *meteoland*. Surface weather station data was obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
+Historic weather series for each forest plot is obtained by interpolating daily weather station data for the 1986-2016 period, using package *meteoland*. Surface weather station data was obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
 
 
 
@@ -171,7 +192,7 @@ CNRM-CERFACS	 | RCA4	| Europe | 8.5 | 11 km
 
 ---
 
-Statistical downscaling is applied to daily climate data, which includes a bias correction. Bias correction is conducted using package *meteoland*, and requires a local historic meteorological series to use as reference for bias estimation. This is obtained by interpolating daily weather station data over IFN3 plots for the 1990-2005 period (station data from AEMET and SMC).
+Statistical downscaling is applied to daily climate data, which includes a bias correction. Bias correction is conducted using package *meteoland*, and requires a local historic meteorological series to use as reference for bias estimation. This is obtained by interpolating daily weather station data over IFN3 plots for the 1986-2005 period (station data from AEMET and SMC).
 
 
 
@@ -189,7 +210,7 @@ MODE 1 (current)   | Plot update trends            |  2 min             | No    
 MODE 1 (current)   | Pixel meteo interpolation     |  4 min             | Yes        | Yes   |
 MODE 1 (current)   | Pixel soil water balance      |  3 min             | Yes        | Yes   | 
 MODE 1 (current)   | Smoothing for maps            |  1 min             | No         | Yes   |
-MODE 2/3           | Meteo interpolation 1990-2015 |  7 days            | No         | No    |
+MODE 2/3           | Meteo interpolation 1986-2016 |  7 days            | No         | No    |
 MODE 2 (historic)  | Soil water balance IFN2/IFN3  |  18 hours          | No         | No    |
 MODE 2 (historic)  | Mapping                       |  2 hours           | No         | No    |
 MODE 2 (historic)  | Trend mapping                 |  1 hour            | No         | No    |

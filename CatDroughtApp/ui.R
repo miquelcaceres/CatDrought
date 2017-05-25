@@ -37,7 +37,8 @@ shinyUI(
                          tags$head(
                              includeCSS("styles.css")
                          ),
-                        wellPanel(
+                         h5(""),
+                        # wellPanel(
                         sidebarLayout(
                          sidebarPanel(
                            dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
@@ -48,19 +49,20 @@ shinyUI(
                            radioButtons("resolution_daily", "Raster resolution", choices = c("Smoothed","1km", "200m"), selected = "Smoothed"),
                            hr(),
                            downloadButton('downloadRasterDaily', 'Download raster'),
-                         width=2),
+                         width=3),
                          mainPanel(
                                leafletOutput("map_daily", width = "100%", height = "600px")
-                         ,width=10)
-                       )
+                         ,width=9)
+                       # )
                       )
                   ),
                   tabPanel("Selected series",
-                        wellPanel(
+                        # wellPanel(
+                            h5(""),
                             dygraphOutput("trends_daily"), 
                             hr(),
                             downloadButton('downloadTrendDaily', 'Download trend')
-                        )
+                        # )
                   ),
                     
                   id="DailyTabset"
@@ -68,7 +70,7 @@ shinyUI(
                 conditionalPanel(
                   condition = "input.DailyTabset=='Map'",
                   absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                                draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
+                                draggable = TRUE, top = 223, left = "auto", right = 30, bottom = "auto",
                                 width = 250, height = 180,
                                 h4(""),
                                 selectInput("basemap_daily","Base map", choices = basemaps),
@@ -83,7 +85,7 @@ shinyUI(
           # )
     ),
     #### HISTORIC FOREST DROUGHT  ####
-    tabPanel("Historic (1990-2016)",
+    tabPanel("Historic (1986-2016)",
               fluidRow(
                  column(width=3,
                         selectInput("mode_hist", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
@@ -106,20 +108,21 @@ shinyUI(
                          tags$head(
                            includeCSS("styles.css")
                          ),
-                      wellPanel(
+                         h5(""),
+                      # wellPanel(
                            sidebarLayout(
                              sidebarPanel(
-                               radioButtons("climate_hist", label="Mode", choices=c("1990-2016 period", "Year")),
+                               radioButtons("climate_hist", label="Mode", choices=c("1986-2016 period", "Year")),
                                conditionalPanel(
                                  condition = "input.climate_hist=='Year'",
                                  selectInput("years_hist",label=NULL, choices=as.character(1990:2015))
                                ),
                                conditionalPanel(
                                  condition = "input.agg_hist=='Month'",
-                                 selectInput("month_hist", "Month", choices = as.character(1:12), selected="12")
+                                 selectInput("month_hist", "Month", choices = as.character(1:12), selected="1")
                                ),
                                conditionalPanel(
-                                 condition = "input.climate_hist=='1990-2016 period'",
+                                 condition = "input.climate_hist=='1986-2016 period'",
                                  radioButtons("raster_trend_hist", "Raster type", choices = c("Average","Absolute change", "Relative change")),
                                  conditionalPanel(
                                    condition= "input.raster_trend_hist!='Average'",
@@ -132,37 +135,64 @@ shinyUI(
                                selectInput("display_hist", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
                                hr(),
                                downloadButton('downloadRasterHist', 'Download raster')
-                               ,width=2),
+                               ,width=3),
                              mainPanel(
                                  leafletOutput("map_hist", width = "100%", height = "600px"),
-                              width=10)
+                              width=9)
                          )
-                      )
+                      # )
                 ),
                 tabPanel("Selected series",
-                      wellPanel(
+                      # wellPanel(
+                        h5(""),
                         dygraphOutput("trends_hist") ,
                         hr(),
-                        fluidRow(
-                          column(3,
-                            h4("Mann-Kendall test"),
-                            verbatimTextOutput("MK_hist")
-                          ),
-                          column(3,
-                            h4("Ten-sheil slope"),
-                            verbatimTextOutput("TS_slope_hist")
+                        wellPanel(
+                          fluidRow(
+                            column(width=3,
+                                   conditionalPanel(
+                                     condition="input.agg_hist=='Month'",
+                                     column(width=4,
+                                            h4(" "),
+                                            checkboxInput("allmonths_hist","All months", value=TRUE)
+                                     ),
+                                     column(width=8,
+                                            h4(" "),
+                                            conditionalPanel(
+                                              condition="!input.allmonths_hist",
+                                              selectInput("trend_month_hist", "Month", choices = as.character(1:12), selected="1")
+                                            )
+                                            
+                                     )
+                                   )
+                            ),
+                            column(1),
+                            column(3,
+                                   h4("Mann-Kendall test"),
+                                   verbatimTextOutput("MK_hist")
+                            ),
+                            column(3,
+                                   h4("Ten-sheil slope"),
+                                   verbatimTextOutput("TS_slope_hist")
+                            ),
+                            column(2,
+                                   h4(" "),
+                                   downloadButton('downloadTrendHist', 'Download trend')
+                            )
+
                           )
-                        ),
-                        hr(),
-                        downloadButton('downloadTrendHist', 'Download trend')
-                      )
+                          
+                        )
+
+                      
+                      # )
                 ),
                 id = "HistTabset"
               ),
               conditionalPanel(
                 condition = "input.HistTabset=='Map'",
                 absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                              draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
+                              draggable = TRUE, top = 223, left = "auto", right = 30, bottom = "auto",
                               width = 250, height = 180,
                               h4(""),
                               selectInput("basemap_hist","Base map", choices = basemaps),
@@ -193,7 +223,7 @@ shinyUI(
                     selectInput("rcm_proj", "Climate model", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4"))
              ),
              column(width=2,
-                    selectInput("rcp_proj", "Climate scenario", choices = c("rcp4.5", "rcp8.5"))
+                     selectInput("rcp_proj", "Climate scenario", choices = c("rcp4.5", "rcp8.5"))
              ),
              column(width=2,
                     radioButtons("agg_proj", "Temporal resolution", choices = c("Year", "Month"), inline=TRUE)
@@ -203,8 +233,9 @@ shinyUI(
              tabPanel("Map",
               tags$head(
                   includeCSS("styles.css")
-              ),                      
-               wellPanel(
+              ),           
+              h5(""),
+               # wellPanel(
                  sidebarLayout(
                    sidebarPanel(
                      radioButtons("raster_trend_proj", "Raster type", choices=c("Slope","Absolute change", "Relative change")),
@@ -216,38 +247,62 @@ shinyUI(
                      hr(),
                      downloadButton('downloadRasterProj', 'Download raster')
                      ,
-                     width=2),
+                     width=3),
                    mainPanel(
                      leafletOutput("map_proj", width = "100%", height = "600px")
                      ,
-                     width=10)
+                     width=9)
                  )
-               )
+               # )
              ),
              tabPanel("Selected series",
-                  wellPanel(
-                          dygraphOutput("trends_proj"),
-                          hr(),
-                          fluidRow(
-                            column(3,
-                                   h4("Mann-Kendall test"),
-                                   verbatimTextOutput("MK_proj")
-                            ),
-                            column(3,
-                                   h4("Ten-sheil slope"),
-                                   verbatimTextOutput("TS_slope_proj")
-                            )
+                      h5(""),
+                      dygraphOutput("trends_proj") ,
+                      hr(),
+                      wellPanel(
+                        fluidRow(
+                          column(width=3,
+                                 conditionalPanel(
+                                   condition="input.agg_proj=='Month'",
+                                   column(width=4,
+                                          h4(" "),
+                                          checkboxInput("allmonths_proj","All months", value=TRUE)
+                                   ),
+                                   column(width=8,
+                                          h4(" "),
+                                          conditionalPanel(
+                                            condition="!input.allmonths_proj",
+                                            selectInput("trend_month_proj", "Month", choices = as.character(1:12), selected="1")
+                                          )
+                                          
+                                   )
+                                 )
                           ),
-                          hr(),
-                          downloadButton('downloadTrendProj', 'Download trend')
-                  )
+                          column(1),
+                          column(3,
+                                 h4("Mann-Kendall test"),
+                                 verbatimTextOutput("MK_proj")
+                          ),
+                          column(3,
+                                 h4("Ten-sheil slope"),
+                                 verbatimTextOutput("TS_slope_proj")
+                          ),
+                          column(2,
+                                 h4(" "),
+                                 downloadButton('downloadTrendProj', 'Download trend')
+                          )
+                          
+                        )
+                        
+                      )
+                      
              ),
              id = "ProjTabset"
              ),
              conditionalPanel(
                condition = "input.ProjTabset=='Map'",
                absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                            draggable = TRUE, top = 243, left = "auto", right = 55, bottom = "auto",
+                            draggable = TRUE, top = 223, left = "auto", right = 30, bottom = "auto",
                            width = 250, height = 180,
                            h4(""),
                            selectInput("basemap_proj","Base map", choices = basemaps),
