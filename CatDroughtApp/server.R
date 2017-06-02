@@ -82,7 +82,15 @@ input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plants transpiration 
 medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta")
 WB_variables <- data.frame(input = input_WB_var, medfate = medfate_WB_var)
 
-input_DS_var <-c("Daily stress", "Cumulative stress")
+input_soil_var<-c("Soil depth (cm)", "Water holding capacity (mm)", "Topsoil texture type", "Subsoil texture type","Topsoil rock fragment content (%)", "Subsoil rock fragment content (%)")
+medfate_soil_var<-c("SoilDepth", "SWHC", "TopTT", "SubTT", "TopRFC", "SubRFC")
+soil_variables <- data.frame(input = input_soil_var, medfate = medfate_soil_var)
+
+input_ifn_var<-c("Leaf Area Index", "Density (ind/m2)", "Basal area (m2/ha)", "Average height (m)")
+medfate_ifn_var<-c("LAI", "N", "BA", "H")
+ifn_variables <- data.frame(input = input_ifn_var, medfate = medfate_ifn_var)
+
+input_DS_var <-c("Stress intensity", "Stress duration")
 medfate_DS_var<-c("DDS","NDD")
 DS_variables <- data.frame(input = input_DS_var, medfate = medfate_DS_var)
 
@@ -140,10 +148,27 @@ pal_DS <- as.data.frame(matrix(NA, nrow = length(input_DS_var), ncol = 5, dimnam
 pal_DS$min <- 0
 pal_DS$rev <- T
 pal_DS$color <- "RdYlBu"
-pal_DS["Daily stress","trans"] <- "identity"
-pal_DS["Cumulative stress","trans"] <- "log"
-pal_DS["Daily stress","max"]<-1
-pal_DS["Cumulative stress","max"]<-365
+pal_DS["Stress intensity","trans"] <- "identity"
+pal_DS["Stress duration","trans"] <- "log"
+pal_DS["Stress intensity","max"]<-1
+pal_DS["Stress duration","max"]<-365
+
+## Define color scales for rasters 
+pal_soil <- as.data.frame(matrix(NA, nrow = length(input_soil_var), ncol = 5, dimnames = list(input_soil_var, c("min", "max", "color", "trans", "rev"))))
+pal_soil$min <- 0
+pal_soil$trans <- "identity"
+pal_soil$color <-"Reds"
+pal_soil$rev <-F
+pal_soil["Soil depth (cm)","min"] = 30
+pal_soil["Soil depth (cm)","max"] = 1000
+pal_soil["Soil depth (cm)","trans"] = "log"
+pal_soil["Water holding capacity (mm)","color"]<-"Blues"
+pal_soil["Water holding capacity (mm)","min"] = 10
+pal_soil["Water holding capacity (mm)","max"] = 2000
+pal_soil["Water holding capacity (mm)","trans"] = "log"
+pal_soil["Topsoil rock fragment content (%)","max"] = 100
+pal_soil["Subsoil rock fragment content (%)","max"] = 100
+print(pal_soil)
 
 log_trans <- function(dom, n = 10, digits = 1) {signif(exp(seq(log(dom[1]+1), log(dom[2]+1), length.out = n))-1, digits = digits)}
 identity_trans <- function(dom, n = 10, digits = 1) {signif(seq(dom[1], dom[2], length.out = n), digits = digits)}
@@ -211,7 +236,7 @@ shinyServer(function(input, output, session) {
     } else {
       input_name <- "DS_daily"
       var_choice_daily <- input_DS_var
-      selected <- "Daily stress"
+      selected <- "Stress intensity"
     }
     selectInput(input_name, input_title, choices = var_choice_daily, selected = selected)
   })
@@ -230,7 +255,7 @@ shinyServer(function(input, output, session) {
     } else {
       input_name <- "DS_hist"
       var_choice_hist <- input_DS_var
-      selected <- "Daily stress"
+      selected <- "Stress intensity"
     }
     selectInput(input_name, input_title, choices = var_choice_hist, selected = selected)
   })
@@ -249,16 +274,30 @@ shinyServer(function(input, output, session) {
     } else {
       input_name <- "DS_proj"
       var_choice_proj <- input_DS_var
-      selected <- "Daily stress"
+      selected <- "Stress intensity"
     }
     selectInput(input_name, input_title, choices = var_choice_proj, selected = selected)
   })
-
+  # Switch the mode of the static info 
+  output$var_choice_stat <- renderUI({
+    input_title <- "Choose variable"
+    if(input$mode_stat == "Soil") {
+      input_name <- "soil_stat"
+      var_choice_stat <- input_soil_var
+      selected <- "Soil depth (cm)"
+    } else {
+      input_name <- "ifn_stat"
+      var_choice_stat <- input_ifn_var
+      selected <- "Leaf Area Index"
+    }
+    selectInput(input_name, input_title, choices = var_choice_stat, selected = selected)
+  })
   
   # Create a reactive value data for rasters
   map_daily_raster_data <- reactiveValues(x = list())
   map_hist_raster_data <- reactiveValues(x = list())
   map_proj_raster_data <- reactiveValues(x = list())
+  map_stat_raster_data <- reactiveValues(x = list())
   
   # Sets raster layer for daily drought
   observe({
@@ -393,8 +432,8 @@ shinyServer(function(input, output, session) {
       #Set file to read
       if(input$climate_hist!='Year') {
         if(input$raster_trend_hist=="Average") {## Multiyear average
-          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = "")
-          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist, ".rda", sep = "")
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist, ".rda", sep = "")
           if(file.exists(file)) {
             load(file)
             if(input$agg_hist=="Year") {
@@ -410,8 +449,8 @@ shinyServer(function(input, output, session) {
           }
         }
         else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) { ## Multiyear absolute change
-          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-trend.rda", sep = "")
-          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,"-trend.rda", sep = "")
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-trend.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,"-trend.rda", sep = "")
           if(file.exists(file)) {
             load(file)
             if(input$raster_trend_hist=="Absolute change") { ## Multiyear absolute change
@@ -420,8 +459,8 @@ shinyServer(function(input, output, session) {
               scale = abs_change_scale(spdf@data[,1], reverse=ifelse(col=="PET",T,F))
               spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
             } else if(input$raster_trend_hist=="Relative change") { ## Multiyear relative change
-              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = ""))
-              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,".rda", sep = ""))
+              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = ""))
+              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,".rda", sep = ""))
               spdf_h = spdf
               spdf = spdf_slope
               spdf@data[,1] = 100*(spdf@data[,1]*26/spdf_h@data[,1])
@@ -463,7 +502,7 @@ shinyServer(function(input, output, session) {
       if(input$climate_hist!='Year') {
         if(input$raster_trend_hist=="Average") {
           if(input$agg_hist=="Year") {
-            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = "")
+            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = "")
             if(file.exists(file)) {
               load(file)
               if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,1500, by=250),2000,2500,3000))
@@ -485,7 +524,7 @@ shinyServer(function(input, output, session) {
               warning(paste0("File ", file, " not found!"))
             }
           } else {
-            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist, ".rda", sep = "")
+            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist, ".rda", sep = "")
             if(file.exists(file)) {
               load(file)
               if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,200, by=25),250,300,350,400,600))
@@ -509,8 +548,8 @@ shinyServer(function(input, output, session) {
           }
         } 
         else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) {
-          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-trend.rda", sep = "")
-          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,"-trend.rda", sep = "")
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-trend.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,"-trend.rda", sep = "")
           if(file.exists(file)) {
             load(file)
             if(input$raster_trend_hist=="Absolute change") {
@@ -519,8 +558,8 @@ shinyServer(function(input, output, session) {
               scale = abs_change_scale(spdf@data[,1])
               spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
             } else {
-              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015.rda", sep = ""))
-              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1990-2015-",input$month_hist,".rda", sep = ""))
+              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = ""))
+              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,".rda", sep = ""))
               spdf_h = spdf
               spdf = spdf_slope
               spdf@data[,1] = 100*(spdf@data[,1]*26/spdf_h@data[,1])
@@ -584,8 +623,8 @@ shinyServer(function(input, output, session) {
       if(length(ds_var)>0){
         if(input$climate_hist!='Year') {
           if(input$raster_trend_hist=="Average") {
-            if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015.rda", sep = "")
-            else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-",input$month_hist, ".rda", sep = "")
+            if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1991-2016.rda", sep = "")
+            else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1991-2016-",input$month_hist, ".rda", sep = "")
             if(file.exists(file)) {
               load(file)
               scale = DS_scale(input$DS_hist)
@@ -595,8 +634,8 @@ shinyServer(function(input, output, session) {
             }
           }
           else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) {
-            if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-trend.rda", sep = "")
-            else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-",input$month_hist, "-trend.rda", sep = "")
+            if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1991-2016-trend.rda", sep = "")
+            else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1991-2016-",input$month_hist, "-trend.rda", sep = "")
             if(file.exists(file)) {
               load(file)
               if(input$raster_trend_hist=="Absolute change") { ## Multiyear absolute change
@@ -605,8 +644,8 @@ shinyServer(function(input, output, session) {
                 scale = abs_change_scale(spdf@data[,1],reverse=TRUE)
                 spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
               } else if(input$raster_trend_hist=="Relative change") { ## Multiyear relative change
-                if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015.rda", sep = ""))
-                else  load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1990-2015-",input$month_hist,".rda", sep = ""))
+                if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1991-2016.rda", sep = ""))
+                else  load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/DroughtStress/",ds_var,"/",col, "/1991-2016-",input$month_hist,".rda", sep = ""))
                 spdf_h = spdf
                 spdf = spdf_slope
                 spdf@data[,1] = 100*(spdf@data[,1]*26/spdf_h@data[,1])
@@ -691,7 +730,7 @@ shinyServer(function(input, output, session) {
         else if(input$raster_trend_proj=="Relative change") {
           spdf@data[,1] = spdf@data[,1]*95
           spdf_p = spdf
-          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1990-2015.rda", sep = "")
+          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1991-2016.rda", sep = "")
           if(file.exists(filehist)) {
             load(filehist)
             spdf_h = spdf
@@ -724,7 +763,7 @@ shinyServer(function(input, output, session) {
         else if(input$raster_trend_proj=="Relative change") {
           spdf@data[,1] = spdf@data[,1]*95
           spdf_p = spdf
-          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1990-2015.rda", sep = "")
+          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1991-2016.rda", sep = "")
           if(file.exists(filehist)) {
             load(filehist)
             spdf_h = spdf
@@ -759,7 +798,7 @@ shinyServer(function(input, output, session) {
           else if(input$raster_trend_proj=="Relative change") {
             spdf@data[,1] = spdf@data[,1]*95
             spdf_p = spdf
-            filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, "/1990-2015.rda", sep = "")
+            filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, "/1991-2016.rda", sep = "")
             if(file.exists(filehist)) {
               load(filehist)
               spdf_h = spdf
@@ -820,6 +859,42 @@ shinyServer(function(input, output, session) {
   ) 
   
   
+  # Sets raster layer for static inputs
+  observe({
+    if(input$mode_stat == "Soil"){
+      if(!is.null(input$soil_stat)){
+        folder <- "//SERVERPROCESS/Miquel/CatDrought/Rdata/Maps/Static/Soil"
+        col <- as.character(soil_variables[soil_variables$input == input$soil_stat, "medfate"])
+        load(paste(folder, "/", input$resolution_stat, "/",col, ".rda", sep = ""))
+
+        
+        dom <- c(pal_soil[input$soil_stat,"min"],pal_soil[input$soil_stat,"max"])
+        bins <- do.call(paste(pal_soil[input$soil_stat, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+        
+        pal <- colorBin(pal_soil[input$soil_stat,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_soil[input$soil_stat, "rev"])
+        # print(pal)
+        # print(head(spdf@data))
+        map_stat_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+      } 
+    } 
+  })
+  #Draws static raster layer
+  observe({
+    if(!is.null(map_stat_raster_data$x$spdf)) {
+      r <- raster(map_stat_raster_data$x$spdf)
+      proj4string(r) <- dataCRS
+      r <- projectRaster(r, crs = mapCRS)
+
+      leafletProxy("map_stat") %>%
+        clearImages() %>%
+        clearControls() %>%
+        addRasterImage(r, opacity = input$alpha_stat, colors = map_stat_raster_data$x$pal, layerId="raster", group="rasterGroup") %>%
+        addLegend(pal = map_stat_raster_data$x$pal, values = values(r),opacity = input$alpha_stat, position = "bottomright", layerId="raster")
+      
+    }
+  })
+  
+  
   # Create an interactive map centered on catalonia
   output$map_daily <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
@@ -856,7 +931,20 @@ shinyServer(function(input, output, session) {
       clearTiles() %>%
       addProviderTiles(input$basemap_proj)
   })  
-
+  # Create an interactive map centered on catalonia
+  output$map_stat <- renderLeaflet({
+    leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
+      addProviderTiles(basemaps[1], layerId="basemap") %>%
+      setView(lng = 1.74,lat = 41.69, zoom = 8)
+    
+  })
+  observe({
+    leafletProxy("map_stat") %>%
+      removeImage(layerId="basemap") %>%
+      addProviderTiles(input$basemap_stat,layerId="basemap") %>% 
+      showGroup("rasterGroup")
+  }) 
+  
   # Add shapes to daily SWB
   observe({
     # print(paste0("Daily ",input$display_daily))
@@ -1164,7 +1252,7 @@ shinyServer(function(input, output, session) {
           } 
           else if(input$mode_hist == "Drought stress"){ 
             if(!is.null(input$DS_hist)){
-              if(input$DS_hist=="Daily stress"){
+              if(input$DS_hist=="Stress intensity"){
                 if(input$agg_hist== "Month") trends = dds_month
                 else trends = dds_year
               } else {
@@ -1176,7 +1264,7 @@ shinyServer(function(input, output, session) {
               data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
               for(i in 1:length(plots_id)){
                 load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-                if(input$DS_hist=="Daily stress"){
+                if(input$DS_hist=="Stress intensity"){
                   if(input$agg_hist== "Month") trends = dds_month
                   else trends = dds_year
                 } else {
@@ -1258,7 +1346,7 @@ shinyServer(function(input, output, session) {
           else if(input$mode_proj == "Drought stress"){ 
             if(!is.null(input$DS_proj)){
               load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-              if(input$DS_proj=="Daily stress"){
+              if(input$DS_proj=="Stress intensity"){
                 if(input$agg_proj== "Month") trends = dds_month
                 else trends = dds_year
               } else {
@@ -1269,7 +1357,7 @@ shinyServer(function(input, output, session) {
               data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
               for(i in 1:length(plots_id)){
                 load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-                if(input$DS_proj=="Daily stress"){
+                if(input$DS_proj=="Stress intensity"){
                   if(input$agg_proj== "Month") trends = dds_month
                   else trends = dds_year
                 } else {
@@ -1306,7 +1394,7 @@ shinyServer(function(input, output, session) {
         label=input$WB_daily
       } else {
         col <- as.character(species[species$input == input$sp_daily, "medfate"])
-        title <- paste("Drought stress index for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
+        title <- paste("Stress intensity for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
         label="Drought stress"
       }
       first=which(!is.na(map_daily_data$x$means[,col]))[1]
@@ -1319,7 +1407,7 @@ shinyServer(function(input, output, session) {
         dygraph(x, main= title) %>% 
           dySeries(c("lower", "mean","upper"), label=label) %>% 
           dyRangeSelector() %>%
-          dyAxis("y", label = "Daily drought stress", valueRange = c(0, 1)) %>%
+          dyAxis("y", label = "Stress intensity", valueRange = c(0, 1)) %>%
           dyLimit(0.5, color="red")
       } else {
         dygraph(x, main= title) %>% 
@@ -1342,8 +1430,8 @@ shinyServer(function(input, output, session) {
         label=input$WB_hist
       } else {
         col <- as.character(species[species$input == input$sp_hist, "medfate"])
-        if(isolate(input$DS_hist=="Daily stress")) title <- paste("Drought stress index for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
-        else title <- paste("Cumulative stress for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
+        if(isolate(input$DS_hist=="Stress intensity")) title <- paste("Drought stress index for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
+        else title <- paste("Stress duration for ", input$sp_hist," at ",as.character(map_hist_data$x$info$Name))
         label="Drought stress"
       }
       if(col %in% names(map_hist_data$x$means)){
@@ -1357,17 +1445,17 @@ shinyServer(function(input, output, session) {
         x<-xts(m,as.Date(rownames(m)))
         if(map_hist_data$x$nplots>1) title<-title<-paste0(title, " (",map_hist_data$x$nplots," plots)")
         if(input$mode_hist=="Drought stress") {
-          if(input$DS_hist=="Daily stress"){
+          if(input$DS_hist=="Stress intensity"){
             dygraph(x, main= title) %>%
               dySeries(c("lower", "mean","upper"), label=label) %>%
               dyRangeSelector() %>%
-              dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+              dyAxis("y", label = "Average stress intensity", valueRange = c(0, 1)) %>%
               dyLimit(0.5, color="red")
           } else {
             dygraph(x, main= title) %>%
               dySeries(c("lower", "mean","upper"), label=label) %>%
               dyRangeSelector() %>%
-              dyAxis("y", label = "Maximum cumulative drought stress")
+              dyAxis("y", label = "Maximum stress duration")
           }
         } else {
           dygraph(x, main= title) %>%
@@ -1390,8 +1478,8 @@ shinyServer(function(input, output, session) {
         label=input$WB_proj
       } else {
         col <- as.character(species[species$input == input$sp_proj, "medfate"])
-        if(isolate(input$DS_proj=="Daily stress")) title <- paste("Drought stress index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
-        else title <- paste("Cumulative stress for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
+        if(isolate(input$DS_proj=="Stress intensity")) title <- paste("Stress intensity index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
+        else title <- paste("Stress duration for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
         label="Drought stress"
       }
       if(col %in% names(map_proj_data$x$means)){
@@ -1406,17 +1494,17 @@ shinyServer(function(input, output, session) {
         x<-xts(m,as.Date(rownames(m)))
         if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
         if(input$mode_proj=="Drought stress") {
-          if(input$DS_proj=="Daily stress"){
+          if(input$DS_proj=="Stress intensity"){
             dygraph(x, main= title) %>%
               dySeries(c("lower", "mean","upper"), label=label) %>%
               dyRangeSelector() %>%
-              dyAxis("y", label = "Average daily drought stress", valueRange = c(0, 1)) %>%
+              dyAxis("y", label = "Average stress intensity", valueRange = c(0, 1)) %>%
               dyLimit(0.5, color="red")
           } else {
             dygraph(x, main= title) %>%
               dySeries(c("lower", "mean","upper"), label=label) %>%
               dyRangeSelector() %>%
-              dyAxis("y", label = "Maximum cumulative drought stress")
+              dyAxis("y", label = "Maximum stress duration")
           }
         } else {
           dygraph(x, main= title) %>% 

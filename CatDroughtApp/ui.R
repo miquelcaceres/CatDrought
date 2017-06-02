@@ -13,7 +13,7 @@ species <- data.frame(input = input_sp, medfate = medfate_sp)
 basemaps <- c("Esri.WorldGrayCanvas","Esri.WorldImagery","Esri.WorldShadedRelief","Stamen.TerrainBackground")
 
 shinyUI(
-  navbarPage("Catalan Forest Drought Prediction Tool",
+  navbarPage("Catalan Forest Drought Observatory",
      theme = shinythemes::shinytheme("sandstone"),
      #### CURRENT FOREST DROUGHT  ####
      tabPanel("Current",
@@ -112,17 +112,17 @@ shinyUI(
                       # wellPanel(
                            sidebarLayout(
                              sidebarPanel(
-                               radioButtons("climate_hist", label="Mode", choices=c("1986-2016 period", "Year")),
+                               radioButtons("climate_hist", label="Mode", choices=c("1991-2016 period", "Year")),
                                conditionalPanel(
                                  condition = "input.climate_hist=='Year'",
-                                 selectInput("years_hist",label=NULL, choices=as.character(1990:2015))
+                                 selectInput("years_hist",label=NULL, choices=as.character(1986:2016), selected = 2016)
                                ),
                                conditionalPanel(
                                  condition = "input.agg_hist=='Month'",
                                  selectInput("month_hist", "Month", choices = as.character(1:12), selected="1")
                                ),
                                conditionalPanel(
-                                 condition = "input.climate_hist=='1986-2016 period'",
+                                 condition = "input.climate_hist=='1991-2016 period'",
                                  radioButtons("raster_trend_hist", "Raster type", choices = c("Average","Absolute change", "Relative change")),
                                  conditionalPanel(
                                    condition= "input.raster_trend_hist!='Average'",
@@ -315,6 +315,54 @@ shinyUI(
           #    verbatimTextOutput("inputList_proj")
           # )
   
+    ),
+    tabPanel("Static inputs",
+             fluidRow(
+               column(width=3,
+                      selectInput("mode_stat", "Variable type", choices = c("Soil","IFN2", "IFN3"), selected = "Soil")
+               ),
+               column(width=3,
+                      uiOutput("var_choice_stat")
+               ),
+               column(width=3,
+                      conditionalPanel(
+                        condition = "input.mode_stat!='Soil'",
+                        selectInput("sp_stat", "Choose species", choices = input_sp, selected = "Overall")
+                      )
+               )
+             ),
+             tabsetPanel(
+               tabPanel("Map",
+                        tags$head(
+                          includeCSS("styles.css")
+                        ),
+                        h5(""),
+                        sidebarLayout(
+                          sidebarPanel(
+                            radioButtons("resolution_stat", "Raster resolution", choices = c("Smoothed","1km","200m"), selected = "Smoothed"),
+                            hr(),
+                            selectInput("display_stat", "Selection type", choices = c("none","Watersheds",  "Counties", "Municipalities", "IFN plots"), selected = "none"),
+                            width=3),
+                          mainPanel(
+                            leafletOutput("map_stat", width = "100%", height = "600px"),
+                            width=9)
+                        )
+               ),
+               tabPanel("Selected area"
+               ),
+               id = "StatTabset"
+             ),
+             conditionalPanel(
+               condition = "input.StatTabset=='Map'",
+               absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                             draggable = TRUE, top = 223, left = "auto", right = 30, bottom = "auto",
+                             width = 250, height = 180,
+                             h4(""),
+                             selectInput("basemap_stat","Base map", choices = basemaps),
+                             sliderInput("alpha_stat", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+               )
+             )
+             
     ),
     navbarMenu("Documentation",
                tabPanel("User's guide",
