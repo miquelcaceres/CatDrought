@@ -10,6 +10,7 @@ This web-based service has been develop by the [Vegetation Modeling Group](http:
 + *Idea and conceptual design* : Miquel De Cáceres (CTFC-CEMFOR/CREAF) & Jordi Martínez Vilalta (UAB/CREAF)
 + *Model development* : Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
 + *User interface*: Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
++ *Contact*: Miquel De Cáceres (miquelcaceres@gmail.com)
 
 ---
 
@@ -44,5 +45,11 @@ This web-based service has been develop by the [Vegetation Modeling Group](http:
 *Project grants*: CGL2014-59742-C2-2-R (Ministerio de Economía y Ciencia).
 
 *Fellowships*: RYC-2012-11109 to M. De Cáceres (Ministerio de Economía y Ciencia).
+
+---
+
+### Disclaimer
+
+The data offered in this website is the result of modelling exercises and the accuracy of results may be impaired by several factors, like inaccuracies of input data, inappropriate model design or parameterization. Users should be aware of all these limitations when using the data offered here. We decline all responsibility for how the data in this website is used by third parties.
 
 ---

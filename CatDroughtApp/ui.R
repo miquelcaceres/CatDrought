@@ -15,7 +15,7 @@ basemaps <- c("Esri.WorldGrayCanvas","Esri.WorldImagery","Esri.WorldShadedRelief
 shinyUI(
   navbarPage("Catalan Forest Drought Observatory",
      theme = shinythemes::shinytheme("sandstone"),
-     #### CURRENT FOREST DROUGHT  ####
+    ### CURRENT FOREST DROUGHT  ####
      tabPanel("Current",
                 fluidRow(
                   column(width=3,
@@ -41,7 +41,7 @@ shinyUI(
                         # wellPanel(
                         sidebarLayout(
                          sidebarPanel(
-                           dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1),
+                           uiOutput("date_daily"),
                            selectInput("agg_daily", "Aggr. (days)", choices=1:30, selected=1),
                            hr(),
                            selectInput("display_daily", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
@@ -59,12 +59,12 @@ shinyUI(
                   tabPanel("Selected series",
                         # wellPanel(
                             h5(""),
-                            dygraphOutput("trends_daily"), 
+                            dygraphOutput("trends_daily"),
                             hr(),
                             downloadButton('downloadTrendDaily', 'Download trend')
                         # )
                   ),
-                    
+
                   id="DailyTabset"
                 ),
                 conditionalPanel(
@@ -76,7 +76,7 @@ shinyUI(
                                 selectInput("basemap_daily","Base map", choices = basemaps),
                                 sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
                   )
-  
+
           )
           # wellPanel(
           #   # verbatimTextOutput("pol_info_daily"),
@@ -162,7 +162,7 @@ shinyUI(
                                               condition="!input.allmonths_hist",
                                               selectInput("trend_month_hist", "Month", choices = as.character(1:12), selected="1")
                                             )
-                                            
+
                                      )
                                    )
                             ),
@@ -181,10 +181,10 @@ shinyUI(
                             )
 
                           )
-                          
+
                         )
 
-                      
+
                       # )
                 ),
                 id = "HistTabset"
@@ -203,7 +203,7 @@ shinyUI(
         #    p(strong("List of available inputs")),
         #    verbatimTextOutput("inputList_hist")
         # )
-    ), 
+    ),
     #### CC FOREST DROUGHT  ####
     tabPanel("Climate change scenarios",
            fluidRow(
@@ -233,7 +233,7 @@ shinyUI(
              tabPanel("Map",
               tags$head(
                   includeCSS("styles.css")
-              ),           
+              ),
               h5(""),
                # wellPanel(
                  sidebarLayout(
@@ -274,7 +274,7 @@ shinyUI(
                                             condition="!input.allmonths_proj",
                                             selectInput("trend_month_proj", "Month", choices = as.character(1:12), selected="1")
                                           )
-                                          
+
                                    )
                                  )
                           ),
@@ -291,11 +291,11 @@ shinyUI(
                                  h4(" "),
                                  downloadButton('downloadTrendProj', 'Download trend')
                           )
-                          
+
                         )
-                        
+
                       )
-                      
+
              ),
              id = "ProjTabset"
              ),
@@ -314,7 +314,7 @@ shinyUI(
           #    p(strong("List of available inputs")),
           #    verbatimTextOutput("inputList_proj")
           # )
-  
+
     ),
     tabPanel("Static inputs",
              fluidRow(
@@ -362,7 +362,7 @@ shinyUI(
                              sliderInput("alpha_stat", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
                )
              )
-             
+
     ),
     navbarMenu("Documentation",
                tabPanel("User's guide",
