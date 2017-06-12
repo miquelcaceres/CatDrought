@@ -13,8 +13,11 @@ library(Kendall)
 library(zyp)
 library(meteoland)
 
-# data_home <- "//SERVERPROCESS/Miquel/CatDrought/"
-data_home <- "/home/miquel/serverprocess/"
+if(Sys.info()["sysname"]=="Windows") { #Windows machine
+  data_home <- "//SERVERPROCESS/Miquel/CatDrought/"
+} else { #Linux server
+  data_home <- "/home/miquel/serverprocess/"
+}
 
 # App data requisites
 mapCRS  <- CRS("+init=epsg:4326")
