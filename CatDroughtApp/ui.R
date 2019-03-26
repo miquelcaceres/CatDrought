@@ -205,117 +205,118 @@ shinyUI(
         # )
     ),
     #### CC FOREST DROUGHT  ####
-    tabPanel("Climate change scenarios",
-           fluidRow(
-             column(width=2,
-                    selectInput("mode_proj", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
-             ),
-             column(width=2,
-                    uiOutput("var_choice_proj")
-             ),
-             column(width=2,
-                    conditionalPanel(
-                      condition = "input.mode_proj=='Drought stress'",
-                      selectInput("sp_proj", "Choose species", choices = input_sp, selected = "Overall")
-                    )
-             ),
-             column(width=2,
-                    selectInput("rcm_proj", "Climate model", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4"))
-             ),
-             column(width=2,
-                     selectInput("rcp_proj", "Climate scenario", choices = c("rcp4.5", "rcp8.5"))
-             ),
-             column(width=2,
-                    radioButtons("agg_proj", "Temporal resolution", choices = c("Year", "Month"), inline=TRUE)
-             )
-           ),
-           tabsetPanel(
-             tabPanel("Map",
-              tags$head(
-                  includeCSS("styles.css")
-              ),
-              h5(""),
-               # wellPanel(
-                 sidebarLayout(
-                   sidebarPanel(
-                     radioButtons("raster_trend_proj", "Raster type", choices=c("Slope","Absolute change", "Relative change")),
-                     selectInput("alpha_cut_proj", "Sign. level", choices=c(1.0,0.5,0.1,0.05,0.01,0.001,0.0001), selected=1.0),
-                     hr(),
-                     radioButtons("resolution_proj", "Raster resolution", choices = c("Smoothed","1km"), selected = "Smoothed"),
-                     hr(),
-                     selectInput("display_proj", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
-                     hr(),
-                     downloadButton('downloadRasterProj', 'Download raster')
-                     ,
-                     width=3),
-                   mainPanel(
-                     leafletOutput("map_proj", width = "100%", height = "600px")
-                     ,
-                     width=9)
-                 )
-               # )
-             ),
-             tabPanel("Selected series",
-                      h5(""),
-                      dygraphOutput("trends_proj") ,
-                      hr(),
-                      wellPanel(
-                        fluidRow(
-                          column(width=3,
-                                 conditionalPanel(
-                                   condition="input.agg_proj=='Month'",
-                                   column(width=4,
-                                          h4(" "),
-                                          checkboxInput("allmonths_proj","All months", value=TRUE)
-                                   ),
-                                   column(width=8,
-                                          h4(" "),
-                                          conditionalPanel(
-                                            condition="!input.allmonths_proj",
-                                            selectInput("trend_month_proj", "Month", choices = as.character(1:12), selected="1")
-                                          )
-
-                                   )
-                                 )
-                          ),
-                          column(1),
-                          column(3,
-                                 h4("Mann-Kendall test"),
-                                 verbatimTextOutput("MK_proj")
-                          ),
-                          column(3,
-                                 h4("Ten-sheil slope"),
-                                 verbatimTextOutput("TS_slope_proj")
-                          ),
-                          column(2,
-                                 h4(" "),
-                                 downloadButton('downloadTrendProj', 'Download trend')
-                          )
-
-                        )
-
-                      )
-
-             ),
-             id = "ProjTabset"
-             ),
-             conditionalPanel(
-               condition = "input.ProjTabset=='Map'",
-               absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                            draggable = TRUE, top = 223, left = "auto", right = 30, bottom = "auto",
-                           width = 250, height = 180,
-                           h4(""),
-                           selectInput("basemap_proj","Base map", choices = basemaps),
-                           sliderInput("alpha_proj", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
-               )
-
-          )
-          # wellPanel(
-          #    p(strong("List of available inputs")),
-          #    verbatimTextOutput("inputList_proj")
-          # )
-
-    ),
+    # tabPanel("Climate change scenarios",
+    #        fluidRow(
+    #          column(width=2,
+    #                 selectInput("mode_proj", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
+    #          ),
+    #          column(width=2,
+    #                 uiOutput("var_choice_proj")
+    #          ),
+    #          column(width=2,
+    #                 conditionalPanel(
+    #                   condition = "input.mode_proj=='Drought stress'",
+    #                   selectInput("sp_proj", "Choose species", choices = input_sp, selected = "Overall")
+    #                 )
+    #          ),
+    #          column(width=2,
+    #                 selectInput("rcm_proj", "Climate model", choices = c("CNRM/CCLM4-8-17", "CNRM/RCA4"))
+    #          ),
+    #          column(width=2,
+    #                  selectInput("rcp_proj", "Climate scenario", choices = c("rcp4.5", "rcp8.5"))
+    #          ),
+    #          column(width=2,
+    #                 radioButtons("agg_proj", "Temporal resolution", choices = c("Year", "Month"), inline=TRUE)
+    #          )
+    #        ),
+    #        tabsetPanel(
+    #          tabPanel("Map",
+    #           tags$head(
+    #               includeCSS("styles.css")
+    #           ),
+    #           h5(""),
+    #            # wellPanel(
+    #              sidebarLayout(
+    #                sidebarPanel(
+    #                  radioButtons("raster_trend_proj", "Raster type", choices=c("Slope","Absolute change", "Relative change")),
+    #                  selectInput("alpha_cut_proj", "Sign. level", choices=c(1.0,0.5,0.1,0.05,0.01,0.001,0.0001), selected=1.0),
+    #                  hr(),
+    #                  radioButtons("resolution_proj", "Raster resolution", choices = c("Smoothed","1km"), selected = "Smoothed"),
+    #                  hr(),
+    #                  selectInput("display_proj", "Selection type", choices = c("none", "Watersheds", "Counties", "Municipalities", "IFN plots"), selected = "none"),
+    #                  hr(),
+    #                  downloadButton('downloadRasterProj', 'Download raster')
+    #                  ,
+    #                  width=3),
+    #                mainPanel(
+    #                  leafletOutput("map_proj", width = "100%", height = "600px")
+    #                  ,
+    #                  width=9)
+    #              )
+    #            # )
+    #          ),
+    #          tabPanel("Selected series",
+    #                   h5(""),
+    #                   dygraphOutput("trends_proj") ,
+    #                   hr(),
+    #                   wellPanel(
+    #                     fluidRow(
+    #                       column(width=3,
+    #                              conditionalPanel(
+    #                                condition="input.agg_proj=='Month'",
+    #                                column(width=4,
+    #                                       h4(" "),
+    #                                       checkboxInput("allmonths_proj","All months", value=TRUE)
+    #                                ),
+    #                                column(width=8,
+    #                                       h4(" "),
+    #                                       conditionalPanel(
+    #                                         condition="!input.allmonths_proj",
+    #                                         selectInput("trend_month_proj", "Month", choices = as.character(1:12), selected="1")
+    #                                       )
+    # 
+    #                                )
+    #                              )
+    #                       ),
+    #                       column(1),
+    #                       column(3,
+    #                              h4("Mann-Kendall test"),
+    #                              verbatimTextOutput("MK_proj")
+    #                       ),
+    #                       column(3,
+    #                              h4("Ten-sheil slope"),
+    #                              verbatimTextOutput("TS_slope_proj")
+    #                       ),
+    #                       column(2,
+    #                              h4(" "),
+    #                              downloadButton('downloadTrendProj', 'Download trend')
+    #                       )
+    # 
+    #                     )
+    # 
+    #                   )
+    # 
+    #          ),
+    #          id = "ProjTabset"
+    #          ),
+    #          conditionalPanel(
+    #            condition = "input.ProjTabset=='Map'",
+    #            absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+    #                         draggable = TRUE, top = 223, left = "auto", right = 30, bottom = "auto",
+    #                        width = 250, height = 180,
+    #                        h4(""),
+    #                        selectInput("basemap_proj","Base map", choices = basemaps),
+    #                        sliderInput("alpha_proj", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+    #            )
+    # 
+    #       )
+    #       # wellPanel(
+    #       #    p(strong("List of available inputs")),
+    #       #    verbatimTextOutput("inputList_proj")
+    #       # )
+    # 
+    # ),
+    #### STATIC INPUTS  ####
     tabPanel("Static inputs",
              fluidRow(
                column(width=3,

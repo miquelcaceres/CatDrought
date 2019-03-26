@@ -220,17 +220,15 @@ rel_change_scale<-function(reverse = F) {
   return(list(dom=dom, bins=bins, pal=pal))
 }
 
-########################################################
-### Define server logic required to draw a histogram ###
-########################################################
 
+#### Define server logic ####
 shinyServer(function(input, output, session) {
   output$date_daily<-renderUI({
-    dateInput("date_daily", "Date",value = Sys.Date()-1, min =as.Date("2017-01-01"), max = Sys.Date()-1, weekstart=1)
+    dateInput("date_daily", "Date",value = as.Date("2019-01-01"), min =as.Date("2019-01-01"), max = Sys.Date()-1, weekstart=1)
   })
   
 
-  # Switch the mode of the daily output
+  #### Switch the mode of the daily output ####
   output$var_choice_daily <- renderUI({
     input_title <- "Choose variable"
     if(input$mode_daily == "Climate") {
@@ -248,7 +246,7 @@ shinyServer(function(input, output, session) {
     }
     selectInput(input_name, input_title, choices = var_choice_daily, selected = selected)
   })
-  # Switch the mode of the historic output
+  #### Switch the mode of the historic output ####
   output$var_choice_hist <- renderUI({
     input_title <- "Choose variable"
     if(input$mode_hist == "Climate") {
@@ -267,25 +265,26 @@ shinyServer(function(input, output, session) {
     }
     selectInput(input_name, input_title, choices = var_choice_hist, selected = selected)
   })
-  # Switch the mode of the projection output
-  output$var_choice_proj <- renderUI({
-    input_title <- "Choose variable"
-    if(input$mode_proj == "Climate") {
-      input_name <- "clim_proj"
-      if(input$agg_proj=="Month") var_choice_proj <- input_clim_var
-      else var_choice_proj <- input_clim_var[1:2]
-      selected <- "Precipitation (mm)"
-    } else if(input$mode_proj == "Forest water balance") {
-      input_name <- "WB_proj"
-      var_choice_proj <- input_WB_var[-2]
-      selected <- "Relative soil water content [0-1]"
-    } else {
-      input_name <- "DS_proj"
-      var_choice_proj <- input_DS_var
-      selected <- "Stress intensity"
-    }
-    selectInput(input_name, input_title, choices = var_choice_proj, selected = selected)
-  })
+  #### Switch the mode of the projection output ####
+  # output$var_choice_proj <- renderUI({
+  #   input_title <- "Choose variable"
+  #   if(input$mode_proj == "Climate") {
+  #     input_name <- "clim_proj"
+  #     if(input$agg_proj=="Month") var_choice_proj <- input_clim_var
+  #     else var_choice_proj <- input_clim_var[1:2]
+  #     selected <- "Precipitation (mm)"
+  #   } else if(input$mode_proj == "Forest water balance") {
+  #     input_name <- "WB_proj"
+  #     var_choice_proj <- input_WB_var[-2]
+  #     selected <- "Relative soil water content [0-1]"
+  #   } else {
+  #     input_name <- "DS_proj"
+  #     var_choice_proj <- input_DS_var
+  #     selected <- "Stress intensity"
+  #   }
+  #   selectInput(input_name, input_title, choices = var_choice_proj, selected = selected)
+  # })
+  
   # Switch the mode of the static info
   output$var_choice_stat <- renderUI({
     input_title <- "Choose variable"
@@ -307,6 +306,7 @@ shinyServer(function(input, output, session) {
   map_proj_raster_data <- reactiveValues(x = list())
   map_stat_raster_data <- reactiveValues(x = list())
 
+  #### DAILY RASTER REACTION  ####
   # Sets raster layer for daily drought
   observe({
     if(input$mode_daily == "Climate"){
@@ -314,14 +314,14 @@ shinyServer(function(input, output, session) {
         folder <- paste0(data_home,"Rdata/Maps/Current")
         col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
         dfin = input$date_daily
-        dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
+        dini  = max(as.Date("2019-01-01"),dfin-(as.numeric(input$agg_daily)-1))
         dw = seq(dini, dfin, by="day")
         nd = length(dw)
-        load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
+        load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[1], ".rda", sep = ""))
         spdftmp = spdf
         if(nd>1) {
           for(d in 2:nd) {
-            load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
+            load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[d], ".rda", sep = ""))
             spdftmp@data = spdftmp@data + spdf@data
           }
         }
@@ -342,14 +342,14 @@ shinyServer(function(input, output, session) {
         folder <- paste0(data_home,"Rdata/Maps/Current")
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
         dfin = input$date_daily
-        dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
+        dini  = max(as.Date("2019-01-01"),dfin-(as.numeric(input$agg_daily)-1))
         dw = seq(dini, dfin, by="day")
         nd = length(dw)
-        load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[1], ".rda", sep = ""))
+        load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[1], ".rda", sep = ""))
         spdftmp = spdf
         if(nd>1) {
           for(d in 2:nd) {
-            load(paste(folder, "/", input$resolution_daily, "/SWB/",col, "/", dw[d], ".rda", sep = ""))
+            load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[d], ".rda", sep = ""))
             spdftmp@data = spdftmp@data + spdf@data
           }
         }
@@ -374,7 +374,7 @@ shinyServer(function(input, output, session) {
         col <- as.character(species[species$input == input$sp_daily, "medfate"])
         # print(ds_var)
         dfin = input$date_daily
-        dini  = max(as.Date("2017-01-01"),dfin-(as.numeric(input$agg_daily)-1))
+        dini  = max(as.Date("2019-01-01"),dfin-(as.numeric(input$agg_daily)-1))
         dw = seq(dini, dfin, by="day")
         nd = length(dw)
         file = paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[1], ".rda", sep = "")
@@ -431,6 +431,7 @@ shinyServer(function(input, output, session) {
     }
   )
 
+  #### HISTORIC RASTER REACTION  ####
   # Sets raster layers for historic drought
   observe({
     if(input$mode_hist == "Climate" && !is.null(input$clim_hist)){
@@ -440,8 +441,8 @@ shinyServer(function(input, output, session) {
       #Set file to read
       if(input$climate_hist!='Year') {
         if(input$raster_trend_hist=="Average") {## Multiyear average
-          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = "")
-          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist, ".rda", sep = "")
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-",input$month_hist, ".rda", sep = "")
           if(file.exists(file)) {
             load(file)
             if(input$agg_hist=="Year") {
@@ -457,8 +458,8 @@ shinyServer(function(input, output, session) {
           }
         }
         else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) { ## Multiyear absolute change
-          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-trend.rda", sep = "")
-          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,"-trend.rda", sep = "")
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-trend.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-",input$month_hist,"-trend.rda", sep = "")
           if(file.exists(file)) {
             load(file)
             if(input$raster_trend_hist=="Absolute change") { ## Multiyear absolute change
@@ -467,8 +468,8 @@ shinyServer(function(input, output, session) {
               scale = abs_change_scale(spdf@data[,1], reverse=ifelse(col=="PET",T,F))
               spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
             } else if(input$raster_trend_hist=="Relative change") { ## Multiyear relative change
-              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = ""))
-              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,".rda", sep = ""))
+              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016.rda", sep = ""))
+              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-",input$month_hist,".rda", sep = ""))
               spdf_h = spdf
               spdf = spdf_slope
               spdf@data[,1] = 100*(spdf@data[,1]*26/spdf_h@data[,1])
@@ -482,8 +483,8 @@ shinyServer(function(input, output, session) {
         }
       }
       else {
-        if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
-        else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+        if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/", input$years_hist, ".rda", sep = "")
+        else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
         #Load if exists
         if(file.exists(file)) {
           load(file)
@@ -510,7 +511,7 @@ shinyServer(function(input, output, session) {
       if(input$climate_hist!='Year') {
         if(input$raster_trend_hist=="Average") {
           if(input$agg_hist=="Year") {
-            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = "")
+            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016.rda", sep = "")
             if(file.exists(file)) {
               load(file)
               if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,1500, by=250),2000,2500,3000))
@@ -532,7 +533,7 @@ shinyServer(function(input, output, session) {
               warning(paste0("File ", file, " not found!"))
             }
           } else {
-            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist, ".rda", sep = "")
+            file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-",input$month_hist, ".rda", sep = "")
             if(file.exists(file)) {
               load(file)
               if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,200, by=25),250,300,350,400,600))
@@ -556,8 +557,8 @@ shinyServer(function(input, output, session) {
           }
         }
         else if(input$raster_trend_hist %in% c("Absolute change", "Relative change")) {
-          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-trend.rda", sep = "")
-          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,"-trend.rda", sep = "")
+          if(input$agg_hist=="Year") file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-trend.rda", sep = "")
+          else file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-",input$month_hist,"-trend.rda", sep = "")
           if(file.exists(file)) {
             load(file)
             if(input$raster_trend_hist=="Absolute change") {
@@ -566,8 +567,8 @@ shinyServer(function(input, output, session) {
               scale = abs_change_scale(spdf@data[,1])
               spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_hist),1] = NA
             } else {
-              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016.rda", sep = ""))
-              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/1991-2016-",input$month_hist,".rda", sep = ""))
+              if(input$agg_hist=="Year") load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016.rda", sep = ""))
+              else load(paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/1991-2016-",input$month_hist,".rda", sep = ""))
               spdf_h = spdf
               spdf = spdf_slope
               base_data = spdf_h@data[,1]
@@ -584,7 +585,7 @@ shinyServer(function(input, output, session) {
         }
       } else { #Specific year/month
         if(input$agg_hist=="Year") {
-          file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist, ".rda", sep = "")
+          file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/", input$years_hist, ".rda", sep = "")
           if(file.exists(file)) {
             load(file)
             if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,1500, by=250),2000,2500,3000))
@@ -605,7 +606,7 @@ shinyServer(function(input, output, session) {
             warning(paste0("File ", file, " not found!"))
           }
         }  else {
-          file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
+          file = paste(folder, "/", input$resolution_hist,"/", input$agg_hist, "/SPWB/",col, "/", input$years_hist,"-",input$month_hist, ".rda", sep = "")
           load(file)
           if(file.exists(file)) {
             if(col=="NetPrec") scale = WB_scale(input$WB_hist, c(seq(0,200, by=25),250,300,350,400,600))
@@ -729,153 +730,155 @@ shinyServer(function(input, output, session) {
     }
   )
 
+  #### CC RASTER REACTION  ####
   # Sets raster layers for projection drought
-  observe({
-    folder <- paste0(data_home,"Rdata/Maps/Projected")
-    folderhist<-paste0(data_home,"Rdata/Maps/Historic")
-    if(input$mode_proj == "Climate" && !is.null(input$clim_proj)){
-      col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-      file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, ".rda", sep = "")
-
-      if(file.exists(file)) {
-        load(file)
-        spdf = spdf_slope
-        if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
-        else if(input$raster_trend_proj=="Relative change") {
-          spdf@data[,1] = spdf@data[,1]*95
-          spdf_p = spdf
-          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1991-2016.rda", sep = "")
-          if(file.exists(filehist)) {
-            load(filehist)
-            spdf_h = spdf
-            spdf = spdf_p
-            spdf@data[,1] = 100*(spdf@data[,1]/spdf_h@data[,1])
-          } else {
-            warning(paste0("File historic ", filehist, " not found!"))
-            spdf = spdf_p
-          }
-        }
-        if(input$raster_trend_proj=="Relative change") {
-          scale = rel_change_scale(reverse = ifelse(col=="PET",T,F))
-        } else {
-          scale = abs_change_scale(spdf@data[,1], reverse = ifelse(col=="PET",T,F))
-        }
-        spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_proj),1] = NA
-        map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
-      }
-      else {
-        warning(paste0("File ", file, " not found!"))
-      }
-    }
-    else if(input$mode_proj == "Forest water balance" && !is.null(input$WB_proj)){
-      col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
-      file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, ".rda", sep = "")
-      if(file.exists(file)) {
-        load(file)
-        spdf = spdf_slope
-        if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
-        else if(input$raster_trend_proj=="Relative change") {
-          spdf@data[,1] = spdf@data[,1]*95
-          spdf_p = spdf
-          filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SWB/",col, "/1991-2016.rda", sep = "")
-          if(file.exists(filehist)) {
-            load(filehist)
-            spdf_h = spdf
-            spdf = spdf_p
-            spdf@data[,1] = 100*(spdf@data[,1]/spdf_h@data[,1])
-          } else {
-            warning(paste0("File historic ", filehist, " not found!"))
-            spdf = spdf_p
-          }
-        }
-        if(input$raster_trend_proj=="Relative change") {
-          scale = rel_change_scale(reverse = F)
-        } else {
-          scale = abs_change_scale(spdf@data[,1], reverse = F)
-        }
-        spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_proj),1] = NA
-        map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
-      }
-      else {
-        warning(paste0("File ", file, " not found!"))
-      }
-    }
-    else if(input$mode_proj == "Drought stress" && !is.null(input$sp_proj)){
-      col <- as.character(species[species$input == input$sp_proj, "medfate"])
-      ds_var <- as.character(DS_variables[DS_variables$input == input$DS_proj, "medfate"])
-      if(length(ds_var)>0){
-        file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, ".rda", sep = "")
-        if(file.exists(file)) {
-          load(file)
-          spdf = spdf_slope
-          if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
-          else if(input$raster_trend_proj=="Relative change") {
-            spdf@data[,1] = spdf@data[,1]*95
-            spdf_p = spdf
-            filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, "/1991-2016.rda", sep = "")
-            if(file.exists(filehist)) {
-              load(filehist)
-              spdf_h = spdf
-              spdf = spdf_p
-              base_data = spdf_h@data[,1]
-              ind_base = spdf_h@grid.index %in% spdf@grid.index
-              ind_change = spdf@grid.index %in% spdf_h@grid.index
-              spdf@data[ind_change,1] = 100*(spdf@data[ind_change,1]/base_data[ind_base])
-            } else {
-              warning(paste0("File historic ", filehist, " not found!"))
-              spdf = spdf_p
-            }
-          }
-
-          sel = spdf_pval@data[1,]>input$alpha_cut_proj
-          sel[is.na(sel)] = FALSE
-          spdf@data[sel,1] = 0
-          if(input$raster_trend_proj=="Relative change") {
-            scale = rel_change_scale(reverse = T)
-          } else {
-            scale = abs_change_scale(spdf@data[,1], reverse = T)
-          }
-          map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
-        }
-        else {
-          warning(paste0("File ", file, " not found!"))
-        }
-      }
-    }
-
-  })
+  # observe({
+  #   folder <- paste0(data_home,"Rdata/Maps/Projected")
+  #   folderhist<-paste0(data_home,"Rdata/Maps/Historic")
+  #   if(input$mode_proj == "Climate" && !is.null(input$clim_proj)){
+  #     col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+  #     file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/SPWB/",col, ".rda", sep = "")
+  # 
+  #     if(file.exists(file)) {
+  #       load(file)
+  #       spdf = spdf_slope
+  #       if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
+  #       else if(input$raster_trend_proj=="Relative change") {
+  #         spdf@data[,1] = spdf@data[,1]*95
+  #         spdf_p = spdf
+  #         filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SPWB/",col, "/1991-2016.rda", sep = "")
+  #         if(file.exists(filehist)) {
+  #           load(filehist)
+  #           spdf_h = spdf
+  #           spdf = spdf_p
+  #           spdf@data[,1] = 100*(spdf@data[,1]/spdf_h@data[,1])
+  #         } else {
+  #           warning(paste0("File historic ", filehist, " not found!"))
+  #           spdf = spdf_p
+  #         }
+  #       }
+  #       if(input$raster_trend_proj=="Relative change") {
+  #         scale = rel_change_scale(reverse = ifelse(col=="PET",T,F))
+  #       } else {
+  #         scale = abs_change_scale(spdf@data[,1], reverse = ifelse(col=="PET",T,F))
+  #       }
+  #       spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_proj),1] = NA
+  #       map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+  #     }
+  #     else {
+  #       warning(paste0("File ", file, " not found!"))
+  #     }
+  #   }
+  #   else if(input$mode_proj == "Forest water balance" && !is.null(input$WB_proj)){
+  #     col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+  #     file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/SPWB/",col, ".rda", sep = "")
+  #     if(file.exists(file)) {
+  #       load(file)
+  #       spdf = spdf_slope
+  #       if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
+  #       else if(input$raster_trend_proj=="Relative change") {
+  #         spdf@data[,1] = spdf@data[,1]*95
+  #         spdf_p = spdf
+  #         filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/SPWB/",col, "/1991-2016.rda", sep = "")
+  #         if(file.exists(filehist)) {
+  #           load(filehist)
+  #           spdf_h = spdf
+  #           spdf = spdf_p
+  #           spdf@data[,1] = 100*(spdf@data[,1]/spdf_h@data[,1])
+  #         } else {
+  #           warning(paste0("File historic ", filehist, " not found!"))
+  #           spdf = spdf_p
+  #         }
+  #       }
+  #       if(input$raster_trend_proj=="Relative change") {
+  #         scale = rel_change_scale(reverse = F)
+  #       } else {
+  #         scale = abs_change_scale(spdf@data[,1], reverse = F)
+  #       }
+  #       spdf@data[spdf_pval@data[,1]>as.numeric(input$alpha_cut_proj),1] = NA
+  #       map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+  #     }
+  #     else {
+  #       warning(paste0("File ", file, " not found!"))
+  #     }
+  #   }
+  #   else if(input$mode_proj == "Drought stress" && !is.null(input$sp_proj)){
+  #     col <- as.character(species[species$input == input$sp_proj, "medfate"])
+  #     ds_var <- as.character(DS_variables[DS_variables$input == input$DS_proj, "medfate"])
+  #     if(length(ds_var)>0){
+  #       file = paste(folder, "/", climate_models[input$rcm_proj],"/", input$rcp_proj, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, ".rda", sep = "")
+  #       if(file.exists(file)) {
+  #         load(file)
+  #         spdf = spdf_slope
+  #         if(input$raster_trend_proj=="Absolute change") spdf@data[,1] = spdf@data[,1]*95
+  #         else if(input$raster_trend_proj=="Relative change") {
+  #           spdf@data[,1] = spdf@data[,1]*95
+  #           spdf_p = spdf
+  #           filehist = paste(folderhist, "/", input$resolution_proj, "/", input$agg_proj, "/DroughtStress/",ds_var,"/",col, "/1991-2016.rda", sep = "")
+  #           if(file.exists(filehist)) {
+  #             load(filehist)
+  #             spdf_h = spdf
+  #             spdf = spdf_p
+  #             base_data = spdf_h@data[,1]
+  #             ind_base = spdf_h@grid.index %in% spdf@grid.index
+  #             ind_change = spdf@grid.index %in% spdf_h@grid.index
+  #             spdf@data[ind_change,1] = 100*(spdf@data[ind_change,1]/base_data[ind_base])
+  #           } else {
+  #             warning(paste0("File historic ", filehist, " not found!"))
+  #             spdf = spdf_p
+  #           }
+  #         }
+  # 
+  #         sel = spdf_pval@data[1,]>input$alpha_cut_proj
+  #         sel[is.na(sel)] = FALSE
+  #         spdf@data[sel,1] = 0
+  #         if(input$raster_trend_proj=="Relative change") {
+  #           scale = rel_change_scale(reverse = T)
+  #         } else {
+  #           scale = abs_change_scale(spdf@data[,1], reverse = T)
+  #         }
+  #         map_proj_raster_data$x<-list(spdf = spdf, dom = scale$dom, bins=scale$bins, pal = scale$pal)
+  #       }
+  #       else {
+  #         warning(paste0("File ", file, " not found!"))
+  #       }
+  #     }
+  #   }
+  # 
+  # })
   #Draws projection raster layer
-  observe({
-    if(!is.null(map_proj_raster_data$x$spdf)) {
-      r <- raster(map_proj_raster_data$x$spdf)
-      proj4string(r) <- dataCRS
-      r <- projectRaster(r, crs = mapCRS)
-
-      leafletProxy("map_proj") %>%
-        clearImages() %>%
-        clearControls() %>%
-        addRasterImage(r, opacity = input$alpha_proj, colors = map_proj_raster_data$x$pal, layerId="raster", group="rasterGroup") %>%
-        addLegend(pal = map_proj_raster_data$x$pal, values = values(r),opacity = input$alpha_proj, position = "bottomright", layerId="raster")
-
-    }
-  })
+  # observe({
+  #   if(!is.null(map_proj_raster_data$x$spdf)) {
+  #     r <- raster(map_proj_raster_data$x$spdf)
+  #     proj4string(r) <- dataCRS
+  #     r <- projectRaster(r, crs = mapCRS)
+  # 
+  #     leafletProxy("map_proj") %>%
+  #       clearImages() %>%
+  #       clearControls() %>%
+  #       addRasterImage(r, opacity = input$alpha_proj, colors = map_proj_raster_data$x$pal, layerId="raster", group="rasterGroup") %>%
+  #       addLegend(pal = map_proj_raster_data$x$pal, values = values(r),opacity = input$alpha_proj, position = "bottomright", layerId="raster")
+  # 
+  #   }
+  # })
 
   #Downloads projection rasters
-  projectionRaster<-reactive({
-    if(!is.null(map_proj_raster_data$x)) {
-      map_proj_raster_data$x$spdf
-    }
-  })
-  output$downloadRasterProj<-downloadHandler(
-    filename = function() {
-      paste("projection_raster.txt")
-    },
-    content = function(file) {
-      write.asciigrid(projectionRaster(), fname=file)
-    }
-  )
+  # projectionRaster<-reactive({
+  #   if(!is.null(map_proj_raster_data$x)) {
+  #     map_proj_raster_data$x$spdf
+  #   }
+  # })
+  # output$downloadRasterProj<-downloadHandler(
+  #   filename = function() {
+  #     paste("projection_raster.txt")
+  #   },
+  #   content = function(file) {
+  #     write.asciigrid(projectionRaster(), fname=file)
+  #   }
+  # )
 
 
+  #### STATIC RASTER REACTION  ####
   # Sets raster layer for static inputs
   observe({
     if(input$mode_stat == "Soil"){
@@ -912,6 +915,7 @@ shinyServer(function(input, output, session) {
   })
 
 
+  #### DAILY INTERACTIVE MAP REACTION  ####
   # Create an interactive map centered on catalonia
   output$map_daily <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
@@ -925,6 +929,7 @@ shinyServer(function(input, output, session) {
       addProviderTiles(input$basemap_daily,layerId="basemap") %>%
       showGroup("rasterGroup")
   })
+  #### HISTORIC INTERACTIVE MAP REACTION  ####
   # Create an interactive map centered on catalonia
   output$map_hist <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
@@ -937,17 +942,20 @@ shinyServer(function(input, output, session) {
       clearTiles() %>%
       addProviderTiles(input$basemap_hist)
   })
+  #### PROJECTION INTERACTIVE MAP REACTION  ####
   # Create an interactive map centered on catalonia
-  output$map_proj <- renderLeaflet({
-    leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
-      addProviderTiles(basemaps[1]) %>%
-      setView(lng = 1.74,lat = 41.69, zoom = 8)
-  })
-  observe({
-    leafletProxy("map_proj") %>%
-      clearTiles() %>%
-      addProviderTiles(input$basemap_proj)
-  })
+  # output$map_proj <- renderLeaflet({
+  #   leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
+  #     addProviderTiles(basemaps[1]) %>%
+  #     setView(lng = 1.74,lat = 41.69, zoom = 8)
+  # })
+  # observe({
+  #   leafletProxy("map_proj") %>%
+  #     clearTiles() %>%
+  #     addProviderTiles(input$basemap_proj)
+  # })
+
+  #### STATIC INTERACTIVE MAP REACTION  ####  
   # Create an interactive map centered on catalonia
   output$map_stat <- renderLeaflet({
     leaflet(options = leafletOptions(minZoom = 8, maxZoom = 12)) %>%
@@ -962,7 +970,8 @@ shinyServer(function(input, output, session) {
       showGroup("rasterGroup")
   })
 
-  # Add shapes to daily SWB
+  
+  #### Add shapes to daily SPWB ####
   observe({
     # print(paste0("Daily ",input$display_daily))
     if(input$display_daily == "none"){
@@ -999,7 +1008,7 @@ shinyServer(function(input, output, session) {
 
     }
   })
-  # Add shapes to historic SWB
+  #### Add shapes to historic SPWB ####
   observe({
     if(input$display_hist == "none"){
       leafletProxy("map_hist") %>%
@@ -1035,43 +1044,43 @@ shinyServer(function(input, output, session) {
 
     }
   })
-  # Add shapes to projected SWB
-  observe({
-    # print(paste0("Proj ",input$display_proj))
-    if(input$display_proj == "none"){
-      leafletProxy("map_proj") %>%
-        clearShapes() %>%
-        clearMarkerClusters()
-    } else if(input$display_proj == "Watersheds"){
-      leafletProxy("map_proj") %>%
-        clearShapes() %>%
-        clearMarkerClusters() %>%
-        addPolygons(data = con.pol, color = "black", weight = 1, fillOpacity = 0, label = ~CONCA,
-                    highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
-
-    } else if(input$display_proj == "Counties"){
-      leafletProxy("map_proj") %>%
-        clearShapes() %>%
-        clearMarkerClusters() %>%
-        addPolygons(data = cat.pol, color = "black", weight = 1, fillOpacity = 0, label = ~NOM_COMAR,
-                    highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
-
-    } else if(input$display_proj == "Municipalities"){
-        leafletProxy("map_proj") %>%
-          clearShapes() %>%
-          clearMarkerClusters() %>%
-          addPolygons(data = mun.pol, color = "black", weight = 1, fillOpacity = 0, label = ~NOM_MUNI,
-                      highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
-
-    } else if(input$display_proj == "IFN plots"){
-          leafletProxy("map_proj") %>%
-            clearShapes() %>%
-            addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_projections,], radius = 5, stroke = F, color="black", fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),
-                             clusterOptions = markerClusterOptions(showCoverageOnHover = T, disableClusteringAtZoom = 12))
-
-    }
-  })
-  # Add shapes to static map
+  #### Add shapes to projected SPWB ####
+  # observe({
+  #   # print(paste0("Proj ",input$display_proj))
+  #   if(input$display_proj == "none"){
+  #     leafletProxy("map_proj") %>%
+  #       clearShapes() %>%
+  #       clearMarkerClusters()
+  #   } else if(input$display_proj == "Watersheds"){
+  #     leafletProxy("map_proj") %>%
+  #       clearShapes() %>%
+  #       clearMarkerClusters() %>%
+  #       addPolygons(data = con.pol, color = "black", weight = 1, fillOpacity = 0, label = ~CONCA,
+  #                   highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
+  # 
+  #   } else if(input$display_proj == "Counties"){
+  #     leafletProxy("map_proj") %>%
+  #       clearShapes() %>%
+  #       clearMarkerClusters() %>%
+  #       addPolygons(data = cat.pol, color = "black", weight = 1, fillOpacity = 0, label = ~NOM_COMAR,
+  #                   highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
+  # 
+  #   } else if(input$display_proj == "Municipalities"){
+  #       leafletProxy("map_proj") %>%
+  #         clearShapes() %>%
+  #         clearMarkerClusters() %>%
+  #         addPolygons(data = mun.pol, color = "black", weight = 1, fillOpacity = 0, label = ~NOM_MUNI,
+  #                     highlightOptions = highlightOptions(color = "white", weight = 3, opacity = 1, bringToFront = T))
+  # 
+  #   } else if(input$display_proj == "IFN plots"){
+  #         leafletProxy("map_proj") %>%
+  #           clearShapes() %>%
+  #           addCircleMarkers(data = IFN3.points[IFN3.points$ID %in% available_plots_projections,], radius = 5, stroke = F, color="black", fillOpacity = 0.7, label = ~as.character(ID), layerId = ~as.character(ID),
+  #                            clusterOptions = markerClusterOptions(showCoverageOnHover = T, disableClusteringAtZoom = 12))
+  # 
+  #   }
+  # })
+  #### Add shapes to static map ####
   observe({
     # print(paste0("Proj ",input$display_proj))
     if(input$display_stat == "none"){
@@ -1108,7 +1117,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # create a reactive values sensitive to clicks on shapes or markers
+  #### create a reactive values sensitive to clicks on shapes or markers ####
   map_daily_click <- reactiveValues(x = list())
   observe({
     if(input$display_daily %in% c("Watersheds","Counties","Municipalities")) {
@@ -1129,16 +1138,16 @@ shinyServer(function(input, output, session) {
       map_hist_click$x <-NULL
     }
   })
-  map_proj_click <- reactiveValues(x = list())
-  observe({
-    if(input$display_proj %in% c("Watersheds","Counties","Municipalities")) {
-      map_proj_click$x <- input$map_proj_shape_click
-    } else if(input$display_proj=="IFN plots") {
-      map_proj_click$x <- input$map_proj_marker_click
-    } else {
-      map_proj_click$x <-NULL
-    }
-  })
+  # map_proj_click <- reactiveValues(x = list())
+  # observe({
+  #   if(input$display_proj %in% c("Watersheds","Counties","Municipalities")) {
+  #     map_proj_click$x <- input$map_proj_shape_click
+  #   } else if(input$display_proj=="IFN plots") {
+  #     map_proj_click$x <- input$map_proj_marker_click
+  #   } else {
+  #     map_proj_click$x <-NULL
+  #   }
+  # })
 
 
 
@@ -1146,7 +1155,7 @@ shinyServer(function(input, output, session) {
   # Create a reactive value data for trends
   map_daily_data <- reactiveValues(x = list())
   map_hist_data <- reactiveValues(x = list())
-  map_proj_data <- reactiveValues(x = list())
+  # map_proj_data <- reactiveValues(x = list())
 
 
 
@@ -1167,16 +1176,16 @@ shinyServer(function(input, output, session) {
       )
     }
   })
-  observeEvent(map_proj_click$x, {
-    if(!is.null(map_proj_click$x)){
-      updateTabsetPanel(session, "ProjTabset",
-                        selected = "Selected series"
+  # observeEvent(map_proj_click$x, {
+  #   if(!is.null(map_proj_click$x)){
+  #     updateTabsetPanel(session, "ProjTabset",
+  #                       selected = "Selected series"
+  # 
+  #     )
+  #   }
+  # })
 
-      )
-    }
-  })
-
-  # React to clicks on the daily map
+  #### React to clicks on the daily map ####
   observe({
     if(!is.null(map_daily_click$x)){
 
@@ -1209,7 +1218,7 @@ shinyServer(function(input, output, session) {
       # Open relevant files and extract informations regarding the selected variable
       if(nrow(IFN3_sel)>0){
         if(input$mode_daily %in% c("Climate", "Forest water balance")){
-          folder <- paste0(data_home,"Rdata/Plots/SWBTrends")
+          folder <- paste0(data_home,"Rdata/Plots/SPWBTrends")
           plots_id <- IFN3_sel$ID
           plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
           load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
@@ -1248,7 +1257,7 @@ shinyServer(function(input, output, session) {
       map_daily_data$x <- NULL
     }
   })
-  # React to clicks on the historic map
+  #### React to clicks on the historic map ####
   observe({
     if(!is.null(map_hist_click$x)){
 
@@ -1279,7 +1288,7 @@ shinyServer(function(input, output, session) {
 
       # Open relevant files and extract informations regarding the selected variable
       if(nrow(IFN3_sel)>0){
-        folder <- paste0(data_home,"Rdata/Plots/HistoricSWB/IFN2-3/")
+        folder <- paste0(data_home,"Rdata/Plots/HistoricSPWB/IFN2-3/")
         plots_id <- IFN3_sel$ID
         plots_id <- plots_id[as.character(plots_id) %in% available_plots_historic]
         if(length(plots_id)>0) {
@@ -1339,102 +1348,102 @@ shinyServer(function(input, output, session) {
       }
     }
   })
-  # React to clicks on the projection map
-  observe({
-    if(!is.null(map_proj_click$x)){
+  #### React to clicks on the projection map ####
+  # observe({
+  #   if(!is.null(map_proj_click$x)){
+  # 
+  #     # Convert coordinates of the click zone into a spatial point
+  #     clicker <- SpatialPoints(coords = data.frame(x = map_proj_click$x$lng, y = map_proj_click$x$lat), proj4string = mapCRS)
+  # 
+  #     if(input$display_proj == "Watersheds"){
+  #       info <- clicker %over% con.pol
+  #       colnames(info) <- c("Id", "Name", "Fl")
+  #       info$type <- "watershed"
+  #       IFN3_sel <- IFN3.points@data[IFN3.points$ID_CONCA == info$Id,]
+  #     } else if(input$display_proj == "Counties"){
+  #       info <- clicker %over% cat.pol
+  #       colnames(info) <- c("Id", "Name", "Capital", "Superficy")
+  #       info$type <- "county"
+  #       IFN3_sel <- IFN3.points@data[IFN3.points$COMARCA == info$Id,]
+  #     } else if(input$display_proj == "Municipalities"){
+  #       info <- clicker %over% mun.pol
+  #       colnames(info) <- c("Id", "County", "Province", "Name", "Name2", "Name3", "Capital", "Capital2", "Capital3", "Superficy", "X")
+  #       info$type <- "municipality"
+  #       IFN3_sel <- IFN3.points@data[IFN3.points$MUNICIPI == info$Id,]
+  #     } else if(input$display_proj == "IFN plots"){
+  #       IFN3_sel <- IFN3.points@data[as.character(IFN3.points$ID) == map_proj_click$x$id,]
+  #       info <- data.frame(Name = paste("plot '",IFN3_sel$ID,"'"), type = "IFN plot")
+  #     } else {
+  #       IFN3_sel <- IFN3.points@data[rep(FALSE,length(IFN3.points$ID)),]
+  #     }
+  # 
+  #     # Open relevant files and extract informations regarding the selected variable
+  #     if(nrow(IFN3_sel)>0){
+  #       folder <- paste0(data_home,"Rdata/Plots/ProjectedSWB/", climate_models[input$rcm_proj],"/",input$rcp_proj)
+  #       plots_id <- IFN3_sel$ID
+  #       plots_id <- plots_id[as.character(plots_id) %in% available_plots_projections]
+  #       if(length(plots_id)>0) {
+  #         if(input$mode_proj %in% c("Climate","Forest water balance")){
+  #           load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
+  #           if(input$agg_proj== "Month") trends = swb_month
+  #           else trends = swb_year
+  #           # open all the files of the individual plots
+  #           data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
+  #           for(i in 1:length(plots_id)){
+  #             load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
+  #             if(input$agg_proj== "Month") trends = swb_month
+  #             else trends = swb_year
+  #             data[,,i] <- as.matrix(trends)
+  #           }
+  # 
+  #           # calculate mean and condidence interval
+  #           means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+  #           ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+  #           ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+  # 
+  #           dates <- as.Date(rownames(means))
+  #           map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+  # 
+  #         }
+  #         else if(input$mode_proj == "Drought stress"){
+  #           if(!is.null(input$DS_proj)){
+  #             load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
+  #             if(input$DS_proj=="Stress intensity"){
+  #               if(input$agg_proj== "Month") trends = dds_month
+  #               else trends = dds_year
+  #             } else {
+  #               if(input$agg_proj== "Month") trends = ndd_month
+  #               else trends = ndd_year
+  #             }
+  #             # open all the files of the individual plots
+  #             data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
+  #             for(i in 1:length(plots_id)){
+  #               load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
+  #               if(input$DS_proj=="Stress intensity"){
+  #                 if(input$agg_proj== "Month") trends = dds_month
+  #                 else trends = dds_year
+  #               } else {
+  #                 if(input$agg_proj== "Month") trends = ndd_month
+  #                 else trends = ndd_year
+  #               }
+  #               data[,,i] <- as.matrix(trends)
+  #             }
+  #             # calculate mean and condidence interval
+  #             means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
+  #             ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
+  #             ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
+  # 
+  #             dates <- as.Date(rownames(means))
+  #             map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
+  #           }
+  #         }
+  #       }
+  #     }
+  #   }
+  # })
 
-      # Convert coordinates of the click zone into a spatial point
-      clicker <- SpatialPoints(coords = data.frame(x = map_proj_click$x$lng, y = map_proj_click$x$lat), proj4string = mapCRS)
 
-      if(input$display_proj == "Watersheds"){
-        info <- clicker %over% con.pol
-        colnames(info) <- c("Id", "Name", "Fl")
-        info$type <- "watershed"
-        IFN3_sel <- IFN3.points@data[IFN3.points$ID_CONCA == info$Id,]
-      } else if(input$display_proj == "Counties"){
-        info <- clicker %over% cat.pol
-        colnames(info) <- c("Id", "Name", "Capital", "Superficy")
-        info$type <- "county"
-        IFN3_sel <- IFN3.points@data[IFN3.points$COMARCA == info$Id,]
-      } else if(input$display_proj == "Municipalities"){
-        info <- clicker %over% mun.pol
-        colnames(info) <- c("Id", "County", "Province", "Name", "Name2", "Name3", "Capital", "Capital2", "Capital3", "Superficy", "X")
-        info$type <- "municipality"
-        IFN3_sel <- IFN3.points@data[IFN3.points$MUNICIPI == info$Id,]
-      } else if(input$display_proj == "IFN plots"){
-        IFN3_sel <- IFN3.points@data[as.character(IFN3.points$ID) == map_proj_click$x$id,]
-        info <- data.frame(Name = paste("plot '",IFN3_sel$ID,"'"), type = "IFN plot")
-      } else {
-        IFN3_sel <- IFN3.points@data[rep(FALSE,length(IFN3.points$ID)),]
-      }
-
-      # Open relevant files and extract informations regarding the selected variable
-      if(nrow(IFN3_sel)>0){
-        folder <- paste0(data_home,"Rdata/Plots/ProjectedSWB/", climate_models[input$rcm_proj],"/",input$rcp_proj)
-        plots_id <- IFN3_sel$ID
-        plots_id <- plots_id[as.character(plots_id) %in% available_plots_projections]
-        if(length(plots_id)>0) {
-          if(input$mode_proj %in% c("Climate","Forest water balance")){
-            load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-            if(input$agg_proj== "Month") trends = swb_month
-            else trends = swb_year
-            # open all the files of the individual plots
-            data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
-            for(i in 1:length(plots_id)){
-              load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-              if(input$agg_proj== "Month") trends = swb_month
-              else trends = swb_year
-              data[,,i] <- as.matrix(trends)
-            }
-
-            # calculate mean and condidence interval
-            means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
-            ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
-            ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
-
-            dates <- as.Date(rownames(means))
-            map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
-
-          }
-          else if(input$mode_proj == "Drought stress"){
-            if(!is.null(input$DS_proj)){
-              load(paste(folder, "/", plots_id[1], ".rda", sep = ""))
-              if(input$DS_proj=="Stress intensity"){
-                if(input$agg_proj== "Month") trends = dds_month
-                else trends = dds_year
-              } else {
-                if(input$agg_proj== "Month") trends = ndd_month
-                else trends = ndd_year
-              }
-              # open all the files of the individual plots
-              data <- array(NA, dim = c(nrow(trends),ncol(trends),length(plots_id)), dimnames = list(rownames(trends), colnames(trends), plots_id))
-              for(i in 1:length(plots_id)){
-                load(paste(folder, "/", plots_id[i], ".rda", sep = ""))
-                if(input$DS_proj=="Stress intensity"){
-                  if(input$agg_proj== "Month") trends = dds_month
-                  else trends = dds_year
-                } else {
-                  if(input$agg_proj== "Month") trends = ndd_month
-                  else trends = ndd_year
-                }
-                data[,,i] <- as.matrix(trends)
-              }
-              # calculate mean and condidence interval
-              means <- apply(data, MARGIN = c(1,2), FUN = mean, na.rm = T) %>% as.data.frame()
-              ci_sup <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.975, na.rm = T)) %>% as.data.frame()
-              ci_inf <- apply(data, MARGIN = c(1,2), FUN = function(x) quantile(x, p = 0.025, na.rm = T)) %>% as.data.frame()
-
-              dates <- as.Date(rownames(means))
-              map_proj_data$x<-list("dates"=dates, "ci_inf"=ci_inf, "means"=means, "ci_sup"=ci_sup, "info"=info, "nplots" = nrow(IFN3_sel))
-            }
-          }
-        }
-      }
-    }
-  })
-
-
-  #Reacts to changes in variable selected and map_daily_data changes
+  #### Reacts to changes in variable selected and map_daily_data changes ####
   output$trends_daily<-renderDygraph({
     if(!is.null(map_daily_data$x)) {
       if(input$mode_daily == "Climate") {
@@ -1470,7 +1479,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  # Reacts to changes in variable selected and map_hist_data changes
+  #### Reacts to changes in variable selected and map_hist_data changes ####
   output$trends_hist<-renderDygraph({
     if(!is.null(map_hist_data$x)) {
       if(input$mode_hist == "Climate") {
@@ -1518,57 +1527,60 @@ shinyServer(function(input, output, session) {
       }
     }
   })
-  #Reacts to changes in variable selected and map_proj_data changes
-  output$trends_proj<-renderDygraph({
-    if(!is.null(map_proj_data$x)) {
-      if(input$mode_proj == "Climate") {
-        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-        title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
-        label=input$clim_proj
-      } else if(input$mode_proj == "Forest water balance") {
-        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
-        title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
-        label=input$WB_proj
-      } else {
-        col <- as.character(species[species$input == input$sp_proj, "medfate"])
-        if(isolate(input$DS_proj=="Stress intensity")) title <- paste("Stress intensity index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
-        else title <- paste("Stress duration for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
-        label="Drought stress"
-      }
-      if(col %in% names(map_proj_data$x$means)){
-        title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
-        m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
-        colnames(m)<-c("lower", "mean","upper")
-        rownames(m)<-as.character(map_proj_data$x$dates)
-        if(input$agg_proj=="Month" && !input$allmonths_proj) {
-          mth = as.numeric(format(as.Date(rownames(m)),"%m"))
-          m = m[mth==as.numeric(input$trend_month_proj),]
-        }
-        x<-xts(m,as.Date(rownames(m)))
-        if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
-        if(input$mode_proj=="Drought stress") {
-          if(input$DS_proj=="Stress intensity"){
-            dygraph(x, main= title) %>%
-              dySeries(c("lower", "mean","upper"), label=label) %>%
-              dyRangeSelector() %>%
-              dyAxis("y", label = "Average stress intensity", valueRange = c(0, 1)) %>%
-              dyLimit(0.5, color="red")
-          } else {
-            dygraph(x, main= title) %>%
-              dySeries(c("lower", "mean","upper"), label=label) %>%
-              dyRangeSelector() %>%
-              dyAxis("y", label = "Maximum stress duration")
-          }
-        } else {
-          dygraph(x, main= title) %>%
-            dySeries(c("lower", "mean","upper"), label=label) %>%
-            dyRangeSelector()
-        }
-      }
-    }
-  })
 
-  #Downloads daily trends
+  #### Reacts to changes in variable selected and map_proj_data changes ####
+  # output$trends_proj<-renderDygraph({
+  #   if(!is.null(map_proj_data$x)) {
+  #     if(input$mode_proj == "Climate") {
+  #       col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+  #       title <- paste(input$clim_proj," at ",as.character(map_proj_data$x$info$Name))
+  #       label=input$clim_proj
+  #     } else if(input$mode_proj == "Forest water balance") {
+  #       col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+  #       title <- paste(input$WB_proj," at ",as.character(map_proj_data$x$info$Name))
+  #       label=input$WB_proj
+  #     } else {
+  #       col <- as.character(species[species$input == input$sp_proj, "medfate"])
+  #       if(isolate(input$DS_proj=="Stress intensity")) title <- paste("Stress intensity index for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
+  #       else title <- paste("Stress duration for ", input$sp_proj," at ",as.character(map_proj_data$x$info$Name))
+  #       label="Drought stress"
+  #     }
+  #     if(col %in% names(map_proj_data$x$means)){
+  #       title<- paste0(title," - ", input$rcm_proj," - ", input$rcp_proj)
+  #       m<-cbind( map_proj_data$x$ci_sup[,col], map_proj_data$x$means[,col],map_proj_data$x$ci_inf[,col])
+  #       colnames(m)<-c("lower", "mean","upper")
+  #       rownames(m)<-as.character(map_proj_data$x$dates)
+  #       if(input$agg_proj=="Month" && !input$allmonths_proj) {
+  #         mth = as.numeric(format(as.Date(rownames(m)),"%m"))
+  #         m = m[mth==as.numeric(input$trend_month_proj),]
+  #       }
+  #       x<-xts(m,as.Date(rownames(m)))
+  #       if(map_proj_data$x$nplots>1) title<-title<-paste0(title, " (",map_proj_data$x$nplots," plots)")
+  #       if(input$mode_proj=="Drought stress") {
+  #         if(input$DS_proj=="Stress intensity"){
+  #           dygraph(x, main= title) %>%
+  #             dySeries(c("lower", "mean","upper"), label=label) %>%
+  #             dyRangeSelector() %>%
+  #             dyAxis("y", label = "Average stress intensity", valueRange = c(0, 1)) %>%
+  #             dyLimit(0.5, color="red")
+  #         } else {
+  #           dygraph(x, main= title) %>%
+  #             dySeries(c("lower", "mean","upper"), label=label) %>%
+  #             dyRangeSelector() %>%
+  #             dyAxis("y", label = "Maximum stress duration")
+  #         }
+  #       } else {
+  #         dygraph(x, main= title) %>%
+  #           dySeries(c("lower", "mean","upper"), label=label) %>%
+  #           dyRangeSelector()
+  #       }
+  #     }
+  #   }
+  # })
+
+
+
+  #### Downloads daily trends ####
   dailyTrends<-reactive({
     if(input$mode_daily == "Climate") {
       col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
@@ -1594,7 +1606,7 @@ shinyServer(function(input, output, session) {
     }
   )
 
-  #Downloads historic trends
+  #### Downloads historic trends ####
   historicTrends<-reactive({
     if(input$mode_hist == "Climate") {
       col <- as.character(clim_variables[clim_variables$input == input$clim_hist, "medfate"])
@@ -1676,93 +1688,92 @@ shinyServer(function(input, output, session) {
   })
 
 
-  #Downloads projected trends
-  projectedTrends<-reactive({
-    if(input$mode_proj == "Climate") {
-      col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-    } else if(input$mode_proj == "Forest water balance") {
-      col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
-    } else {
-      col <- as.character(species[species$input == input$sp_proj, "medfate"])
-    }
-    first=which(!is.na(map_proj_data$x$means[,col]))[1]
-    end = length(map_proj_data$x$means[,col])
-    m<-cbind( map_proj_data$x$ci_inf[first:end,col], map_proj_data$x$means[first:end,col],map_proj_data$x$ci_sup[first:end,col])
-    colnames(m)<-c("lower", "mean","upper")
-    rownames(m)<-as.character(map_proj_data$x$dates[first:end])
-    # as.data.frame(m)
-    m
-  })
-  output$downloadTrendProj<-downloadHandler(
-    filename = function() {
-      paste("projected_trend.txt")
-    },
-    content = function(file) {
-      write.table(projectedTrends(), file=file,sep="\t", quote=FALSE)
-    }
-  )
-  output$MK_proj<-renderPrint({
-    if(!is.null(map_proj_data$x)) {
-      if(input$mode_proj == "Climate") {
-        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-      } else if(input$mode_proj == "Forest water balance") {
-        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
-      } else {
-        col <- as.character(species[species$input == input$sp_proj, "medfate"])
-      }
-      if((length(col)>0) && (!is.null(map_proj_data$x$means))){
-        first=which(!is.na(map_proj_data$x$means[,col]))[1]
-        end = length(map_proj_data$x$means[,col])
-        m = map_proj_data$x$means[first:end,col]
-        names(m)<-as.character(map_proj_data$x$dates[first:end])
-        if(input$agg_proj=="Month" && !input$allmonths_proj) {
-          mth = as.numeric(format(as.Date(names(m)),"%m"))
-          m = m[mth==as.numeric(input$trend_month_proj)]
-        }
-        MannKendall(m)
-      }
-    }
-  })
-  output$TS_slope_proj<-renderText({
-    if(!is.null(map_proj_data$x)) {
-      if(input$mode_proj == "Climate") {
-        col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
-      } else if(input$mode_proj == "Forest water balance") {
-        col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
-      } else {
-        col <- as.character(species[species$input == input$sp_proj, "medfate"])
-      }
-      if((length(col)>0) && (!is.null(map_proj_data$x$means))){
-        first=which(!is.na(map_proj_data$x$means[,col]))[1]
-        end = length(map_proj_data$x$means[,col])
-        m = map_proj_data$x$means[first:end,col]
-        names(m)<-as.character(map_proj_data$x$dates[first:end])
-        timeunit = "year"
-        if(input$agg_proj=="Month") {
-          timeunit = "month"
-          if(!input$allmonths_proj) {
-            mth = as.numeric(format(as.Date(names(m)),"%m"))
-            m = m[mth==as.numeric(input$trend_month_proj)]
-            timeunit="year"
-          }
-        }
-        t = 1:length(m)
-        z<-zyp.sen(m~t)
-        paste0(signif(as.numeric(coefficients(z)[2])), " units per ", timeunit)
-      }
-    }
-  })
+  #### Downloads projected trends ####
+  # projectedTrends<-reactive({
+  #   if(input$mode_proj == "Climate") {
+  #     col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+  #   } else if(input$mode_proj == "Forest water balance") {
+  #     col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+  #   } else {
+  #     col <- as.character(species[species$input == input$sp_proj, "medfate"])
+  #   }
+  #   first=which(!is.na(map_proj_data$x$means[,col]))[1]
+  #   end = length(map_proj_data$x$means[,col])
+  #   m<-cbind( map_proj_data$x$ci_inf[first:end,col], map_proj_data$x$means[first:end,col],map_proj_data$x$ci_sup[first:end,col])
+  #   colnames(m)<-c("lower", "mean","upper")
+  #   rownames(m)<-as.character(map_proj_data$x$dates[first:end])
+  #   # as.data.frame(m)
+  #   m
+  # })
+  # output$downloadTrendProj<-downloadHandler(
+  #   filename = function() {
+  #     paste("projected_trend.txt")
+  #   },
+  #   content = function(file) {
+  #     write.table(projectedTrends(), file=file,sep="\t", quote=FALSE)
+  #   }
+  # )
+  # output$MK_proj<-renderPrint({
+  #   if(!is.null(map_proj_data$x)) {
+  #     if(input$mode_proj == "Climate") {
+  #       col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+  #     } else if(input$mode_proj == "Forest water balance") {
+  #       col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+  #     } else {
+  #       col <- as.character(species[species$input == input$sp_proj, "medfate"])
+  #     }
+  #     if((length(col)>0) && (!is.null(map_proj_data$x$means))){
+  #       first=which(!is.na(map_proj_data$x$means[,col]))[1]
+  #       end = length(map_proj_data$x$means[,col])
+  #       m = map_proj_data$x$means[first:end,col]
+  #       names(m)<-as.character(map_proj_data$x$dates[first:end])
+  #       if(input$agg_proj=="Month" && !input$allmonths_proj) {
+  #         mth = as.numeric(format(as.Date(names(m)),"%m"))
+  #         m = m[mth==as.numeric(input$trend_month_proj)]
+  #       }
+  #       MannKendall(m)
+  #     }
+  #   }
+  # })
+  # output$TS_slope_proj<-renderText({
+  #   if(!is.null(map_proj_data$x)) {
+  #     if(input$mode_proj == "Climate") {
+  #       col <- as.character(clim_variables[clim_variables$input == input$clim_proj, "medfate"])
+  #     } else if(input$mode_proj == "Forest water balance") {
+  #       col <- as.character(WB_variables[WB_variables$input == input$WB_proj, "medfate"])
+  #     } else {
+  #       col <- as.character(species[species$input == input$sp_proj, "medfate"])
+  #     }
+  #     if((length(col)>0) && (!is.null(map_proj_data$x$means))){
+  #       first=which(!is.na(map_proj_data$x$means[,col]))[1]
+  #       end = length(map_proj_data$x$means[,col])
+  #       m = map_proj_data$x$means[first:end,col]
+  #       names(m)<-as.character(map_proj_data$x$dates[first:end])
+  #       timeunit = "year"
+  #       if(input$agg_proj=="Month") {
+  #         timeunit = "month"
+  #         if(!input$allmonths_proj) {
+  #           mth = as.numeric(format(as.Date(names(m)),"%m"))
+  #           m = m[mth==as.numeric(input$trend_month_proj)]
+  #           timeunit="year"
+  #         }
+  #       }
+  #       t = 1:length(m)
+  #       z<-zyp.sen(m~t)
+  #       paste0(signif(as.numeric(coefficients(z)[2])), " units per ", timeunit)
+  #     }
+  #   }
+  # })
 
-  
   # What are the different inputs?
-  # output$inputList_daily <- renderPrint({
-  #   str(reactiveValuesToList(input))
-  #   str(map_daily_click$x)
-  #   str(map_daily_data$x)
-  # })
-  # output$inputList_hist <- renderPrint({
-  #   str(reactiveValuesToList(input))
-  # })
+  output$inputList_daily <- renderPrint({
+    str(reactiveValuesToList(input))
+    str(map_daily_click$x)
+    str(map_daily_data$x)
+  })
+  output$inputList_hist <- renderPrint({
+    str(reactiveValuesToList(input))
+  })
   # output$inputList_proj <- renderPrint({
   #   str(reactiveValuesToList(input))
   # })
