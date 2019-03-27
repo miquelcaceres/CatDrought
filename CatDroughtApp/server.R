@@ -60,13 +60,13 @@ IFN3.points$NOM_MUNI <- op$NOM_MUNI
 IFN3.points <- IFN3.points[!is.na(IFN3.points$COMARCA) & !is.na(IFN3.points$MUNICIPI),]
 
 ## Data input
-folder_daily_trends <- paste0(data_home,"Rdata/Plots/SWBTrends")
+folder_daily_trends <- paste0(data_home,"Rdata/Plots/SPWBTrends")
 available_plots_trends <- list.files(folder_daily_trends)
 available_plots_trends <- unlist(strsplit(available_plots_trends,split = ".rda"))
-folder_projections <- paste0(data_home,"Rdata/Plots/ProjectedSWB/CCLM4-8-17/rcp4.5/")
+folder_projections <- paste0(data_home,"Rdata/Plots/ProjectedSPWB/CCLM4-8-17/rcp4.5/")
 available_plots_projections <- list.files(folder_projections)
 available_plots_projections <- unlist(strsplit(available_plots_projections,split = ".rda"))
-folder_historic <- paste0(data_home,"Rdata/Plots/HistoricSWB/IFN2-3/")
+folder_historic <- paste0(data_home,"Rdata/Plots/HistoricSPWB/IFN2-3/")
 available_plots_historic <- list.files(folder_historic)
 available_plots_historic <- unlist(strsplit(available_plots_historic,split = ".rda"))
 
