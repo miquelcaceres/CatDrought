@@ -14,17 +14,17 @@ output:
 
 ### Overview
 
-This service offers model-based estimates of the historic (1986-2016), recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil water balance (SWB) model and forest plot data of the Spanish National Forest Inventory (De Cáceres et al. 2015). Water balance is done at the stand level only, neglecting lateral hydrological processes. The service complements monitoring programs of observed drought-related forest decline (mortality, decoloration and leaf loss) conducted in the same area (DEBOSCAT) (Chaparro et al. 2016).
+This service offers model-based estimates of the historic (1986-2016), recent trends (up to 1 year) and projected scenarios (up to year 2100) in soil moisture levels of forests and drought stress of main tree species over Catalonia (NE Spain). Estimates are obtained using a soil plant water balance (SPWB) model and forest plot data of the Spanish National Forest Inventory (De Cáceres et al. 2015). Weather data comes primarily from weather station networks and is processed using the routines described in De Cáceres et al. (2018). Water balance is done at the stand level only, neglecting lateral hydrological processes. The service is intended to complement DEBOSCAT, a monitoring program of observed drought-related forest decline events (mortality, decoloration and leaf loss) conducted in the same area (Chaparro et al. 2016).
 
 
-### Soil water balance (SWB) model
+### Soil plant water balance (SPWB) model
 
-The water balance model described in De Cáceres et al. (2015) (implemented in the *medfate* R package) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (i.e. precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Cáceres et al. (2015).
+The water balance model described in De Cáceres et al. (2015) follows the design principles from BILJOU (Granier et al. 1999) and SIERRA water balance submodel (Mouillot et al. 2001). The model performs daily updates of soil water content as a function of the stand structure and daily weather (radiation, temperature and precipitation). Soil water balance is the difference between processes determining water input (i.e. precipitation) and outputs (canopy interception, tree transpiration, bare soil evaporation, surface runoff and deep drainage). Details of the formulation of each of these processes are given in De Cáceres et al. (2015). The model is implemented in the [medfate](http://vegmod.ctfc.cat/medfateweb) R package.
 
 
 *Weather inputs*
 
-The SWB model requires values of the following daily weather variables: precipitation, potential evapotranspiration (PET). Average daily temperature is also required to calculate growth degree days and update phenological status, but this variable is not currently stored.
+The SPWB model requires values of the following daily weather variables: precipitation, potential evapotranspiration (PET). Average daily temperature and solar radiation are also required, but these variables are not currently stored.
 
 Variable name	| Definition | Units | Aggreg.
 ------------- | ---------- | ----- | -------
@@ -32,11 +32,13 @@ PET	| Penman’s potential evapotranspiration	| mm/day	| Sum
 Precipitation	| Precipitation	| mm/day	| Sum
 
 
+Details of weather data sources and processing are given below.
+
 ---
 
 *Forest water balance*
 
-Every simulation day, the SWB model updates the leaf area index (LAI) of forests according to a simple phenology model and produces the following variables describing the water balance in forest stands:
+Every simulation day, the SPWB model updates the leaf area index (LAI) of forests according to a simple phenology model and produces the following variables describing the water balance in forest stands:
 
 Variable name	| Definition | Units | Aggreg.
 ------------- | ---------- | ----- | -------
@@ -109,7 +111,7 @@ The following diagram illustrates the workflow of tasks necessary for the initia
 
 *Simulation locations*
 
-SWB simulations are conducted on two sets of locations:
+SPWB simulations are conducted on two sets of locations:
 
 1. 200 x 200 m pixels (384,000). 
 2. IFN3 plots (11,454).
@@ -121,7 +123,7 @@ Simulation on pixels are only used for mapping purposes, whereas simulations on 
 + Two soil layers considered (topsoil and subsoil). Soil texture obtained from the Harmonized Soil World Data Base. Rock fragment content from forest plot surface rock abundance.
 + Height and leaf area index (LAI) of trees and shrubs from forest plot data. LAI estimated from allometric relationships including DBH and stand competition (Ameztegui, Cabon et al. 2017). 
 + Species parameterization includes, apart from allometric relationships, critical soil water potential thresholds that determine the reduction of transpiration with soil drying, leaf water interception, light extinction and growth degree days necessary for leaf development of deciduous species.
-+ Soil depth and root distribution estimated as described in Cabon et al. (in prep.).
++ Soil depth and root distribution estimated as described in Cabon et al. (2018).
 
 *Initialization of pixels*
 
@@ -135,7 +137,8 @@ The imputation process of IFN3 plots to 200x200 m pixels may entail gross errors
 
 *Climate forcing*
 
-Weather station data of the current day is downloaded from APIs provided by the Spanish [Agencia Estatal de Meteorologia (AEMET)](https://opendata.aemet.es/centrodedescargas/inicio). This information, complemented with weather data from previous days, is used to interpolate weather variables over the simulation locations (pixels or IFN3 plots). Interpolation routines are implemented in package *meteoland*. 
+Weather station data of the current day is downloaded from the Spanish [Agencia Estatal de Meteorologia (AEMET)](https://opendata.aemet.es/centrodedescargas/inicio) using their [OpenData API](https://opendata.aemet.es). This information, complemented with weather data from previous days, is used to interpolate weather variables over the simulation locations (pixels or IFN3 plots). Precipitation, temperature and relative humidity are interpolated for the target locations and solar radiation is estimated from latitude, topography and the other variables (see details in De Cáceres et al. 2018). Interpolation routines are implemented in the R package *meteoland*. 
+
 
 *Mapping*
 
@@ -214,7 +217,7 @@ MODE 2/3           | Meteo interpolation 1986-2016 |  7 days            | No    
 MODE 2 (historic)  | Soil water balance IFN2/IFN3  |  18 hours          | No         | No    |
 MODE 2 (historic)  | Mapping                       |  2 hours           | No         | No    |
 MODE 2 (historic)  | Trend mapping                 |  1 hour            | No         | No    |
-MODE 3 (projection)| Bias correction & SWB         |  10 days           | No         | No    |
+MODE 3 (projection)| Bias correction & SPWB        |  10 days           | No         | No    |
 MODE 3 (projection)| Trend mapping                 |  10 hours          | No         | No    |
 
 ---
@@ -233,7 +236,6 @@ Daily routines in total account for 13 min of computation in a server with 8 cor
 *Potential improvements*
 
 + Replace plot-based historic meteo interpolation by 1km pixel-based over Catalonia for mapping purposes (¿?)
-+ Soil input data from [SoilGrids](https://www.soilgrids.org)
 + Combine initialization IFN2 (1987-91), IFN3 (2000-2001) and IFN4 (2014) in historical simulations.
 + Use IFN4 (2014) in climate change simulations.
 + Validation/comparison with remote sensing data (SMOS, RWC).
@@ -246,7 +248,9 @@ Daily routines in total account for 13 min of computation in a server with 8 cor
 
 
 + Ameztegui, A., Cabon, A., De Cáceres, M. & Coll, L. (2017). Managing stand density to enhance the adaptability of Scots pine stands to climate change: A modelling approach. Ecol. Modell., 356, 141–150.
++ Cabon A, Martínez-Vilalta J, Martínez-de-Aragón J, De Cáceres M (2018) Applying the eco-hydrological equilibrium hypothesis to model root distribution in water-limited forests. Ecohydrology  11: e2015.
 + De Cáceres, M., Martinez-Vilalta, J., Coll, L., Llorens, P., Casals, P., Poyatos, R., et al. (2015). Coupling a water balance model with forest inventory data to predict drought stress: the role of forest structural changes vs. climate changes. Agric. For. Meteorol., 213, 77–90.
++ De Caceres M, Martin-StPaul N, Turco M, Cabon A, Granda V (2018) Estimating daily meteorological data and downscaling climate models over landscapes. Environmental Modelling and Software 108: 186-196.
 + Chaparro, D., Vayreda, J., Vall-llossera, M., Banque, M., Piles, M., Camps, A., et al. (2016). The Role of Climatic Anomalies and Soil Moisture in the Decline of Drought-Prone Forests. IEEE J. Sel. Top. Appl. Earth Obs. Remote Sens., 10, 503–514.
 + Granier, A., Bréda, N., Biron, P. & Villette, S. (1999). A lumped water balance model to evaluate duration and intensity of drought constraints in forest stands. Ecol. Modell., 116, 269–283.
 + Mouillot, F., Rambal, S. & Lavorel, S. (2001). A generic process-based SImulator for meditERRanean landscApes (SIERRA): design and validation exercises. For. Ecol. Manage., 147, 75–97.
