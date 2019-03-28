@@ -85,8 +85,9 @@ input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plants transpiration 
 medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta")
 WB_variables <- data.frame(input = input_WB_var, medfate = medfate_WB_var)
 
-input_soil_var<-c("Soil depth (cm)", "Water holding capacity (mm)", "Topsoil texture type", "Subsoil texture type","Topsoil rock fragment content (%)", "Subsoil rock fragment content (%)")
-medfate_soil_var<-c("SoilDepth", "SWHC", "TopTT", "SubTT", "TopRFC", "SubRFC")
+input_soil_var<-c("Soil depth (cm)", "Water content at field capacity (mm)", "Water content at wilting point (mm)"  ,"Water holding capacity (mm)", 
+                  "Topsoil texture type", "Subsoil texture type","Topsoil rock fragment content (%)", "Subsoil rock fragment content (%)")
+medfate_soil_var<-c("SoilDepth", "SWFC", "SWWP", "SWHC", "TopTT", "SubTT", "TopRFC", "SubRFC")
 soil_variables <- data.frame(input = input_soil_var, medfate = medfate_soil_var)
 
 input_ifn_var<-c("Leaf Area Index", "Density (ind/m2)", "Basal area (m2/ha)", "Average height (m)")
@@ -165,10 +166,18 @@ pal_soil$rev <-F
 pal_soil["Soil depth (cm)","min"] = 30
 pal_soil["Soil depth (cm)","max"] = 1000
 pal_soil["Soil depth (cm)","trans"] = "log"
+pal_soil["Water content at field capacity (mm)","color"]<-"Blues"
+pal_soil["Water content at field capacity (mm)","min"] = 10
+pal_soil["Water content at field capacity (mm)","max"] = 400
+pal_soil["Water content at field capacity (mm)","trans"] = "identity"
+pal_soil["Water content at wilting point (mm)","color"]<-"Blues"
+pal_soil["Water content at wilting point (mm)","min"] = 10
+pal_soil["Water content at wilting point (mm)","max"] = 250
+pal_soil["Water content at wilting point (mm)","trans"] = "identity"
 pal_soil["Water holding capacity (mm)","color"]<-"Blues"
 pal_soil["Water holding capacity (mm)","min"] = 10
-pal_soil["Water holding capacity (mm)","max"] = 2000
-pal_soil["Water holding capacity (mm)","trans"] = "log"
+pal_soil["Water holding capacity (mm)","max"] = 160
+pal_soil["Water holding capacity (mm)","trans"] = "identity"
 pal_soil["Topsoil rock fragment content (%)","max"] = 100
 pal_soil["Subsoil rock fragment content (%)","max"] = 100
 print(pal_soil)
