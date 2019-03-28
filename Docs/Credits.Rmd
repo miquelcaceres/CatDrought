@@ -7,16 +7,17 @@ output: html_document
 
 This web-based service has been develop by the [Vegetation Modeling Group](http://vegmod.ctfc.cat/) at [Forest Sciences Centre of Catalonia (CTFC)](http://www.ctfc.cat), in collaboration with the [Center for Ecological Research and Forestry Applications (CREAF)](http://www.creaf.cat/):
 
-+ *Idea and conceptual design* : Miquel De Cáceres (CTFC-CEMFOR/CREAF) & Jordi Martínez Vilalta (UAB/CREAF)
-+ *Model development* : Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
-+ *User interface*: Miquel De Cáceres & Antoine Cabon (CTFC-CEMFOR/CREAF)
++ *Idea and conceptual design* : Miquel De Cáceres (CTFC/CREAF) & Jordi Martínez Vilalta (UAB/CREAF)
++ *Model development* : Miquel De Cáceres, Antoine Cabon (CTFC/CREAF) & Víctor Granda (CTFC).
++ *User interface*: Miquel De Cáceres & Antoine Cabon.
 + *Contact*: Miquel De Cáceres (miquelcaceres@gmail.com)
 
 ---
 
 ### Data sources
 
-+ Information elaborated using daily weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es).
++ Information elaborated using daily weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) using their [OpenData API](https://opendata.aemet.es).
++ Soil data drawn from [SoilGrids](https://soilgrids.org), a global database of gridded soil information powered by [IRSIC](https://www.isric.org/).
 + Historic (1990-2015) weather data obtained from the [Agencia Estatal de Meteorologia (AEMET)](http://www.aemet.es) and [Servei Meteorologic de Catalunya (SMC)](http://www.meteo.cat).
 + Climate scenarios (2006-2100) downloaded from [Earth System Grid Federation (ESGF)](http://esgf.llnl.gov/).
 + Forest inventory data was obtained from the Spanish [Ministerio de Agricultura y Pesca, Alimentación y Medio Ambiente](http://www.mapama.gob.es/es/biodiversidad/servicios/banco-datos-naturaleza/informacion-disponible/ifn3.aspx).
@@ -26,25 +27,27 @@ This web-based service has been develop by the [Vegetation Modeling Group](http:
 ### Scientific advisory board
 
 + Jordi Martínez Vilalta (UAB/CREAF)
-+ Maurizio Mencuccini (ICREA)
-+ Lluís Coll (CTFC-CEMFOR/CREAF)
++ Maurizio Mencuccini (ICREA/CREAF)
++ Lluís Coll (UdL-CTFC)
 + Juli G. Pausas (CIDE-CSIC)
-+ Pere Casals (CTFC-CEMFOR)
-+ Lluís Brotons (CTFC-CEMFOR/CREAF/CSIC)
++ Pere Casals (CTFC)
++ Lluís Brotons (CTFC/CREAF/CSIC)
 + Pilar Llorens (IDAEA-CSIC)
 + Rafael Poyatos (CREAF)
 + Albert Álvarez (CREAF)
 + Jordi Vayreda (CREAF)
-+ Mario Beltrán (AGS-CTFC)
++ Mario Beltrán (CTFC)
 
 
 ---
 
-### Funding projects
+## Funding projects
 
-*Project grants*: CGL2014-59742-C2-2-R (Ministerio de Economía y Ciencia).
+  + *Projects*: **FORESTCAST** (CGL2014-59742-C2-2-R,
+    Ministerio de Economía y Competitividad), **DRESS** (CGL2017-89149-C2-2-R, Ministerio de Economía y Competitividad).
 
-*Fellowships*: RYC-2012-11109 to M. De Cáceres (Ministerio de Economía y Ciencia).
+  + *Fellowships*: RYC-2012-11109 to M. De Cáceres (Ministerio de Economía y
+    Ciencia).
 
 ---
 

@@ -382,13 +382,13 @@ shinyUI(
                           fluidRow(
                             column(3),
                             column(2,
-                              a(href = "http://www.ctfc.cat/", img(src="logo_ctfc.png"))
+                              a(href = "http://www.ctfc.cat/", img(src="logo_ctfc_scaled.png"))
                             ),
                             column(2,
-                              a(href = "http://vegmod.ctfc.cat/", img(src="LOGO_Group.png"))
+                              a(href = "http://vegmod.ctfc.cat/", img(src="LOGO_Group_scaled.png"))
                             ),
                             column(2,
-                                   a(href = "http://www.creaf.cat/", img(src="logo_creaf.png"))
+                                   a(href = "http://www.creaf.cat/", img(src="logo_creaf_scaled.png"))
                             ),
                             column(3)
                           )
