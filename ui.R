@@ -74,7 +74,8 @@ shinyUI(
                                 width = 250, height = 180,
                                 h4(""),
                                 selectInput("basemap_daily","Base map", choices = basemaps),
-                                sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, ticks = FALSE)
+                                sliderInput("alpha_daily", "Raster opacity", min = 0, max = 1, value = 1, 
+                                            ticks = FALSE, step=0.01, round=FALSE, dragRange = FALSE)
                   )
 
           )

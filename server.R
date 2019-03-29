@@ -70,6 +70,8 @@ folder_historic <- paste0(data_home,"Rdata/Plots/HistoricSPWB/IFN2-3/")
 available_plots_historic <- list.files(folder_historic)
 available_plots_historic <- unlist(strsplit(available_plots_historic,split = ".rda"))
 
+## Available dates for current drought
+dates_daily = as.Date(substr(list.files(paste0(data_home,"Rdata/Maps/Current/1km/SPWB/Rain"),pattern = "*.rda"),1,10))
 
 ##Weather station locations
 # load(paste0(data_home,"Rdata/WeatherStations.Rdata"))
@@ -233,7 +235,7 @@ rel_change_scale<-function(reverse = F) {
 #### Define server logic ####
 shinyServer(function(input, output, session) {
   output$date_daily<-renderUI({
-    dateInput("date_daily", "Date",value = as.Date("2019-01-01"), min =as.Date("2019-01-01"), max = Sys.Date()-1, weekstart=1)
+    dateInput("date_daily", "Date",value = dates_daily[length(dates_daily)], min =dates_daily[1], max = dates_daily[length(dates_daily)], weekstart=1)
   })
   
 
