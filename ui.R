@@ -321,16 +321,10 @@ shinyUI(
     tabPanel("Static inputs",
              fluidRow(
                column(width=3,
-                      selectInput("mode_stat", "Variable type", choices = c("Soil","IFN2", "IFN3"), selected = "Soil")
+                      selectInput("mode_stat", "Variable type", choices = c("Vegetation","Soil"), selected = "Vegetation")
                ),
                column(width=3,
                       uiOutput("var_choice_stat")
-               ),
-               column(width=3,
-                      conditionalPanel(
-                        condition = "input.mode_stat!='Soil'",
-                        selectInput("sp_stat", "Choose species", choices = input_sp, selected = "Overall")
-                      )
                )
              ),
              tabsetPanel(

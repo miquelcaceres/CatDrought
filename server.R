@@ -92,6 +92,11 @@ input_soil_var<-c("Soil depth (cm)", "Water content at field capacity (mm)", "Wa
 medfate_soil_var<-c("SoilDepth", "SWFC", "SWWP", "SWHC", "TopTT", "SubTT", "TopRFC", "SubRFC")
 soil_variables <- data.frame(input = input_soil_var, medfate = medfate_soil_var)
 
+input_veg_var<-c("Leaf Area Index (m2/m2)", "Average height (m)", "Z50 (cm)", "Z95 (cm)")
+medfate_veg_var<-c("LAI", "Height", "Z50", "Z95")
+veg_variables <- data.frame(input = input_veg_var, medfate = medfate_veg_var)
+
+
 input_ifn_var<-c("Leaf Area Index", "Density (ind/m2)", "Basal area (m2/ha)", "Average height (m)")
 medfate_ifn_var<-c("LAI", "N", "BA", "H")
 ifn_variables <- data.frame(input = input_ifn_var, medfate = medfate_ifn_var)
@@ -183,6 +188,22 @@ pal_soil["Water holding capacity (mm)","trans"] = "identity"
 pal_soil["Topsoil rock fragment content (%)","max"] = 100
 pal_soil["Subsoil rock fragment content (%)","max"] = 100
 print(pal_soil)
+
+## Define color scales for rasters
+pal_veg <- as.data.frame(matrix(NA, nrow = length(input_veg_var), ncol = 5, dimnames = list(input_veg_var, c("min", "max", "color", "trans", "rev"))))
+pal_veg$min <- 0
+pal_veg$trans <- "identity"
+pal_veg$color <-"Greens"
+pal_veg$rev <-F
+pal_veg["Leaf Area Index (m2/m2)","max"] = 9.5
+pal_veg["Leaf Area Index (m2/m2)","trans"] = "log"
+pal_veg["Average height (m)","max"] = 45
+pal_veg["Average height (m)","trans"] = "log"
+pal_veg["Z50 (cm)","max"] = 150
+pal_veg["Z95 (cm)","max"] = 500
+pal_veg[c("Z95 (cm)", "Z50 (cm)"), "color"] <- "Reds"
+
+print(pal_veg)
 
 log_trans <- function(dom, n = 10, digits = 1) {signif(exp(seq(log(dom[1]+1), log(dom[2]+1), length.out = n))-1, digits = digits)}
 identity_trans <- function(dom, n = 10, digits = 1) {signif(seq(dom[1], dom[2], length.out = n), digits = digits)}
@@ -296,18 +317,18 @@ shinyServer(function(input, output, session) {
   #   selectInput(input_name, input_title, choices = var_choice_proj, selected = selected)
   # })
   
-  # Switch the mode of the static info
+  #### Switch the mode of the static info ####
   output$var_choice_stat <- renderUI({
     input_title <- "Choose variable"
     if(input$mode_stat == "Soil") {
       input_name <- "soil_stat"
       var_choice_stat <- input_soil_var
       selected <- "Soil depth (cm)"
-    } else {
-      input_name <- "ifn_stat"
-      var_choice_stat <- input_ifn_var
-      selected <- "Leaf Area Index"
-    }
+    } else if(input$mode_stat == "Vegetation") {
+      input_name <- "veg_stat"
+      var_choice_stat <- input_veg_var
+      selected <- "Leaf Area Index (m2/m2)"
+    } 
     selectInput(input_name, input_title, choices = var_choice_stat, selected = selected)
   })
 
@@ -892,7 +913,23 @@ shinyServer(function(input, output, session) {
   #### STATIC RASTER REACTION  ####
   # Sets raster layer for static inputs
   observe({
-    if(input$mode_stat == "Soil"){
+    if(input$mode_stat == "Vegetation"){
+      if(!is.null(input$veg_stat)){
+        folder <- paste0(data_home,"Rdata/Maps/Static/Vegetation")
+        col <- as.character(veg_variables[veg_variables$input == input$veg_stat, "medfate"])
+        load(paste(folder, "/", input$resolution_stat, "/",col, ".rda", sep = ""))
+        
+        
+        dom <- c(pal_veg[input$veg_stat,"min"],pal_veg[input$veg_stat,"max"])
+        bins <- do.call(paste(pal_veg[input$veg_stat, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+        
+        pal <- colorBin(pal_veg[input$veg_stat,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_veg[input$veg_stat, "rev"])
+        # print(pal)
+        # print(head(spdf@data))
+        map_stat_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+      }
+    }
+    else if(input$mode_stat == "Soil"){
       if(!is.null(input$soil_stat)){
         folder <- paste0(data_home,"Rdata/Maps/Static/Soil")
         col <- as.character(soil_variables[soil_variables$input == input$soil_stat, "medfate"])
