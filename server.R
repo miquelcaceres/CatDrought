@@ -70,8 +70,6 @@ folder_historic <- paste0(data_home,"Rdata/Plots/HistoricSPWB/IFN2-3/")
 available_plots_historic <- list.files(folder_historic)
 available_plots_historic <- unlist(strsplit(available_plots_historic,split = ".rda"))
 
-## Available dates for current drought
-dates_daily = as.Date(substr(list.files(paste0(data_home,"Rdata/Maps/Current/1km/SPWB/Rain"),pattern = "*.rda"),1,10))
 
 ##Weather station locations
 # load(paste0(data_home,"Rdata/WeatherStations.Rdata"))
@@ -83,8 +81,8 @@ medfate_clim_var <- c("Rain", "PET", "spei3","spei6","spei12")
 clim_variables <- data.frame(input = input_clim_var, medfate = medfate_clim_var)
 
 input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plants transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)", "Deep drainage (mm)",
-                  "Relative soil water content [0-1]")
-medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta")
+                  "Relative soil water content [0-1]", "Soil water potential (-MPa)")
+medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta", "Psi")
 WB_variables <- data.frame(input = input_WB_var, medfate = medfate_WB_var)
 
 input_soil_var<-c("Soil depth (cm)", "Water content at field capacity (mm)", "Water content at wilting point (mm)"  ,"Water holding capacity (mm)", 
@@ -150,9 +148,15 @@ pal_WB[c("Plants transpiration (mm)", "Soil evaporation (mm)"), "color"] <- "Gre
 pal_WB[c("Run-off (mm)", "Deep drainage (mm)"), "color"] <- "Reds"
 pal_WB["Relative soil water content [0-1]", "color"] <- "RdYlBu"
 pal_WB["Relative soil water content [0-1]", "trans"] <- "identity"
+pal_WB["Soil water potential (-MPa)", "color"] <- "RdYlBu"
+pal_WB["Soil water potential (-MPa)", "trans"] <- "log"
+pal_WB["Soil water potential (-MPa)", "rev"] <- T
+pal_WB["Soil water potential (-MPa)", "min"] <- 0
+pal_WB["Soil water potential (-MPa)", "max"] <- 4
 pal_WB["LAI (m2/m2)", "max"] <- 9.5
 pal_WB["LAI (m2/m2)", "trans"] <- "identity"
 pal_WB["LAI (m2/m2)", "color"] <- "Greens"
+print(pal_WB)
 
 ## Define color scales for rasters
 pal_DS <- as.data.frame(matrix(NA, nrow = length(input_DS_var), ncol = 5, dimnames = list(input_DS_var, c("min", "max", "color", "trans", "rev"))))
@@ -256,6 +260,9 @@ rel_change_scale<-function(reverse = F) {
 #### Define server logic ####
 shinyServer(function(input, output, session) {
   output$date_daily<-renderUI({
+    ## Available dates for current drought
+    dates_daily = as.Date(substr(list.files(paste0(data_home,"Rdata/Maps/Current/1km/SPWB/Rain"),pattern = "*.rda"),1,10))
+    
     dateInput("date_daily", "Date",value = dates_daily[length(dates_daily)], min =dates_daily[1], max = dates_daily[length(dates_daily)], weekstart=1)
   })
   
@@ -360,7 +367,6 @@ shinyServer(function(input, output, session) {
         spdftmp@data =spdftmp@data /nd
         spdf = spdftmp
 
-
         dom <- c(pal_clim[input$clim_daily,"min"],pal_clim[input$clim_daily,"max"])
         bins <- do.call(paste(pal_clim[input$clim_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
 
@@ -387,7 +393,10 @@ shinyServer(function(input, output, session) {
         }
         spdftmp@data =spdftmp@data /nd
         spdf = spdftmp
-
+        if(col=="Psi") {
+          spdf@data = -spdf@data
+          print(summary(spdf@data))
+        }
         r <- raster(spdf)
         proj4string(r) <- dataCRS
         r <- projectRaster(r, crs = mapCRS)
