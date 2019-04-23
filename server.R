@@ -80,11 +80,13 @@ input_clim_var <- c("Precipitation (mm)", "Potential evapo-transpiration (mm)", 
 medfate_clim_var <- c("Rain", "PET", "spei3","spei6","spei12")
 clim_variables <- data.frame(input = input_clim_var, medfate = medfate_clim_var)
 
-input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plants transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)", "Deep drainage (mm)",
-                  "Soil moisture content (%)", "Relative extractable water [0-1]", "Soil water potential (-MPa)")
-medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", 
-                    "Theta", "REW", "Psi")
+input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plant transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)", "Deep drainage (mm)")
+medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage")
 WB_variables <- data.frame(input = input_WB_var, medfate = medfate_WB_var)
+
+input_soilstatus_var <- c("Relative extractable water [0-1]", "Soil moisture content (%)", "Soil water potential (-MPa)")
+medfate_soilstatus_var <- c("REW", "Theta", "Psi")
+soilstatus_variables <- data.frame(input = input_soilstatus_var, medfate = medfate_soilstatus_var)
 
 input_soil_var<-c("Soil depth (cm)", "Water content at field capacity (mm)", "Water content at wilting point (mm)"  ,"Water holding capacity (mm)", 
                   "Topsoil texture type", "Subsoil texture type","Topsoil rock fragment content (%)", "Subsoil rock fragment content (%)")
@@ -139,28 +141,36 @@ pal_WB$min <- 0
 pal_WB$color <- "Spectral"
 pal_WB$trans <- "log"
 pal_WB$rev <- F
-pal_WB[c("Plants transpiration (mm)", "Soil evaporation (mm)"), "max"] <- 5
 pal_WB[c("Run-off (mm)", "Deep drainage (mm)"), "max"] <- 15
 pal_WB[c("Net precipitation (mm)"), "max"] <- 100
 pal_WB[c("Net precipitation (mm)"), "rev"] <- F
 pal_WB[c("Net precipitation (mm)"), "color"] <- "Blues"
-pal_WB[c("Plants transpiration (mm)", "Soil evaporation (mm)"), "color"] <- "Greens"
+pal_WB[c("Plant transpiration (mm)", "Soil evaporation (mm)"), "max"] <- 5
+pal_WB[c("Plant transpiration (mm)", "Soil evaporation (mm)"), "color"] <- "Greens"
 pal_WB[c("Run-off (mm)", "Deep drainage (mm)"), "color"] <- "Reds"
-pal_WB["Relative extractable water [0-1]", "max"] <- 1
-pal_WB["Relative extractable water [0-1]", "color"] <- "RdYlBu"
-pal_WB["Relative extractable water [0-1]", "trans"] <- "identity"
-pal_WB["Soil moisture content (%)", "color"] <- "RdYlBu"
-pal_WB["Soil moisture content (%)", "trans"] <- "identity"
-pal_WB["Soil moisture content (%)", "max"] <- 1
-pal_WB["Soil water potential (-MPa)", "color"] <- "RdYlBu"
-pal_WB["Soil water potential (-MPa)", "trans"] <- "log"
-pal_WB["Soil water potential (-MPa)", "rev"] <- T
-pal_WB["Soil water potential (-MPa)", "min"] <- 0
-pal_WB["Soil water potential (-MPa)", "max"] <- 4
 pal_WB["LAI (m2/m2)", "max"] <- 9.5
 pal_WB["LAI (m2/m2)", "trans"] <- "identity"
 pal_WB["LAI (m2/m2)", "color"] <- "Greens"
 print(pal_WB)
+
+## Define color scales for rasters
+pal_soilstatus <- as.data.frame(matrix(NA, nrow = length(input_soilstatus_var), ncol = 5, dimnames = list(input_soilstatus_var, c("min", "max", "color", "trans", "rev"))))
+pal_soilstatus$min <- 0
+pal_soilstatus$color <- "Spectral"
+pal_soilstatus$trans <- "log"
+pal_soilstatus$rev <- F
+pal_soilstatus["Relative extractable water [0-1]", "max"] <- 1
+pal_soilstatus["Relative extractable water [0-1]", "color"] <- "RdYlBu"
+pal_soilstatus["Relative extractable water [0-1]", "trans"] <- "identity"
+pal_soilstatus["Soil moisture content (%)", "color"] <- "RdYlBu"
+pal_soilstatus["Soil moisture content (%)", "trans"] <- "identity"
+pal_soilstatus["Soil moisture content (%)", "max"] <- 0.5
+pal_soilstatus["Soil water potential (-MPa)", "color"] <- "RdYlBu"
+pal_soilstatus["Soil water potential (-MPa)", "trans"] <- "log"
+pal_soilstatus["Soil water potential (-MPa)", "rev"] <- T
+pal_soilstatus["Soil water potential (-MPa)", "min"] <- 0
+pal_soilstatus["Soil water potential (-MPa)", "max"] <- 4
+print(pal_soilstatus)
 
 ## Define color scales for rasters
 pal_DS <- as.data.frame(matrix(NA, nrow = length(input_DS_var), ncol = 5, dimnames = list(input_DS_var, c("min", "max", "color", "trans", "rev"))))
@@ -281,6 +291,10 @@ shinyServer(function(input, output, session) {
     } else if(input$mode_daily == "Forest water balance") {
       input_name <- "WB_daily"
       var_choice_daily <- input_WB_var
+      selected <- "Plant transpiration (mm)"
+    } else if(input$mode_daily == "Soil moisture") {
+      input_name <- "soilstatus_daily"
+      var_choice_daily <- input_soilstatus_var
       selected <- "Relative extractable water [0-1]"
     } else {
       input_name <- "DS_daily"
@@ -352,96 +366,115 @@ shinyServer(function(input, output, session) {
   #### DAILY RASTER REACTION  ####
   # Sets raster layer for daily drought
   observe({
-    if(input$mode_daily == "Climate"){
-      if(!is.null(input$clim_daily)){
-        folder <- paste0(data_home,"Rdata/Maps/Current")
-        col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
-        dfin = input$date_daily
-        dini  = max(as.Date("2019-01-01"),dfin-(as.numeric(input$agg_daily)-1))
-        dw = seq(dini, dfin, by="day")
-        nd = length(dw)
-        load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[1], ".rda", sep = ""))
-        spdftmp = spdf
-        if(nd>1) {
-          for(d in 2:nd) {
-            load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[d], ".rda", sep = ""))
-            spdftmp@data = spdftmp@data + spdf@data
-          }
-        }
-        spdftmp@data =spdftmp@data /nd
-        spdf = spdftmp
-
-        dom <- c(pal_clim[input$clim_daily,"min"],pal_clim[input$clim_daily,"max"])
-        bins <- do.call(paste(pal_clim[input$clim_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-
-        pal <- colorBin(pal_clim[input$clim_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[input$clim_daily, "rev"])
-
-        map_daily_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
-      }
-    }
-    else if(input$mode_daily == "Forest water balance"){
-      if(!is.null(input$WB_daily)){
-        folder <- paste0(data_home,"Rdata/Maps/Current")
-        col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
-        dfin = input$date_daily
-        dini  = max(as.Date("2019-01-01"),dfin-(as.numeric(input$agg_daily)-1))
-        dw = seq(dini, dfin, by="day")
-        nd = length(dw)
-        load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[1], ".rda", sep = ""))
-        spdftmp = spdf
-        if(nd>1) {
-          for(d in 2:nd) {
-            load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[d], ".rda", sep = ""))
-            spdftmp@data = spdftmp@data + spdf@data
-          }
-        }
-        spdftmp@data =spdftmp@data /nd
-        spdf = spdftmp
-        if(col=="Psi") {
-          spdf@data = -spdf@data
-          print(summary(spdf@data))
-        }
-        r <- raster(spdf)
-        proj4string(r) <- dataCRS
-        r <- projectRaster(r, crs = mapCRS)
-
-        dom <- c(pal_WB[input$WB_daily,"min"],pal_WB[input$WB_daily,"max"])
-        bins <- do.call(paste(pal_WB[input$WB_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-        pal <- colorBin(pal_WB[input$WB_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_daily, "rev"])
-        map_daily_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
-
-      }
-    }
-    else {
-      if(!is.null(input$DS_daily) && !is.null(input$sp_daily)){
-        folder <- paste0(data_home,"Rdata/Maps/Current")
-        ds_var <- as.character(DS_variables[DS_variables$input == input$DS_daily, "medfate"])
-        col <- as.character(species[species$input == input$sp_daily, "medfate"])
-        # print(ds_var)
-        dfin = input$date_daily
-        dini  = max(as.Date("2019-01-01"),dfin-(as.numeric(input$agg_daily)-1))
-        dw = seq(dini, dfin, by="day")
-        nd = length(dw)
-        file = paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[1], ".rda", sep = "")
-        if(file.exists(file)) {
-          load(file)
+    if(!is.null(input$date_daily)) {
+      dfin = as.Date(input$date_daily)
+      dini  = max(as.Date("2019-01-01"),dfin-(as.numeric(input$agg_daily)-1))
+      dw = seq(dini, dfin, by="day")
+      nd = length(dw)
+      
+      if(input$mode_daily == "Climate"){
+        if(!is.null(input$clim_daily)){
+          folder <- paste0(data_home,"Rdata/Maps/Current")
+          col <- as.character(clim_variables[clim_variables$input == input$clim_daily, "medfate"])
+          load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[1], ".rda", sep = ""))
           spdftmp = spdf
           if(nd>1) {
             for(d in 2:nd) {
-              load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[d], ".rda", sep = ""))
+              load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[d], ".rda", sep = ""))
               spdftmp@data = spdftmp@data + spdf@data
             }
           }
           spdftmp@data =spdftmp@data /nd
           spdf = spdftmp
-
-          dom <- c(pal_DS[input$DS_daily,"min"],pal_DS[input$DS_daily,"max"])
-          bins <- do.call(paste(pal_DS[input$DS_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
-          if(ds_var=="NDD") bins<-ceiling(bins)
-
-          pal <- colorBin(pal_DS[input$DS_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[input$DS_daily, "rev"])
-
+          
+          dom <- c(pal_clim[input$clim_daily,"min"],pal_clim[input$clim_daily,"max"])
+          bins <- do.call(paste(pal_clim[input$clim_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+          
+          pal <- colorBin(pal_clim[input$clim_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_clim[input$clim_daily, "rev"])
+          
           map_daily_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+        }
+      }
+      else if(input$mode_daily == "Forest water balance"){
+        if(!is.null(input$WB_daily)){
+          folder <- paste0(data_home,"Rdata/Maps/Current")
+          col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
+          load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[1], ".rda", sep = ""))
+          spdftmp = spdf
+          if(nd>1) {
+            for(d in 2:nd) {
+              load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[d], ".rda", sep = ""))
+              spdftmp@data = spdftmp@data + spdf@data
+            }
+          }
+          spdftmp@data =spdftmp@data /nd
+          spdf = spdftmp
+          r <- raster(spdf)
+          proj4string(r) <- dataCRS
+          r <- projectRaster(r, crs = mapCRS)
+          
+          dom <- c(pal_WB[input$WB_daily,"min"],pal_WB[input$WB_daily,"max"])
+          bins <- do.call(paste(pal_WB[input$WB_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+          pal <- colorBin(pal_WB[input$WB_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_WB[input$WB_daily, "rev"])
+          map_daily_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+          
+        }
+      }
+      else if(input$mode_daily == "Soil moisture"){
+        if(!is.null(input$soilstatus_daily)){
+          folder <- paste0(data_home,"Rdata/Maps/Current")
+          col <- as.character(soilstatus_variables[soilstatus_variables$input == input$soilstatus_daily, "medfate"])
+          load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[1], ".rda", sep = ""))
+          spdftmp = spdf
+          if(nd>1) {
+            for(d in 2:nd) {
+              load(paste(folder, "/", input$resolution_daily, "/SPWB/",col, "/", dw[d], ".rda", sep = ""))
+              spdftmp@data = spdftmp@data + spdf@data
+            }
+          }
+          spdftmp@data =spdftmp@data /nd
+          spdf = spdftmp
+          if(col=="Psi") {
+            spdf@data = -spdf@data
+          }
+          r <- raster(spdf)
+          proj4string(r) <- dataCRS
+          r <- projectRaster(r, crs = mapCRS)
+          
+          dom <- c(pal_soilstatus[input$soilstatus_daily,"min"],pal_soilstatus[input$soilstatus_daily,"max"])
+          bins <- do.call(paste(pal_soilstatus[input$soilstatus_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+          pal <- colorBin(pal_soilstatus[input$soilstatus_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_soilstatus[input$soilstatus_daily, "rev"])
+          map_daily_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+          
+        }
+      }
+      else {
+        if(!is.null(input$DS_daily) && !is.null(input$sp_daily)){
+          folder <- paste0(data_home,"Rdata/Maps/Current")
+          ds_var <- as.character(DS_variables[DS_variables$input == input$DS_daily, "medfate"])
+          col <- as.character(species[species$input == input$sp_daily, "medfate"])
+          # print(ds_var)
+          file = paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[1], ".rda", sep = "")
+          if(file.exists(file)) {
+            load(file)
+            spdftmp = spdf
+            if(nd>1) {
+              for(d in 2:nd) {
+                load(paste(folder, "/", input$resolution_daily, "/DroughtStress/",ds_var,"/",col, "/", dw[d], ".rda", sep = ""))
+                spdftmp@data = spdftmp@data + spdf@data
+              }
+            }
+            spdftmp@data =spdftmp@data /nd
+            spdf = spdftmp
+            
+            dom <- c(pal_DS[input$DS_daily,"min"],pal_DS[input$DS_daily,"max"])
+            bins <- do.call(paste(pal_DS[input$DS_daily, "trans"], "trans", sep = "_"), args = list(dom = dom, n = 15, digits = 2))
+            if(ds_var=="NDD") bins<-ceiling(bins)
+            
+            pal <- colorBin(pal_DS[input$DS_daily,"color"], domain = dom, na.color = "transparent", bins = bins, reverse = pal_DS[input$DS_daily, "rev"])
+            
+            map_daily_raster_data$x<-list(spdf = spdf, dom = dom, bins=bins, pal = pal)
+          }
         }
       }
     }

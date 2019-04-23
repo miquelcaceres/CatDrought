@@ -19,7 +19,7 @@ shinyUI(
      tabPanel("Current",
                 fluidRow(
                   column(width=3,
-                         selectInput("mode_daily", "Variable type", choices = c("Climate","Forest water balance", "Drought stress"), selected = "Forest water balance")
+                         selectInput("mode_daily", "Variable type", choices = c("Climate","Forest water balance", "Soil moisture","Drought stress"), selected = "Forest water balance")
                   ),
                   column(width=3,
                          uiOutput("var_choice_daily")
