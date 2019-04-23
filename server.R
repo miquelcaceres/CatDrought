@@ -267,7 +267,7 @@ shinyServer(function(input, output, session) {
     ## Available dates for current drought
     dates_daily = as.Date(substr(list.files(paste0(data_home,"Rdata/Maps/Current/1km/SPWB/Rain"),pattern = "*.rda"),1,10))
     
-    dateInput("date_daily", "Date",value = dates_daily[1], min =dates_daily[1], max = dates_daily[length(dates_daily)], weekstart=1)
+    dateInput("date_daily", "Date",value = dates_daily[length(dates_daily)], min =dates_daily[1], max = dates_daily[length(dates_daily)], weekstart=1)
   })
   
 
