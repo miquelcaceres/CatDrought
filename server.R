@@ -1311,7 +1311,7 @@ shinyServer(function(input, output, session) {
 
       # Open relevant files and extract informations regarding the selected variable
       if(nrow(IFN3_sel)>0){
-        if(input$mode_daily %in% c("Climate", "Forest water balance")){
+        if(input$mode_daily %in% c("Climate", "Forest water balance", "Soil moisture")){
           folder <- paste0(data_home,"Rdata/Plots/SPWBTrends")
           plots_id <- IFN3_sel$ID
           plots_id <- plots_id[as.character(plots_id) %in% available_plots_trends]
@@ -1548,6 +1548,10 @@ shinyServer(function(input, output, session) {
         col <- as.character(WB_variables[WB_variables$input == input$WB_daily, "medfate"])
         title <- paste(input$WB_daily," at ",as.character(map_daily_data$x$info$Name))
         label=input$WB_daily
+      } else if(input$mode_daily == "Soil moisture") {
+        col <- as.character(soilstatus_variables[soilstatus_variables$input == input$soilstatus_daily, "medfate"])
+        title <- paste(input$soilstatus_daily," at ",as.character(map_daily_data$x$info$Name))
+        label=input$soilstatus_daily
       } else {
         col <- as.character(species[species$input == input$sp_daily, "medfate"])
         title <- paste("Stress intensity for ", input$sp_daily," at ",as.character(map_daily_data$x$info$Name))
@@ -1565,7 +1569,8 @@ shinyServer(function(input, output, session) {
           dyRangeSelector() %>%
           dyAxis("y", label = "Stress intensity", valueRange = c(0, 1)) %>%
           dyLimit(0.5, color="red")
-      } else {
+      } 
+      else {
         dygraph(x, main= title) %>%
           dySeries(c("lower", "mean","upper"), label=label) %>%
           dyRangeSelector()
