@@ -81,8 +81,9 @@ medfate_clim_var <- c("Rain", "PET", "spei3","spei6","spei12")
 clim_variables <- data.frame(input = input_clim_var, medfate = medfate_clim_var)
 
 input_WB_var <- c("Net precipitation (mm)", "LAI (m2/m2)","Plants transpiration (mm)", "Soil evaporation (mm)", "Run-off (mm)", "Deep drainage (mm)",
-                  "Relative soil water content [0-1]", "Soil water potential (-MPa)")
-medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", "Theta", "Psi")
+                  "Soil moisture content (%)", "Relative extractable water [0-1]", "Soil water potential (-MPa)")
+medfate_WB_var <- c("NetPrec", "LAI", "Eplant", "Esoil", "Runoff", "DeepDrainage", 
+                    "Theta", "REW", "Psi")
 WB_variables <- data.frame(input = input_WB_var, medfate = medfate_WB_var)
 
 input_soil_var<-c("Soil depth (cm)", "Water content at field capacity (mm)", "Water content at wilting point (mm)"  ,"Water holding capacity (mm)", 
@@ -138,16 +139,19 @@ pal_WB$min <- 0
 pal_WB$color <- "Spectral"
 pal_WB$trans <- "log"
 pal_WB$rev <- F
-pal_WB[c("Net precipitation (mm)"), "max"] <- 100
 pal_WB[c("Plants transpiration (mm)", "Soil evaporation (mm)"), "max"] <- 5
 pal_WB[c("Run-off (mm)", "Deep drainage (mm)"), "max"] <- 15
-pal_WB["Relative soil water content [0-1]", "max"] <- 1
+pal_WB[c("Net precipitation (mm)"), "max"] <- 100
 pal_WB[c("Net precipitation (mm)"), "rev"] <- F
 pal_WB[c("Net precipitation (mm)"), "color"] <- "Blues"
 pal_WB[c("Plants transpiration (mm)", "Soil evaporation (mm)"), "color"] <- "Greens"
 pal_WB[c("Run-off (mm)", "Deep drainage (mm)"), "color"] <- "Reds"
-pal_WB["Relative soil water content [0-1]", "color"] <- "RdYlBu"
-pal_WB["Relative soil water content [0-1]", "trans"] <- "identity"
+pal_WB["Relative extractable water [0-1]", "max"] <- 1
+pal_WB["Relative extractable water [0-1]", "color"] <- "RdYlBu"
+pal_WB["Relative extractable water [0-1]", "trans"] <- "identity"
+pal_WB["Soil moisture content (%)", "color"] <- "RdYlBu"
+pal_WB["Soil moisture content (%)", "trans"] <- "identity"
+pal_WB["Soil moisture content (%)", "max"] <- 1
 pal_WB["Soil water potential (-MPa)", "color"] <- "RdYlBu"
 pal_WB["Soil water potential (-MPa)", "trans"] <- "log"
 pal_WB["Soil water potential (-MPa)", "rev"] <- T
@@ -263,7 +267,7 @@ shinyServer(function(input, output, session) {
     ## Available dates for current drought
     dates_daily = as.Date(substr(list.files(paste0(data_home,"Rdata/Maps/Current/1km/SPWB/Rain"),pattern = "*.rda"),1,10))
     
-    dateInput("date_daily", "Date",value = dates_daily[length(dates_daily)], min =dates_daily[1], max = dates_daily[length(dates_daily)], weekstart=1)
+    dateInput("date_daily", "Date",value = dates_daily[1], min =dates_daily[1], max = dates_daily[length(dates_daily)], weekstart=1)
   })
   
 
@@ -277,7 +281,7 @@ shinyServer(function(input, output, session) {
     } else if(input$mode_daily == "Forest water balance") {
       input_name <- "WB_daily"
       var_choice_daily <- input_WB_var
-      selected <- "Relative soil water content [0-1]"
+      selected <- "Relative extractable water [0-1]"
     } else {
       input_name <- "DS_daily"
       var_choice_daily <- input_DS_var
@@ -296,7 +300,7 @@ shinyServer(function(input, output, session) {
     } else if(input$mode_hist == "Forest water balance") {
       input_name <- "WB_hist"
       var_choice_hist <- input_WB_var[-2]
-      selected <- "Relative soil water content [0-1]"
+      selected <- "Net precipitation (mm)"
     } else {
       input_name <- "DS_hist"
       var_choice_hist <- input_DS_var
@@ -315,7 +319,7 @@ shinyServer(function(input, output, session) {
   #   } else if(input$mode_proj == "Forest water balance") {
   #     input_name <- "WB_proj"
   #     var_choice_proj <- input_WB_var[-2]
-  #     selected <- "Relative soil water content [0-1]"
+  #     selected <- "Relative extractable water [0-1]"
   #   } else {
   #     input_name <- "DS_proj"
   #     var_choice_proj <- input_DS_var
