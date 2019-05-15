@@ -490,7 +490,7 @@ shinyServer(function(input, output, session) {
         clearImages() %>%
         clearControls() %>%
         addRasterImage(r, opacity = input$alpha_daily, colors = map_daily_raster_data$x$pal, layerId="raster", group="rasterGroup") %>%
-        addLegend(pal = map_daily_raster_data$x$pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
+        leaflet::addLegend(pal = map_daily_raster_data$x$pal, values = values(r),opacity = input$alpha_daily, position = "bottomright", layerId="raster")
 
     }
   })
@@ -775,7 +775,7 @@ shinyServer(function(input, output, session) {
         clearImages() %>%
         clearControls() %>%
         addRasterImage(r, opacity = input$alpha_hist, colors = map_hist_raster_data$x$pal, layerId="raster", group="rasterGroup") %>%
-        addLegend(pal = map_hist_raster_data$x$pal, values = values(r),opacity = input$alpha_hist, position = "bottomright", layerId="raster")
+        leaflet::addLegend(pal = map_hist_raster_data$x$pal, values = values(r),opacity = input$alpha_hist, position = "bottomright", layerId="raster")
     }
   })
   # observe({
@@ -935,7 +935,7 @@ shinyServer(function(input, output, session) {
   #       clearImages() %>%
   #       clearControls() %>%
   #       addRasterImage(r, opacity = input$alpha_proj, colors = map_proj_raster_data$x$pal, layerId="raster", group="rasterGroup") %>%
-  #       addLegend(pal = map_proj_raster_data$x$pal, values = values(r),opacity = input$alpha_proj, position = "bottomright", layerId="raster")
+  #       leaflet::addLegend(pal = map_proj_raster_data$x$pal, values = values(r),opacity = input$alpha_proj, position = "bottomright", layerId="raster")
   # 
   #   }
   # })
@@ -1003,7 +1003,7 @@ shinyServer(function(input, output, session) {
         clearImages() %>%
         clearControls() %>%
         addRasterImage(r, opacity = input$alpha_stat, colors = map_stat_raster_data$x$pal, layerId="raster", group="rasterGroup") %>%
-        addLegend(pal = map_stat_raster_data$x$pal, values = values(r),opacity = input$alpha_stat, position = "bottomright", layerId="raster")
+        leaflet::addLegend(pal = map_stat_raster_data$x$pal, values = values(r),opacity = input$alpha_stat, position = "bottomright", layerId="raster")
 
     }
   })
