@@ -16,7 +16,7 @@ library(meteoland)
 if(Sys.info()["sysname"]=="Windows") { #Windows machine
   data_home <- "//SERVERPROCESS/Miquel/CatDrought/"
 } else { #Linux server
-  data_home <- "/home/miquel/serverprocess/"
+  data_home <- "/home/miquel/CatDrought/"
 }
 
 # App data requisites
